@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Somos Reino — Dar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --coral:#F7746D; --coral-deep:#C8483F; --coral-wash:#FDECEA;
+  --ink:#17151C; --paper:#FBF8F6; --card:#FFFFFF;
+  --line:#EEE6E0; --line-2:#DED3CA;
+  --text:#1E1B22; --text-2:#6C6570; --text-3:#A29AA0;
+  --sage:#3F7A63; --sage-wash:#E7F1EC;
+  --amber:#A97613; --amber-wash:#FBF0DC;
+  --blue:#2F6E8F; --blue-wash:#E6EFF3;
+  --plum:#8A4A6B; --plum-wash:#F3E7ED;
+  --r:18px; --r-lg:24px; --r-sm:12px;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --ui:"Schibsted Grotesk",system-ui,sans-serif;
+  --display:"Bricolage Grotesque","Schibsted Grotesk",sans-serif;
+  --navh:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--ui);background:var(--paper);color:var(--text);-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45;padding-bottom:calc(var(--navh) + 22px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+:focus-visible{outline:2px solid var(--coral);outline-offset:2px;border-radius:6px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* header */
+.hdr{position:sticky;top:0;z-index:30;background:rgba(251,248,246,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hdr-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:13px 18px}
+.hdr-in svg{width:24px;height:24px;fill:var(--coral);flex:0 0 auto}
+.hdr-name{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:-.03em}
+.langsw{margin-left:auto;display:flex;border:1px solid var(--line-2);border-radius:999px;padding:2px;background:var(--card)}
+.langsw button{padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;color:var(--text-3);letter-spacing:.03em}
+.langsw button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--coral);color:#3A100D;display:grid;place-items:center;font-weight:700;font-size:12px;flex:0 0 auto}
+
+.wrap{max-width:640px;margin:0 auto;padding:18px 18px 8px}
+
+/* nav */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(23,21,28,.14)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 10px;border-radius:12px;color:#8B8394;flex:1;max-width:110px}
+.tab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab span{font-size:10px;font-weight:600;letter-spacing:.01em}
+.tab[aria-current="true"]{color:#fff}
+.tab[aria-current="true"] svg{stroke:var(--coral)}
+@media(min-width:760px){
+  body{padding-bottom:40px}
+  .tabbar{position:static;background:var(--card);border:1px solid var(--line);border-radius:999px;max-width:460px;margin:0 auto 22px;padding:5px;box-shadow:none}
+  .tab{flex-direction:row;border-radius:999px;padding:8px 14px}
+  .tab[aria-current="true"]{background:var(--ink)}
+  .tab span{font-size:12.5px}
+}
+
+/* primitives */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-3)}
+h1{font-family:var(--display);font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.08}
+h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.025em}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:999px;font-size:14px;font-weight:700;border:1px solid var(--line-2);background:var(--card);transition:transform .08s,background .13s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--coral);border-color:var(--coral);color:#3A100D}
+.btn-primary:hover{background:#F4605A}
+.btn-primary:disabled{background:#EFE3DF;border-color:#EFE3DF;color:var(--text-3);cursor:not-allowed}
+.btn-dark{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-ghost:hover{background:#F1EAE5}
+.btn-sm{padding:6px 12px;font-size:12.5px}
+.btn-block{width:100%}
+.link{color:var(--coral-deep);font-weight:600;font-size:13px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-family:var(--mono);font-size:10px;letter-spacing:.03em;text-transform:uppercase;font-weight:600}
+.t-ok{background:var(--sage-wash);color:var(--sage)}
+.t-wait{background:var(--amber-wash);color:var(--amber)}
+.t-mute{background:#F1ECE9;color:var(--text-2)}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-2)}
+.input{border:1px solid var(--line-2);border-radius:12px;padding:11px 13px;background:var(--card);font-size:14.5px;width:100%}
+.input:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sw-toggle{width:38px;height:22px;border-radius:12px;background:#DDD5CF;position:relative;flex:0 0 auto;transition:background .16s}
+.sw-toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .16s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw-toggle[aria-pressed="true"]{background:var(--sage)}
+.sw-toggle[aria-pressed="true"]::after{transform:translateX(16px)}
+.section{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
+.empty{padding:26px 16px;text-align:center;color:var(--text-2);font-size:13.5px}
+
+/* give: fund cards */
+.fundlist{display:flex;flex-direction:column;gap:8px}
+.fundcard{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;border:1.5px solid var(--line);border-radius:var(--r-sm);background:var(--card);text-align:left;width:100%;transition:border-color .12s,box-shadow .12s}
+.fundcard[aria-pressed="true"]{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
+.fund-dot{width:11px;height:11px;border-radius:4px;margin-top:3px;flex:0 0 auto}
+.fund-name{font-size:14.5px;font-weight:700}
+.fund-blurb{font-size:12px;color:var(--text-2);margin-top:2px;line-height:1.4}
+.fund-radio{margin-left:auto;width:19px;height:19px;border-radius:50%;border:2px solid var(--line-2);flex:0 0 auto;display:grid;place-items:center;margin-top:2px}
+.fundcard[aria-pressed="true"] .fund-radio{border-color:var(--coral)}
+.fundcard[aria-pressed="true"] .fund-radio::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--coral)}
+.campaign{margin-top:9px}
+.campaign-bar{height:6px;background:#F1ECE9;border-radius:4px;overflow:hidden}
+.campaign-fill{height:100%;background:var(--sage);border-radius:4px}
+.campaign-label{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--text-2)}
+
+/* give: amount */
+.amt-display{text-align:center;padding:22px 10px 6px}
+.amt-display .cur{font-family:var(--display);font-size:22px;font-weight:700;vertical-align:top;position:relative;top:10px;color:var(--text-3)}
+.amt-display .num{font-family:var(--display);font-size:56px;font-weight:800;letter-spacing:-.04em}
+.amt-display input{border:none;background:none;text-align:center;font-family:var(--display);font-size:56px;font-weight:800;letter-spacing:-.04em;width:100%;color:var(--text)}
+.amt-display input:focus{outline:none}
+.chips{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+.chip{padding:8px 15px;border-radius:999px;border:1.5px solid var(--line-2);background:var(--card);font-size:14px;font-weight:700}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.seg{display:flex;background:#F1ECE9;border-radius:999px;padding:3px;gap:2px}
+.seg button{flex:1;padding:8px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--text-2)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(23,21,28,.12)}
+.paymethod-row{display:flex;align-items:center;gap:11px;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r-sm);width:100%;text-align:left}
+.paymethod-row[aria-pressed="true"]{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
+.cardchip{width:34px;height:24px;border-radius:5px;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--mono);font-size:9px;font-weight:700;flex:0 0 auto}
+.feerow{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-sm)}
+.feerow-t{font-size:13.5px;font-weight:600}
+.feerow-d{font-size:11.5px;color:var(--text-2);margin-top:1px}
+.cta-bar{position:sticky;bottom:calc(var(--navh) + 14px + env(safe-area-inset-bottom));margin-top:6px}
+@media(min-width:760px){.cta-bar{position:static;margin-top:18px}}
+.totalline{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 10px;font-size:12.5px;color:var(--text-2)}
+.totalline b{font-family:var(--mono);color:var(--text);font-size:13px}
+
+.success{background:var(--sage-wash);border:1px solid #BFDDCF;border-radius:var(--r);padding:20px 18px;text-align:center}
+.success .mark{width:40px;height:40px;border-radius:50%;background:var(--sage);color:#fff;display:grid;place-items:center;margin:0 auto 10px;font-size:18px}
+.success h2{color:var(--sage)}
+.success p{font-size:13.5px;color:var(--text-2);margin-top:5px}
+.success .row{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+
+/* rhythm grid */
+.rhythm{display:grid;grid-template-columns:repeat(6,1fr);gap:10px 6px}
+@media(min-width:420px){.rhythm{grid-template-columns:repeat(6,1fr)}}
+.rmonth{display:flex;flex-direction:column;align-items:center;gap:5px}
+.rdot{width:26px;height:26px;border-radius:50%;border:2px solid var(--line-2);display:grid;place-items:center}
+.rdot.gave{background:var(--coral);border-color:var(--coral)}
+.rdot.gave::after{content:"";width:7px;height:7px;border-radius:50%;background:#fff}
+.rdot.future{border-style:dashed;border-color:#E6DDD6;opacity:.55}
+.rmonth span{font-size:10px;color:var(--text-2);font-weight:600}
+.rlegend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:11.5px;color:var(--text-2)}
+.rlegend span{display:inline-flex;align-items:center;gap:6px}
+.rlegend i{width:12px;height:12px;border-radius:50%;display:inline-block}
+
+/* history rows */
+.yeargroup{margin-bottom:18px}
+.yeargroup-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.yeargroup-hd .y{font-family:var(--display);font-size:16px;font-weight:800}
+.yeargroup-hd .amt{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:600}
+.giftrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #F2ECE8}
+.giftrow:last-child{border-bottom:none}
+.giftrow-dot{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
+.giftrow-desc{font-size:13.5px;font-weight:600}
+.giftrow-meta{font-size:11.5px;color:var(--text-2);margin-top:1px}
+.giftrow-amt{margin-left:auto;font-family:var(--mono);font-size:14.5px;font-weight:600}
+
+/* recurring cards */
+.reccard{padding:15px 16px}
+.reccard-top{display:flex;align-items:flex-start;gap:10px}
+.reccard-amt{font-family:var(--display);font-size:21px;font-weight:800;letter-spacing:-.03em}
+.reccard-fund{font-size:12.5px;color:var(--text-2);margin-top:2px}
+.reccard-actions{display:flex;gap:7px;margin-top:13px;flex-wrap:wrap}
+.reccard.paused{opacity:.62}
+
+/* account */
+.kv{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #F2ECE8;font-size:13.5px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--text-2)}
+.paycard{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid #F2ECE8}
+.paycard:last-child{border-bottom:none}
+.notif{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #F2ECE8}
+.notif:last-child{border-bottom:none}
+.notif-t{font-size:13.5px;font-weight:600}
+.notif-d{font-size:11.5px;color:var(--text-2);margin-top:1px}
+
+/* modal + toast */
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:18px}
+.modal{background:var(--card);border-radius:22px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(23,21,28,.28);overflow:hidden}
+.modal-hd{padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+.modal-t{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.03em}
+.modal-d{font-size:12.5px;color:var(--text-2);margin-top:3px}
+.modal-bd{padding:16px 20px;display:flex;flex-direction:column;gap:12px;max-height:56vh;overflow:auto}
+.modal-ft{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#FCFAF9}
+#toast{position:fixed;bottom:calc(var(--navh) + 16px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:88vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@media(min-width:760px){#toast{bottom:22px}}
+
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms !important;animation-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="mark" viewBox="0 0 3000 3000">
+<path d="M1914.98,332.31v1173.34c0,32.11-26.03,58.14-58.14,58.14h-70.1c-128.63,0-235.16-95.02-253.15-218.75-1.77-12.1-2.68-24.46-2.68-37.08V270.71c-2.49-.07-5.04-.07-7.52-.07-699.8,0-1267.11,567.31-1267.11,1267.11,0,559.27,362.29,1033.91,865.06,1201.98v-1101.4c0-32.11,26.03-58.14,58.2-58.14h70.04c128.7,0,235.16,95.02,253.15,218.75,1.77,12.1,2.68,24.46,2.68,37.08v968.71c5.95.07,11.97.13,17.98.13,699.8,0,1267.11-567.31,1267.11-1267.11,0-563.12-367.33-1040.45-875.52-1205.44ZM1106.29,1790.84c0,12.62-.92,24.98-2.68,37.08-17.98,123.66-124.45,218.75-253.15,218.75h-80.57c-26.29,0-47.67-21.38-47.67-47.74v-861.72c0-26.35,21.38-47.67,47.67-47.67h288.72c26.29,0,47.67,21.32,47.67,47.67v653.63ZM1505.4,1312.27c0,12.62-.92,24.98-2.68,37.08-17.98,123.66-124.45,218.75-253.15,218.75h-80.57c-26.29,0-47.67-21.38-47.67-47.74v-861.72c0-26.35,21.38-47.67,47.67-47.67h288.72c26.29,0,47.67,21.32,47.67,47.67v653.63ZM1914.98,2489.66c0,26.29-21.38,47.67-47.67,47.67h-288.66c-26.35,0-47.74-21.38-47.74-47.67v-653.63c0-12.62.92-24.98,2.68-37.08,17.98-123.73,124.51-218.75,253.15-218.75h80.57c26.29,0,47.67,21.32,47.67,47.67v861.79ZM2324.55,2118.14c0,32.11-26.03,58.14-58.14,58.14h-267.73c-32.11,0-58.2-26.03-58.2-58.14V867.77c0-32.11,26.09-58.14,58.2-58.14h70.04c128.7,0,235.16,95.02,253.15,218.75,1.77,12.1,2.68,24.46,2.68,37.08v1052.68Z"/>
+</symbol>
+</defs></svg>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <svg viewBox="0 0 3000 3000"><use href="#mark"/></svg>
+    <span class="hdr-name">Somos Reino</span>
+    <div class="langsw" role="group" aria-label="Language">
+      <button data-lang="es" aria-pressed="true">ES</button>
+      <button data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <button class="avatar" data-nav="account" aria-label="Account">MO</button>
+  </div>
+</header>
+
+<main class="wrap" id="view"></main>
+
+<nav class="tabbar" id="tabbar"></nav>
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script type="module">
+import { getPortalSession, mountAuthGate, mountForbiddenGate, signOut } from "/src/lib/auth.js";
+import { loadGivingSnapshot, openBillingPortal, startCheckout, updateMyProfile } from "/src/lib/api.js";
+import { showModeBadge } from "/src/lib/status.js";
+/* ============================================================
+   Somos Reino — giver portal (give, history, recurring, account)
+   Single-file demo. In-memory sample data, bilingual ES/EN.
+   ============================================================ */
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => (n<0?"-":"") + "$" + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const money0 = n => "$" + Math.round(n).toLocaleString("en-US");
+
+/* ---------------- i18n ---------------- */
+const STR = {
+  appName:{es:"Somos Reino", en:"Somos Reino"},
+  navGive:{es:"Dar", en:"Give"},
+  navHistory:{es:"Historial", en:"History"},
+  navRecurring:{es:"Recurrente", en:"Recurring"},
+  navAccount:{es:"Cuenta", en:"Account"},
+
+  greeting:{es:"Hola, {n}", en:"Hi, {n}"},
+  ytdLabel:{es:"Dado en 2026", en:"Given in 2026"},
+  chooseFund:{es:"¿A qué fondo?", en:"Which fund?"},
+  chooseAmount:{es:"¿Cuánto?", en:"How much?"},
+  custom:{es:"Otro", en:"Custom"},
+  frequency:{es:"Frecuencia", en:"Frequency"},
+  freqOnce:{es:"Una vez", en:"One time"},
+  freqWeekly:{es:"Semanal", en:"Weekly"},
+  freqMonthly:{es:"Mensual", en:"Monthly"},
+  paymentMethod:{es:"Método de pago", en:"Payment method"},
+  addCard:{es:"＋ Agregar tarjeta", en:"＋ Add a card"},
+  coverFeeT:{es:"Cubrir el costo de procesamiento", en:"Cover the processing fee"},
+  coverFeeD:{es:"Agrega {f} para que el 100% llegue al fondo", en:"Adds {f} so 100% reaches the fund"},
+  totalToday:{es:"Total de hoy", en:"Total today"},
+  giveOnce:{es:"Dar {a} ahora", en:"Give {a} now"},
+  giveMonthly:{es:"Empezar {a} al mes", en:"Start {a} monthly"},
+  giveWeekly:{es:"Empezar {a} semanal", en:"Start {a} weekly"},
+  needCard:{es:"Agrega un método de pago primero", en:"Add a payment method first"},
+  needAmount:{es:"Elige un monto mayor a cero", en:"Choose an amount above zero"},
+  secured:{es:"Protegido por Stripe · recibirás un recibo por correo", en:"Secured by Stripe · you'll get an email receipt"},
+
+  successTitleOnce:{es:"¡Gracias, {n}!", en:"Thank you, {n}!"},
+  successBodyOnce:{es:"Tu aportación de {a} a {f} fue recibida.", en:"Your gift of {a} to {f} was received."},
+  successBodyRec:{es:"Tu aportación recurrente de {a} a {f} está activa.", en:"Your recurring gift of {a} to {f} is active."},
+  viewHistory:{es:"Ver historial", en:"View history"},
+  giveAgain:{es:"Dar otra vez", en:"Give again"},
+
+  historyTitle:{es:"Historial", en:"History"},
+  totalGivenIn:{es:"Total dado en {y}", en:"Total given in {y}"},
+  emailStatement:{es:"Enviarme el comprobante de {y}", en:"Email me my {y} statement"},
+  statementSent:{es:"Comprobante de {y} enviado por correo", en:"{y} statement emailed"},
+  rhythmTitle:{es:"Tu constancia este año", en:"Your rhythm this year"},
+  legendGave:{es:"Diste", en:"Gave"},
+  legendMissed:{es:"Sin aportación", en:"No gift"},
+  legendUpcoming:{es:"Por venir", en:"Upcoming"},
+  noGiftsYear:{es:"Sin aportaciones registradas este año.", en:"No gifts recorded this year."},
+
+  recurringTitle:{es:"Recurrente", en:"Recurring"},
+  recurringEmpty:{es:"No tienes aportaciones recurrentes activas.", en:"You don't have any active recurring gifts."},
+  startRecurring:{es:"Empezar una aportación recurrente", en:"Start a recurring gift"},
+  nextCharge:{es:"Próximo cargo", en:"Next charge"},
+  pause:{es:"Pausar", en:"Pause"},
+  resume:{es:"Reanudar", en:"Resume"},
+  editAmt:{es:"Editar monto", en:"Edit amount"},
+  cancelGift:{es:"Cancelar", en:"Cancel"},
+  pausedTag:{es:"En pausa", en:"Paused"},
+  cancelTitle:{es:"¿Cancelar esta aportación recurrente?", en:"Cancel this recurring gift?"},
+  cancelBody:{es:"No se harán más cargos. Puedes empezar una nueva cuando quieras.", en:"No further charges will happen. You can start a new one anytime."},
+  keepIt:{es:"No, mantenerla", en:"No, keep it"},
+  yesCancelIt:{es:"Sí, cancelar", en:"Yes, cancel it"},
+  editTitle:{es:"Editar aportación recurrente", en:"Edit recurring gift"},
+  newAmount:{es:"Nuevo monto", en:"New amount"},
+
+  accountTitle:{es:"Cuenta", en:"Account"},
+  profileSection:{es:"Perfil", en:"Profile"},
+  nameF:{es:"Nombre", en:"Name"},
+  emailF:{es:"Correo", en:"Email"},
+  phoneF:{es:"Teléfono", en:"Phone"},
+  saveChanges:{es:"Guardar cambios", en:"Save changes"},
+  householdSection:{es:"Familia", en:"Household"},
+  partOfHousehold:{es:"Parte de la familia {h}", en:"Part of the {h} household"},
+  paymentSection:{es:"Métodos de pago", en:"Payment methods"},
+  defaultTag:{es:"Predeterminada", en:"Default"},
+  setDefault:{es:"Usar por defecto", en:"Set default"},
+  remove:{es:"Quitar", en:"Remove"},
+  notifSection:{es:"Notificaciones", en:"Notifications"},
+  emailReceiptsT:{es:"Recibo por correo en cada aportación", en:"Email receipt on every gift"},
+  emailReceiptsD:{es:"Un correo automático cada vez que das", en:"An automatic email every time you give"},
+  statementReminderT:{es:"Recordatorio del comprobante anual", en:"Annual statement reminder"},
+  statementReminderD:{es:"Un aviso en enero para el comprobante de impuestos", en:"A nudge in January for your tax statement"},
+  signOut:{es:"Cerrar sesión", en:"Sign out"},
+  notYou:{es:"¿No eres tú, {n}?", en:"Not you, {n}?"},
+
+  add:{es:"Agregar", en:"Add"},
+  cancelBtn:{es:"Cancelar", en:"Cancel"},
+  save:{es:"Guardar", en:"Save"},
+  close:{es:"Cerrar", en:"Close"},
+  addCardTitle:{es:"Agregar una tarjeta", en:"Add a card"},
+  cardNumber:{es:"Número de tarjeta", en:"Card number"},
+  expiry:{es:"Vence", en:"Expires"},
+  cardAdded:{es:"Tarjeta agregada", en:"Card added"},
+  cardRemoved:{es:"Tarjeta eliminada", en:"Card removed"},
+  cardDefault:{es:"Tarjeta predeterminada actualizada", en:"Default card updated"},
+  profileSaved:{es:"Perfil actualizado", en:"Profile updated"},
+  recPaused:{es:"Aportación pausada", en:"Gift paused"},
+  recResumed:{es:"Aportación reanudada", en:"Gift resumed"},
+  recUpdated:{es:"Monto actualizado", en:"Amount updated"},
+  recCancelled:{es:"Aportación cancelada", en:"Gift cancelled"},
+  signedOut:{es:"Cerrando sesión…", en:"Signing out…"},
+};
+function t(key, sub){
+  let s = (STR[key]||{})[state.lang] || key;
+  if(sub) for(const k in sub) s = s.replace("{"+k+"}", sub[k]);
+  return s;
+}
+const MONTHS = {
+  es:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+  en:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+};
+
+/* ---------------- data ---------------- */
+let FUNDS = [
+  {id:"general", color:"#F7746D", wash:"#FDECEA", name:{es:"Fondo General",en:"General Fund"}, blurb:{es:"Sostiene el ministerio semanal, el personal y la operación de la iglesia.",en:"Supports weekly ministry, staff, and church operations."}},
+  {id:"building", color:"#3F7A63", wash:"#E7F1EC", name:{es:"Techo Nuevo",en:"New Roof"}, blurb:{es:"Campaña para reemplazar el techo del santuario.",en:"Campaign to replace the sanctuary roof."}, campaign:{goal:150000, raised:63900}},
+  {id:"missions", color:"#2F6E8F", wash:"#E6EFF3", name:{es:"Misiones",en:"Missions"}, blurb:{es:"Envía a nuestra gente y apoyo a Honduras y más allá.",en:"Sends our people and support to Honduras and beyond."}},
+  {id:"benev", color:"#A97613", wash:"#FBF0DC", name:{es:"Benevolencia",en:"Benevolence"}, blurb:{es:"Ayuda directa para familias en crisis.",en:"Direct help for families in crisis."}},
+  {id:"youth", color:"#8A4A6B", wash:"#F3E7ED", name:{es:"Jóvenes",en:"Youth"}, blurb:{es:"Campamentos, retiros y reuniones semanales de jóvenes.",en:"Camps, retreats, and weekly youth gatherings."}},
+];
+const fundById = id => FUNDS.find(f=>f.id===id);
+
+let ME = {
+  name:"Marisol Ortega",
+  household:"Ortega",
+  email:"marisol@gmail.com",
+  phone:"(407) 555-0198",
+};
+
+let cards = [
+  {id:"c1", brand:"VISA", last4:"4412", exp:"08/28", isDefault:true},
+  {id:"c2", brand:"MC", last4:"2290", exp:"03/27", isDefault:false},
+];
+
+let gifts = [
+  {id:"g1", date:"2026-01-12", fund:"building", amount:1000, method:"card", cardId:"c1", recurringId:null},
+  {id:"g2", date:"2026-01-27", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g3", date:"2026-02-14", fund:"youth", amount:40, method:"card", cardId:"c1", recurringId:null},
+  {id:"g4", date:"2026-02-24", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g5", date:"2026-03-15", fund:"building", amount:250, method:"card", cardId:"c1", recurringId:null},
+  {id:"g6", date:"2026-03-29", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g7", date:"2026-04-26", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g8", date:"2026-05-10", fund:"missions", amount:100, method:"card", cardId:"c1", recurringId:null},
+  {id:"g9", date:"2026-05-31", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g10", date:"2026-06-28", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g11", date:"2026-07-06", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+  {id:"g12", date:"2026-07-13", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+  {id:"g13", date:"2026-07-20", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+  {id:"g14", date:"2026-07-27", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g15", date:"2026-07-27", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+  {id:"g16", date:"2026-08-03", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+
+  {id:"h1", date:"2025-03-08", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h2", date:"2025-04-12", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h3", date:"2025-05-10", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h4", date:"2025-06-14", fund:"building", amount:300, method:"card", cardId:"c1", recurringId:null},
+  {id:"h5", date:"2025-06-21", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h6", date:"2025-08-09", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h7", date:"2025-09-13", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h8", date:"2025-10-11", fund:"missions", amount:150, method:"card", cardId:"c1", recurringId:null},
+  {id:"h9", date:"2025-10-18", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h10", date:"2025-12-06", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h11", date:"2025-12-20", fund:"benev", amount:500, method:"card", cardId:"c1", recurringId:null},
+];
+
+let recurring = [
+  {id:"r1", fund:"general", amount:450, freq:"monthly", next:"2026-08-27", cardId:"c1", status:"active"},
+  {id:"r2", fund:"youth", amount:20, freq:"weekly", next:"2026-08-10", cardId:"c1", status:"active"},
+];
+
+const TODAY = new Date();
+let backendMode = "demo";
+
+/* ---------------- state ---------------- */
+const state = {
+  lang:"es",
+  view:"give",
+  giveFund:"general",
+  giveAmount:100,
+  giveCustom:false,
+  giveFreq:"once",
+  giveCard: cards.find(c=>c.isDefault)?.id || null,
+  coverFee:false,
+  justGave:null,
+  historyYear:2026,
+  modal:null,
+};
+const CHIPS = [25,50,100,250,500];
+const feeFor = amt => Math.round((amt*0.029+0.30)*100)/100;
+
+/* ---------------- derived ---------------- */
+const years = () => [...new Set(gifts.map(g=>g.date.slice(0,4)))].map(Number).sort((a,b)=>b-a);
+const giftsInYear = y => gifts.filter(g=>g.date.slice(0,4)===String(y)).sort((a,b)=>b.date.localeCompare(a.date));
+const totalInYear = y => giftsInYear(y).reduce((s,g)=>s+g.amount,0);
+const ytdTotal = () => totalInYear(2026);
+const cardById = id => cards.find(c=>c.id===id);
+const fundName = id => fundById(id).name[state.lang];
+const methodLabel = m => m==="card" ? {es:"Tarjeta",en:"Card"}[state.lang] : m;
+const fmtDate = iso => {
+  const d = new Date(iso+"T12:00:00");
+  return MONTHS[state.lang][d.getMonth()] + " " + d.getDate();
+};
+
+function monthsForYear(y){
+  return MONTHS[state.lang].map((label,i)=>{
+    const gave = gifts.some(g=>{const d=new Date(g.date+"T12:00:00"); return d.getFullYear()===y && d.getMonth()===i;});
+    const isFuture = y===TODAY.getFullYear() && i>TODAY.getMonth();
+    return {label, gave, isFuture};
+  });
+}
+
+/* ---------------- shared bits ---------------- */
+function fundDot(id,size=9){ return `<span style="display:inline-block;width:${size}px;height:${size}px;border-radius:3px;background:${fundById(id).color}"></span>`; }
+
+/* ---------------- view: give ---------------- */
+function viewGive(){
+  if(state.justGave){
+    const g = state.justGave;
+    const recurringGive = g.freq!=="once";
+    return `
+    <div class="section">
+      <div class="success">
+        <div class="mark">✓</div>
+        <h2>${t(recurringGive?"successTitleOnce":"successTitleOnce",{n:ME.name.split(" ")[0]})}</h2>
+        <p>${recurringGive ? t("successBodyRec",{a:money0(g.amount),f:fundName(g.fund)}) : t("successBodyOnce",{a:money0(g.amount),f:fundName(g.fund)})}</p>
+        <div class="row">
+          <button class="btn btn-dark btn-sm" data-nav="history">${t("viewHistory")}</button>
+          <button class="btn btn-sm" data-act="giveAgain">${t("giveAgain")}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const fund = fundById(state.giveFund);
+  const amt = state.giveAmount||0;
+  const fee = state.coverFee ? feeFor(amt) : 0;
+  const total = amt+fee;
+  const canGive = amt>0 && (backendMode==="ready" || state.giveCard);
+  const ctaLabel = state.giveFreq==="once" ? t("giveOnce",{a:money0(amt)})
+    : state.giveFreq==="monthly" ? t("giveMonthly",{a:money0(amt)})
+    : t("giveWeekly",{a:money0(amt)});
+
+  return `
+  <div class="section">
+    <div>
+      <div class="eyebrow">${t("greeting",{n:ME.name.split(" ")[0]})}</div>
+      <h1>${t("chooseFund")}</h1>
+    </div>
+    <div class="fundlist">
+      ${FUNDS.map(f=>`
+        <button class="fundcard" data-fund="${f.id}" aria-pressed="${state.giveFund===f.id}">
+          <span class="fund-dot" style="background:${f.color}"></span>
+          <span style="flex:1;min-width:0">
+            <span class="fund-name">${f.name[state.lang]}</span>
+            <span class="fund-blurb">${f.blurb[state.lang]}</span>
+            ${f.campaign?`<span class="campaign">
+              <span class="campaign-bar"><span class="campaign-fill" style="width:${Math.min(100,f.campaign.raised/f.campaign.goal*100)}%"></span></span>
+              <span class="campaign-label"><span>${money0(f.campaign.raised)}</span><span>${money0(f.campaign.goal)}</span></span>
+            </span>`:""}
+          </span>
+          <span class="fund-radio"></span>
+        </button>`).join("")}
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>${t("chooseAmount")}</h2>
+    <div class="card">
+      <div class="amt-display">
+        ${state.giveCustom
+          ? `<span class="cur">$</span><input id="customAmt" inputmode="decimal" value="${amt||""}" placeholder="0">`
+          : `<span class="cur">$</span><span class="num">${amt}</span>`}
+      </div>
+      <div style="padding:0 16px 16px">
+        <div class="chips">
+          ${CHIPS.map(c=>`<button class="chip" data-amt="${c}" aria-pressed="${!state.giveCustom&&state.giveAmount===c}">${money0(c)}</button>`).join("")}
+          <button class="chip" data-amt="custom" aria-pressed="${state.giveCustom}">${t("custom")}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>${t("frequency")}</h2>
+    <div class="seg">
+      <button data-freq="once" aria-pressed="${state.giveFreq==="once"}">${t("freqOnce")}</button>
+      <button data-freq="weekly" aria-pressed="${state.giveFreq==="weekly"}">${t("freqWeekly")}</button>
+      <button data-freq="monthly" aria-pressed="${state.giveFreq==="monthly"}">${t("freqMonthly")}</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>${t("paymentMethod")}</h2>
+    <div class="fundlist">
+      ${backendMode==="ready" ? `
+        <div class="paymethod-row" style="border-color:var(--sage)">
+          <span class="cardchip">STRIPE</span>
+          <span><b style="font-size:13.5px">${state.lang==="es"?"Pago seguro":"Secure checkout"}</b><small style="display:block;color:var(--text-2)">${state.lang==="es"?"Elige tarjeta, Apple Pay o método disponible en el próximo paso":"Choose card, Apple Pay, or another available method in the next step"}</small></span>
+        </div>` : cards.map(c=>`
+        <button class="paymethod-row" data-card="${c.id}" aria-pressed="${state.giveCard===c.id}">
+          <span class="cardchip">${c.brand}</span>
+          <span style="font-size:13.5px;font-weight:600">•••• ${c.last4}</span>
+          ${c.isDefault?`<span class="tag t-mute" style="margin-left:auto">${t("defaultTag")}</span>`:""}
+        </button>`).join("")}
+      ${backendMode==="ready"?"":`<button class="btn" data-act="addCard" style="align-self:flex-start">${t("addCard")}</button>`}
+    </div>
+  </div>
+
+  <div class="section">
+    <button class="feerow" data-act="toggleFee" style="text-align:left;width:100%">
+      <span style="flex:1">
+        <span class="feerow-t" style="display:block">${t("coverFeeT")}</span>
+        <span class="feerow-d" style="display:block">${t("coverFeeD",{f:money(feeFor(amt||0))})}</span>
+      </span>
+      <span class="sw-toggle" aria-pressed="${state.coverFee}"></span>
+    </button>
+  </div>
+
+  <div class="cta-bar">
+    ${state.coverFee&&amt>0?`<div class="totalline"><span>${t("totalToday")}</span><b class="num">${money(total)}</b></div>`:""}
+    <button class="btn btn-primary btn-block" data-act="submitGive" ${canGive?"":"disabled"}>${ctaLabel}</button>
+    <div style="text-align:center;font-size:11px;color:var(--text-3);margin-top:9px">${!canGive&&backendMode!=="ready"&&!state.giveCard?t("needCard"):t("secured")}</div>
+  </div>`;
+}
+
+/* ---------------- view: history ---------------- */
+function viewHistory(){
+  const y = state.historyYear;
+  const rows = giftsInYear(y);
+  const months = monthsForYear(y);
+  return `
+  <div class="section">
+    <h1>${t("historyTitle")}</h1>
+    <div class="chips" style="justify-content:flex-start">
+      ${years().map(yr=>`<button class="chip" data-year="${yr}" aria-pressed="${y===yr}">${yr}</button>`).join("")}
+    </div>
+  </div>
+
+  ${y===TODAY.getFullYear() ? `
+  <div class="section">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:2px">${t("rhythmTitle")}</h2>
+      <div class="rhythm" style="margin-top:12px">
+        ${months.map(m=>`
+          <div class="rmonth">
+            <div class="rdot ${m.gave?"gave":m.isFuture?"future":""}"></div>
+            <span>${m.label}</span>
+          </div>`).join("")}
+      </div>
+      <div class="rlegend">
+        <span><i style="background:var(--coral)"></i>${t("legendGave")}</span>
+        <span><i style="background:none;border:2px solid var(--line-2)"></i>${t("legendMissed")}</span>
+        <span><i style="background:none;border:2px dashed #E6DDD6"></i>${t("legendUpcoming")}</span>
+      </div>
+    </div>
+  </div>` : ""}
+
+  <div class="section">
+    <div class="card">
+      <div class="yeargroup" style="padding:14px 16px 4px">
+        <div class="yeargroup-hd" style="margin-bottom:10px">
+          <span class="y">${t("totalGivenIn",{y})}</span>
+          <span class="amt">${money(totalInYear(y))}</span>
+        </div>
+        <button class="btn btn-sm" data-act="emailStatement" data-year="${y}" style="margin-bottom:6px">${t("emailStatement",{y})}</button>
+      </div>
+      ${rows.length ? rows.map(g=>`
+        <div class="giftrow">
+          <span class="giftrow-dot" style="background:${fundById(g.fund).color}"></span>
+          <span style="flex:1;min-width:0">
+            <span class="giftrow-desc">${fundName(g.fund)}</span>
+            <span class="giftrow-meta">${fmtDate(g.date)} · ${methodLabel(g.method)} •••• ${cardById(g.cardId)?.last4||""}</span>
+          </span>
+          <span class="giftrow-amt">${money(g.amount)}</span>
+        </div>`).join("")
+      : `<div class="empty">${t("noGiftsYear")}</div>`}
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: recurring ---------------- */
+function viewRecurring(){
+  return `
+  <div class="section">
+    <h1>${t("recurringTitle")}</h1>
+  </div>
+  <div class="section">
+    ${recurring.length ? recurring.map(r=>{
+      const f = fundById(r.fund);
+      const c = cardById(r.cardId);
+      const paused = r.status==="paused";
+      return `
+      <div class="card reccard ${paused?"paused":""}">
+        <div class="reccard-top">
+          <span class="fund-dot" style="background:${f.color};margin-top:4px"></span>
+          <span style="flex:1">
+            <span class="reccard-amt">${money0(r.amount)}<span style="font-size:13px;font-weight:600;color:var(--text-2)"> / ${r.freq==="monthly"?t("freqMonthly").toLowerCase():t("freqWeekly").toLowerCase()}</span></span>
+            <span class="reccard-fund" style="display:block">${f.name[state.lang]} · •••• ${c?.last4}</span>
+          </span>
+          ${paused?`<span class="tag t-wait">${t("pausedTag")}</span>`:""}
+        </div>
+        <div class="kv" style="margin-top:11px;border-top:1px solid #F2ECE8;padding-top:10px">
+          <span class="k">${t("nextCharge")}</span><span class="num">${paused?"—":fmtDate(r.next)}</span>
+        </div>
+        <div class="reccard-actions">
+          <button class="btn btn-sm" data-act="toggleRec" data-rid="${r.id}">${paused?t("resume"):t("pause")}</button>
+          <button class="btn btn-sm" data-act="editRec" data-rid="${r.id}">${t("editAmt")}</button>
+          <button class="btn btn-sm btn-ghost" data-act="cancelRec" data-rid="${r.id}" style="color:var(--coral-deep)">${t("cancelGift")}</button>
+        </div>
+      </div>`;
+    }).join("") : `<div class="card empty">${t("recurringEmpty")}</div>`}
+    <button class="btn btn-dark btn-block" data-act="startRecurring">${t("startRecurring")}</button>
+  </div>`;
+}
+
+/* ---------------- view: account ---------------- */
+function viewAccount(){
+  return `
+  <div class="section">
+    <h1>${t("accountTitle")}</h1>
+  </div>
+
+  <div class="section">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:10px">${t("profileSection")}</h2>
+      <div class="field" style="margin-bottom:9px"><label>${t("nameF")}</label><input class="input" id="acc_name" value="${esc(ME.name)}"></div>
+      <div class="field" style="margin-bottom:9px"><label>${t("emailF")}</label><input class="input" id="acc_email" value="${esc(ME.email)}"></div>
+      <div class="field" style="margin-bottom:12px"><label>${t("phoneF")}</label><input class="input" id="acc_phone" value="${esc(ME.phone)}"></div>
+      <button class="btn btn-dark btn-sm" data-act="saveProfile">${t("saveChanges")}</button>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #F2ECE8;font-size:12.5px;color:var(--text-2)">${t("partOfHousehold",{h:ME.household})}</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:8px">${t("paymentSection")}</h2>
+      ${cards.map(c=>`
+        <div class="paycard">
+          <span class="cardchip">${c.brand}</span>
+          <span style="flex:1">
+            <span style="font-size:13.5px;font-weight:600;display:block">•••• ${c.last4}</span>
+            <span style="font-size:11.5px;color:var(--text-2)">${t("expiry")} ${c.exp}</span>
+          </span>
+          ${c.isDefault?`<span class="tag t-mute">${t("defaultTag")}</span>`
+            :`<button class="btn btn-sm btn-ghost" data-act="setDefaultCard" data-cid="${c.id}">${t("setDefault")}</button>`}
+          <button class="btn btn-sm btn-ghost" data-act="removeCard" data-cid="${c.id}" style="color:var(--coral-deep)">${t("remove")}</button>
+        </div>`).join("")}
+      <button class="btn btn-sm" data-act="addCard" style="margin-top:10px">${t("addCard")}</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:2px">${t("notifSection")}</h2>
+      <div class="notif">
+        <span style="flex:1"><span class="notif-t">${t("emailReceiptsT")}</span><span class="notif-d" style="display:block">${t("emailReceiptsD")}</span></span>
+        <span class="sw-toggle" data-notiftoggle="receipts" aria-pressed="true"></span>
+      </div>
+      <div class="notif">
+        <span style="flex:1"><span class="notif-t">${t("statementReminderT")}</span><span class="notif-d" style="display:block">${t("statementReminderD")}</span></span>
+        <span class="sw-toggle" data-notiftoggle="reminder" aria-pressed="true"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <button class="link" data-act="signOut">${t("notYou",{n:ME.name.split(" ")[0]})} ${t("signOut")}</button>
+  </div>`;
+}
+
+/* ---------------- modal ---------------- */
+function modalHTML(){
+  if(!state.modal) return "";
+  const m = state.modal;
+  let title="", desc="", body="", ok=t("save");
+  if(m.kind==="addCard"){
+    title=t("addCardTitle");
+    body=`
+      <div class="field"><label>${t("cardNumber")}</label><input class="input" id="mc_num" placeholder="4242 4242 4242 4242" inputmode="numeric"></div>
+      <div class="duo">
+        <div class="field"><label>${t("expiry")}</label><input class="input" id="mc_exp" placeholder="MM/YY"></div>
+        <div class="field"><label>CVC</label><input class="input" id="mc_cvc" placeholder="123" inputmode="numeric"></div>
+      </div>`;
+    ok=t("add");
+  } else if(m.kind==="editRec"){
+    const r = recurring.find(x=>x.id===m.rid);
+    title=t("editTitle"); desc=fundName(r.fund);
+    body=`<div class="field"><label>${t("newAmount")}</label><input class="input" id="me_amt" value="${r.amount}" inputmode="decimal"></div>`;
+  } else if(m.kind==="cancelRec"){
+    title=t("cancelTitle"); body=`<div style="font-size:13.5px;color:var(--text-2)">${t("cancelBody")}</div>`;
+    ok=t("yesCancelIt");
+  }
+  return `<div class="scrim" data-scrim>
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-hd"><div class="modal-t">${title}</div>${desc?`<div class="modal-d">${desc}</div>`:""}</div>
+      <div class="modal-bd">${body}</div>
+      <div class="modal-ft">
+        <button class="btn btn-sm" data-act="closeModal">${t("cancelBtn")}</button>
+        <button class="btn btn-sm btn-primary" data-act="confirmModal">${ok}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- toast ---------------- */
+let toastTimer;
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove("on"), 2400);
+}
+
+/* ---------------- render ---------------- */
+const VIEWS = {give:viewGive, history:viewHistory, recurring:viewRecurring, account:viewAccount};
+const NAV = [
+  {id:"give", label:"navGive", ico:'M9 3.5v11M3.5 9h11'},
+  {id:"history", label:"navHistory", ico:'M9 4.5v5l3.5 2M9 3a6 6 0 1 1-5.2 3'},
+  {id:"recurring", label:"navRecurring", ico:'M3 6.5A5.5 5.5 0 0 1 13.7 5M15 5V2M15 5h-3M15 11.5A5.5 5.5 0 0 1 4.3 13M3 13v3M3 13h3'},
+  {id:"account", label:"navAccount", ico:'M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 15.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5'},
+];
+function render(){
+  document.documentElement.lang = state.lang;
+  $("#view").innerHTML = VIEWS[state.view]();
+  $("#tabbar").innerHTML = NAV.map(n=>`
+    <button class="tab" data-nav="${n.id}" aria-current="${state.view===n.id}">
+      <svg viewBox="0 0 18 18"><path d="${n.ico}"/></svg>
+      <span>${t(n.label)}</span>
+    </button>`).join("");
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.lang===state.lang)));
+  $("#modalRoot").innerHTML = modalHTML();
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click", async e=>{
+  const t_ = e.target.closest("[data-nav],[data-lang],[data-fund],[data-amt],[data-freq],[data-card],[data-act],[data-year],[data-notiftoggle],[data-scrim]");
+  if(!t_) return;
+  if(t_.hasAttribute("data-scrim") && e.target===t_){ state.modal=null; return render(); }
+
+  if(t_.dataset.lang){ state.lang=t_.dataset.lang; return render(); }
+  if(t_.dataset.nav){ state.view=t_.dataset.nav; state.justGave=null; window.scrollTo({top:0}); return render(); }
+  if(t_.dataset.fund){ state.giveFund=t_.dataset.fund; return render(); }
+  if(t_.dataset.year){ state.historyYear=Number(t_.dataset.year); return render(); }
+  if(t_.dataset.card){ state.giveCard=t_.dataset.card; return render(); }
+  if(t_.dataset.freq){ state.giveFreq=t_.dataset.freq; return render(); }
+  if(t_.dataset.amt){
+    if(t_.dataset.amt==="custom"){ state.giveCustom=true; }
+    else { state.giveCustom=false; state.giveAmount=Number(t_.dataset.amt); }
+    render();
+    if(state.giveCustom){ const el=$("#customAmt"); if(el){ el.focus(); } }
+    return;
+  }
+  if(t_.hasAttribute("data-notiftoggle")){
+    const on = t_.getAttribute("aria-pressed")==="true";
+    t_.setAttribute("aria-pressed", String(!on));
+    return;
+  }
+
+  const act = t_.dataset.act;
+  if(!act) return;
+
+  if(act==="toggleFee"){ state.coverFee=!state.coverFee; return render(); }
+
+  if(act==="submitGive"){
+    if(backendMode!=="ready" && !state.giveCard) return;
+    const amt = state.giveAmount;
+    if(!(amt>0)) return;
+    if(backendMode==="ready"){
+      try{
+        toast(state.lang==="es" ? "Abriendo el pago seguro…" : "Opening secure checkout…");
+        await startCheckout({
+          fundId: fundById(state.giveFund).dbId,
+          amountCents: Math.round(amt*100),
+          frequency: state.giveFreq,
+          coverFee: state.coverFee,
+        });
+      }catch(error){ toast(error.message); }
+      return;
+    }
+    const today = new Date().toISOString().slice(0,10);
+    if(state.giveFreq==="once"){
+      gifts.unshift({id:"g"+Date.now(), date:today, fund:state.giveFund, amount:amt, method:"card", cardId:state.giveCard, recurringId:null});
+    } else {
+      const rid = "r"+Date.now();
+      recurring.unshift({id:rid, fund:state.giveFund, amount:amt, freq:state.giveFreq, next:today, cardId:state.giveCard, status:"active"});
+      gifts.unshift({id:"g"+Date.now(), date:today, fund:state.giveFund, amount:amt, method:"card", cardId:state.giveCard, recurringId:rid});
+    }
+    state.justGave = {amount:amt, fund:state.giveFund, freq:state.giveFreq};
+    return render();
+  }
+  if(act==="giveAgain"){ state.justGave=null; state.giveCustom=false; return render(); }
+
+  if(act==="addCard"){
+    if(backendMode==="ready") { try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
+    state.modal={kind:"addCard"}; return render();
+  }
+  if(act==="setDefaultCard"){
+    if(backendMode==="ready") { try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
+    cards.forEach(c=>c.isDefault = c.id===t_.dataset.cid);
+    toast(t("cardDefault"));
+    return render();
+  }
+  if(act==="removeCard"){
+    if(backendMode==="ready") { try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
+    const wasDefault = cardById(t_.dataset.cid)?.isDefault;
+    cards = cards.filter(c=>c.id!==t_.dataset.cid);
+    if(wasDefault && cards.length) cards[0].isDefault=true;
+    if(state.giveCard===t_.dataset.cid) state.giveCard = cards[0]?.id || null;
+    toast(t("cardRemoved"));
+    return render();
+  }
+
+  if(act==="emailStatement"){ toast(t("statementSent",{y:t_.dataset.year})); return; }
+
+  if(act==="toggleRec"){
+    if(backendMode==="ready") { try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
+    const r = recurring.find(x=>x.id===t_.dataset.rid);
+    r.status = r.status==="active" ? "paused" : "active";
+    toast(r.status==="paused" ? t("recPaused") : t("recResumed"));
+    return render();
+  }
+  if(act==="editRec"){
+    if(backendMode==="ready") { try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
+    state.modal={kind:"editRec", rid:t_.dataset.rid}; return render();
+  }
+  if(act==="cancelRec"){
+    if(backendMode==="ready") { try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
+    state.modal={kind:"cancelRec", rid:t_.dataset.rid}; return render();
+  }
+  if(act==="startRecurring"){ state.view="give"; state.giveFreq="monthly"; state.justGave=null; window.scrollTo({top:0}); return render(); }
+
+  if(act==="saveProfile"){
+    ME.name = $("#acc_name").value.trim()||ME.name;
+    ME.email = $("#acc_email").value.trim()||ME.email;
+    ME.phone = $("#acc_phone").value.trim()||ME.phone;
+    if(backendMode==="ready"){
+      try{ await updateMyProfile({full_name:ME.name,email:ME.email,phone:ME.phone}); }
+      catch(error){ toast(error.message); return; }
+    }
+    toast(t("profileSaved"));
+    return render();
+  }
+  if(act==="signOut"){
+    toast(t("signedOut"));
+    if(backendMode==="ready") await signOut();
+    return;
+  }
+
+  if(act==="closeModal"){ state.modal=null; return render(); }
+  if(act==="confirmModal"){
+    const kind = state.modal?.kind;
+    if(kind==="addCard"){
+      const num = $("#mc_num")?.value.replace(/\s/g,"")||"";
+      if(num.length<8){ toast(t("needAmount")); return; }
+      const last4 = num.slice(-4);
+      const brand = num.startsWith("4") ? "VISA" : num.startsWith("5") ? "MC" : "CARD";
+      const id = "c"+Date.now();
+      cards.push({id, brand, last4, exp:$("#mc_exp")?.value||"—", isDefault:cards.length===0});
+      state.giveCard = state.giveCard || id;
+      toast(t("cardAdded"));
+    } else if(kind==="editRec"){
+      const r = recurring.find(x=>x.id===state.modal.rid);
+      const v = parseFloat($("#me_amt")?.value||"0");
+      if(v>0){ r.amount=v; toast(t("recUpdated")); }
+    } else if(kind==="cancelRec"){
+      recurring = recurring.filter(x=>x.id!==state.modal.rid);
+      toast(t("recCancelled"));
+    }
+    state.modal=null;
+    return render();
+  }
+});
+
+document.addEventListener("input", e=>{
+  if(e.target.id==="customAmt"){
+    const v = parseFloat(e.target.value.replace(/[^\d.]/g,""))||0;
+    state.giveAmount = v;
+  }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal){ state.modal=null; render(); } });
+
+function hydrateGiving(snapshot, profile){
+  FUNDS = snapshot.funds.map(f=>({
+    id:f.slug, dbId:f.id, color:f.color, wash:f.color+"1f",
+    name:{es:f.name_es,en:f.name_en},
+    blurb:{es:f.description_es,en:f.description_en},
+    ...(f.campaign_goal_cents ? {campaign:{goal:f.campaign_goal_cents/100,raised:f.current_balance_cents/100}} : {}),
+  }));
+  ME = {
+    name:profile.full_name,
+    household:profile.household_name||profile.full_name.split(" ").slice(-1)[0]||"",
+    email:profile.email,
+    phone:profile.phone||"",
+  };
+  cards = snapshot.paymentMethods.map(m=>({
+    id:m.id, brand:(m.brand||"CARD").toUpperCase(), last4:m.last4,
+    exp:m.exp_month&&m.exp_year ? `${String(m.exp_month).padStart(2,"0")}/${String(m.exp_year).slice(-2)}` : "—",
+    isDefault:m.is_default,
+  }));
+  gifts = snapshot.donations.map(g=>({
+    id:g.id, date:g.occurred_at.slice(0,10), fund:g.funds.slug,
+    amount:g.amount_cents/100, method:g.payment_method_type||"card",
+    cardId:null, recurringId:g.recurring_gift_id,
+  }));
+  recurring = snapshot.recurring.map(r=>({
+    id:r.id, fund:r.funds.slug, amount:r.amount_cents/100,
+    freq:r.interval==="week"?"weekly":"monthly",
+    next:r.next_charge_at?.slice(0,10)||"", cardId:null, status:r.status,
+  }));
+  state.giveFund = FUNDS[0]?.id || null;
+  state.giveCard = cards.find(c=>c.isDefault)?.id || cards[0]?.id || null;
+  state.historyYear = new Date().getFullYear();
+  const avatar=document.querySelector(".avatar"); if(avatar) avatar.textContent=ME.name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+}
+
+async function startPortal(){
+  render();
+  try{
+    const session = await getPortalSession();
+    backendMode = session.mode;
+    if(session.mode==="demo") return showModeBadge({mode:"demo",portal:"Giving"});
+    if(session.mode==="signed-out") return mountAuthGate();
+    if(session.mode==="disabled") return mountForbiddenGate("This account has been deactivated. Ask a church administrator to restore access.");
+    const snapshot = await loadGivingSnapshot(session.user.id);
+    hydrateGiving(snapshot, session.profile);
+    render();
+    showModeBadge({mode:"ready",portal:"Giving"});
+  }catch(error){
+    showModeBadge({mode:"error",portal:"Giving",error:error.message});
+  }
+}
+
+await startPortal();
+</script>
+</body>
+</html>

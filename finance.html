@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Somos Reino — finance &amp; people</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --coral:#F7746D;
+  --coral-deep:#C8483F;
+  --coral-wash:#FDECEA;
+  --ink:#17151C;
+  --ink-2:#221F29;
+  --ink-3:#332F3C;
+  --paper:#FAF7F5;
+  --card:#FFFFFF;
+  --line:#E9E2DD;
+  --line-2:#D8CFC8;
+  --text:#1E1B22;
+  --text-2:#6A6371;
+  --text-3:#9A9299;
+  --sage:#3F7A63;
+  --sage-wash:#E7F1EC;
+  --amber:#A97613;
+  --amber-wash:#FBF0DC;
+  --r:10px;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --ui:"Schibsted Grotesk",system-ui,sans-serif;
+  --display:"Bricolage Grotesque","Schibsted Grotesk",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--ui);
+  background:var(--paper);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  font-size:14px;
+  line-height:1.45;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+:focus-visible{outline:2px solid var(--coral);outline-offset:2px;border-radius:4px}
+
+/* ---------- shell ---------- */
+.shell{display:flex;min-height:100vh}
+.rail{
+  width:236px;flex:0 0 236px;background:var(--ink);color:#EDE8EA;
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:22px 20px 18px}
+.brand svg{width:26px;height:26px;display:block}
+.brand-name{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.03em;white-space:nowrap}
+.brand-sub{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7E7686;margin-top:1px}
+.org{
+  margin:0 12px 14px;padding:9px 11px;border:1px solid #302C38;border-radius:8px;
+  display:flex;align-items:center;gap:9px;
+}
+.org-mark{padding:3px 6px;border-radius:5px;background:var(--coral);display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:9px;letter-spacing:.08em;color:#3A100D;flex:0 0 auto}
+.org-name{font-size:12.5px;font-weight:600;line-height:1.2}
+.org-meta{font-family:var(--mono);font-size:9px;color:#7E7686;letter-spacing:.06em}
+.nav{padding:4px 12px;display:flex;flex-direction:column;gap:1px}
+.nav-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:#5F5869;text-transform:uppercase;padding:14px 9px 6px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;
+  color:#B7B0BD;font-size:13.5px;font-weight:500;width:100%;text-align:left;position:relative;
+  transition:background .13s,color .13s;
+}
+.nav-item:hover{background:#221F29;color:#EDE8EA}
+.nav-item[aria-current="true"]{background:var(--ink-3);color:#fff}
+.nav-item[aria-current="true"]::before{
+  content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;background:var(--coral);border-radius:0 3px 3px 0;
+}
+.nav-ico{width:15px;height:15px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nav-count{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--coral);color:#3A100D;padding:1px 5px;border-radius:20px;font-weight:600}
+.nav-count.quiet{background:#302C38;color:#9A9299}
+.rail-foot{margin-top:auto;padding:14px 12px 16px;border-top:1px solid #262230}
+.me{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:7px;width:100%;text-align:left}
+.me:hover{background:#221F29}
+.avatar{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;flex:0 0 auto;font-family:var(--ui)}
+.me-name{font-size:12.5px;font-weight:600;color:#EDE8EA}
+.me-role{font-family:var(--mono);font-size:9px;color:#7E7686;letter-spacing:.06em;text-transform:uppercase}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:flex-end;gap:16px;padding:24px 32px 18px;
+  border-bottom:1px solid var(--line);background:var(--paper);
+  position:sticky;top:0;z-index:20;
+}
+.crumb{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+h1{font-family:var(--display);font-size:27px;font-weight:800;letter-spacing:-.035em;line-height:1.05;margin-top:3px}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.view{padding:22px 32px 60px;max-width:1320px}
+
+/* ---------- primitives ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:7px;
+  font-size:13px;font-weight:600;border:1px solid var(--line-2);background:var(--card);color:var(--text);
+  transition:background .13s,border-color .13s,transform .08s;
+}
+.btn:hover{background:#F3EEEB;border-color:#C6BCB4}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--coral);border-color:var(--coral);color:#3A100D}
+.btn-primary:hover{background:#F4605A;border-color:#F4605A}
+.btn-dark{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn-dark:hover{background:var(--ink-3);border-color:var(--ink-3)}
+.btn-sm{padding:4px 9px;font-size:12px;border-radius:6px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.sw-toggle:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-ghost:hover{background:#EFE9E5;border-color:transparent}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.card-hd{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.card-title{font-size:13.5px;font-weight:700;letter-spacing:-.01em}
+.card-bd{padding:16px}
+.eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+
+.grid{display:grid;gap:14px}
+.split{display:grid;gap:14px;grid-template-columns:1.15fr .85fr;align-items:start}
+.side{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) 300px;align-items:start}
+.side-lg{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) 320px;align-items:start}
+.duo{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+.stack{display:grid;gap:14px;align-content:start}
+.tbl{overflow-x:auto}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+.tag{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500;white-space:nowrap}
+.t-ok{background:var(--sage-wash);color:var(--sage)}
+.t-wait{background:var(--amber-wash);color:var(--amber)}
+.t-hot{background:var(--coral-wash);color:var(--coral-deep)}
+.t-mute{background:#F1ECE9;color:var(--text-2)}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex:0 0 auto}
+
+table{width:100%;border-collapse:collapse}
+th{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-3);
+  text-align:left;font-weight:500;padding:9px 14px;border-bottom:1px solid var(--line);white-space:nowrap;
+}
+td{padding:11px 14px;border-bottom:1px solid #F2ECE8;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#FCFAF9}
+.ta-r{text-align:right}
+
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-2)}
+.input,select.input,textarea.input{
+  border:1px solid var(--line-2);border-radius:7px;padding:7px 10px;background:var(--card);font-size:13.5px;width:100%;
+}
+.input:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
+select.input{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' stroke='%236A6371' fill='none' stroke-width='1.5' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:5px 11px;border-radius:20px;border:1px solid var(--line-2);background:var(--card);font-size:12.5px;font-weight:500;color:var(--text-2)}
+.pill:hover{border-color:#C6BCB4;color:var(--text)}
+.pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.pill .c{font-family:var(--mono);font-size:10.5px;opacity:.65;margin-left:4px}
+
+.empty{padding:36px 20px;text-align:center;color:var(--text-2)}
+.empty strong{display:block;font-size:14px;color:var(--text);margin-bottom:3px;font-weight:600}
+
+/* ---------- fund ribbon ---------- */
+.ribbon{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.ribbon-top{display:flex;align-items:baseline;gap:10px;margin-bottom:11px}
+.ribbon-total{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.03em}
+.ribbon-bar{display:flex;height:9px;border-radius:5px;overflow:hidden;gap:2px}
+.ribbon-seg{transition:flex .3s}
+.ribbon-key{display:flex;flex-wrap:wrap;gap:4px 20px;margin-top:11px}
+.ribbon-key-item{display:flex;align-items:center;gap:6px;font-size:12px}
+.ribbon-key-item .sw{width:8px;height:8px;border-radius:2px;flex:0 0 auto}
+.ribbon-key-item .amt{font-family:var(--mono);font-size:11.5px;color:var(--text-2);font-variant-numeric:tabular-nums}
+
+/* ---------- stat tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;text-align:left;width:100%;transition:border-color .13s,transform .1s}
+button.tile:hover{border-color:var(--line-2);transform:translateY(-1px)}
+.tile-v{font-family:var(--mono);font-size:23px;font-weight:600;letter-spacing:-.04em;margin:6px 0 2px}
+.tile-note{font-size:11.5px;color:var(--text-2)}
+.tile-hot .tile-v{color:var(--coral-deep)}
+
+/* ---------- reconcile matcher (signature) ---------- */
+.rec-bar{display:flex;align-items:center;flex-wrap:wrap;gap:18px;background:var(--ink);color:#EDE8EA;border-radius:var(--r);padding:14px 18px}
+.rec-bar .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#8B8394}
+.rec-bar .v{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.03em;margin-top:2px}
+.rec-prog{flex:1;min-width:120px}
+.rec-track{height:6px;background:#302C38;border-radius:4px;overflow:hidden;margin-top:7px}
+.rec-fill{height:100%;background:var(--coral);border-radius:4px;transition:width .4s}
+
+.matcher{display:grid;grid-template-columns:1fr 168px 1fr;gap:0;align-items:start}
+.col-hd{display:flex;align-items:center;gap:8px;padding:0 2px 9px}
+.col-hd .src{font-size:13px;font-weight:700}
+.col-hd .n{font-family:var(--mono);font-size:10.5px;color:var(--text-3);margin-left:auto}
+.lane{display:flex;flex-direction:column;gap:8px}
+
+.rowc{
+  background:var(--card);border:1px solid var(--line);border-radius:9px;padding:11px 13px;
+  width:100%;text-align:left;position:relative;transition:border-color .13s,box-shadow .13s,transform .1s;
+}
+.rowc:hover{border-color:var(--line-2)}
+.rowc[aria-pressed="true"]{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
+.rowc.dim{opacity:.5}
+.rowc-top{display:flex;align-items:baseline;gap:8px}
+.rowc-id{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.05em}
+.rowc-amt{margin-left:auto;font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:-.03em}
+.rowc-desc{display:block;font-size:13px;font-weight:600;margin-top:3px}
+.rowc-meta{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:11.5px;color:var(--text-2)}
+.rowc-meta .num{font-size:11px}
+.sug{position:absolute;top:-6px;right:10px}
+
+.seam{position:relative;display:flex;flex-direction:column;align-items:center;padding-top:34px;align-self:stretch}
+.seam-line{position:absolute;top:0;bottom:0;left:50%;width:1px;background:repeating-linear-gradient(to bottom,var(--line-2) 0 4px,transparent 4px 9px)}
+.seam-box{position:relative;background:var(--paper);padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.seam-var{font-family:var(--mono);font-size:11px;text-align:center;line-height:1.5}
+.seam-var .lab{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-3);display:block}
+.thread{width:100%;height:2px;background:var(--coral);border-radius:2px;transform:scaleX(0);transform-origin:center;transition:transform .25s}
+.thread.on{transform:scaleX(1)}
+
+.matched-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:11px 14px;border-bottom:1px solid #F2ECE8}
+.matched-row:last-child{border-bottom:none}
+.link-mark{display:flex;align-items:center;gap:5px;color:var(--sage);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.link-mark::before,.link-mark::after{content:"";width:14px;height:1px;background:var(--sage);opacity:.5}
+
+@keyframes snap{0%{transform:translateX(var(--dx,0)) scale(1)}55%{transform:translateX(0) scale(1.015)}100%{transform:translateX(0) scale(1);opacity:0}}
+.snapping{animation:snap .42s ease forwards}
+
+/* ---------- people ---------- */
+.roster{display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start}
+.prow{display:flex;align-items:center;gap:11px;padding:10px 14px;border-bottom:1px solid #F2ECE8;width:100%;text-align:left}
+.prow:last-child{border-bottom:none}
+.prow:hover{background:#FCFAF9}
+.prow[aria-pressed="true"]{background:var(--coral-wash)}
+.prow-name{display:block;font-size:13.5px;font-weight:600}
+.prow-sub{display:block;font-size:11.5px;color:var(--text-2)}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+
+.perm{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #F2ECE8}
+.perm:last-child{border-bottom:none}
+.perm-t{display:block;font-size:13px;font-weight:600}
+.perm-d{display:block;font-size:11.5px;color:var(--text-2);margin-top:1px}
+.sw-toggle{margin-left:auto;width:36px;height:20px;border-radius:12px;background:#DDD5CF;position:relative;flex:0 0 auto;transition:background .16s}
+.sw-toggle::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .16s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw-toggle[aria-pressed="true"]{background:var(--sage)}
+.sw-toggle[aria-pressed="true"]::after{transform:translateX(16px)}
+
+/* ---------- accounts ---------- */
+.conn{display:flex;gap:13px;align-items:flex-start;padding:15px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--card)}
+.conn-logo{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;font-family:var(--display);font-weight:800;font-size:15px}
+.conn-name{display:block;font-size:14px;font-weight:700}
+.conn-d{display:block;font-size:12px;color:var(--text-2);margin-top:2px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #F2ECE8;font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--text-2)}
+.kv .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500}
+
+/* ---------- chart ---------- */
+.chart{width:100%;height:132px;display:block;overflow:visible}
+.bar{fill:var(--coral);opacity:.85;transition:opacity .13s}
+.bar.pale{fill:#E9DFDA}
+.bar:hover{opacity:1}
+
+/* ---------- feed ---------- */
+.feed-item{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid #F2ECE8}
+.feed-item:last-child{border-bottom:none}
+.feed-t{font-size:13px}
+.feed-t b{font-weight:600}
+.feed-time{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-left:auto;white-space:nowrap;letter-spacing:.04em}
+
+/* ---------- attention list ---------- */
+.att{display:flex;align-items:center;gap:11px;padding:12px 16px;border-bottom:1px solid #F2ECE8;width:100%;text-align:left}
+.att:last-child{border-bottom:none}
+.att:hover{background:#FCFAF9}
+.att-bar{width:3px;align-self:stretch;border-radius:2px;flex:0 0 auto}
+.att-t{display:block;font-size:13.5px;font-weight:600}
+.att-d{display:block;font-size:11.5px;color:var(--text-2);margin-top:1px}
+.att-go{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase}
+
+/* ---------- modal + toast ---------- */
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:20px}
+.modal{background:var(--card);border-radius:14px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(23,21,28,.28);overflow:hidden}
+.modal-hd{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+.modal-t{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.03em}
+.modal-d{font-size:12.5px;color:var(--text-2);margin-top:3px}
+.modal-bd{padding:18px 20px;display:flex;flex-direction:column;gap:13px;max-height:60vh;overflow:auto}
+.modal-ft{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#FCFAF9}
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:10px 16px;border-radius:9px;font-size:13px;font-weight:500;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;display:flex;align-items:center;gap:8px}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#toast .tick{color:var(--coral);font-family:var(--mono)}
+
+/* ---------- responsive ---------- */
+@media (max-width:1080px){
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .roster,.split,.side,.side-lg,.duo{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr}
+  .rec-bar{flex-wrap:wrap;gap:14px}
+  .rec-prog{flex-basis:100%}
+  .matched-row{grid-template-columns:1fr;gap:8px}
+}
+@media (max-width:900px){
+  .shell{flex-direction:column}
+  .rail{width:100%;flex:none;height:auto;position:static;flex-direction:row;align-items:center;overflow-x:auto;gap:4px;padding-right:10px}
+  .brand{padding:14px 14px}
+  .brand-sub,.org,.rail-foot,.nav-eyebrow{display:none}
+  .nav{flex-direction:row;padding:0;gap:2px}
+  .nav-item[aria-current="true"]::before{display:none}
+  .topbar{padding:16px 18px 14px}
+  .view{padding:16px 18px 50px}
+  .matcher{grid-template-columns:1fr}
+  .seam{padding:14px 0;flex-direction:row;justify-content:center}
+  .seam-line{display:none}
+  .seam-box{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:12px}
+  .thread{display:none}
+  h1{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="mark" viewBox="0 0 3000 3000">
+<path d="M1914.98,332.31v1173.34c0,32.11-26.03,58.14-58.14,58.14h-70.1c-128.63,0-235.16-95.02-253.15-218.75-1.77-12.1-2.68-24.46-2.68-37.08V270.71c-2.49-.07-5.04-.07-7.52-.07-699.8,0-1267.11,567.31-1267.11,1267.11,0,559.27,362.29,1033.91,865.06,1201.98v-1101.4c0-32.11,26.03-58.14,58.2-58.14h70.04c128.7,0,235.16,95.02,253.15,218.75,1.77,12.1,2.68,24.46,2.68,37.08v968.71c5.95.07,11.97.13,17.98.13,699.8,0,1267.11-567.31,1267.11-1267.11,0-563.12-367.33-1040.45-875.52-1205.44ZM1106.29,1790.84c0,12.62-.92,24.98-2.68,37.08-17.98,123.66-124.45,218.75-253.15,218.75h-80.57c-26.29,0-47.67-21.38-47.67-47.74v-861.72c0-26.35,21.38-47.67,47.67-47.67h288.72c26.29,0,47.67,21.32,47.67,47.67v653.63ZM1505.4,1312.27c0,12.62-.92,24.98-2.68,37.08-17.98,123.66-124.45,218.75-253.15,218.75h-80.57c-26.29,0-47.67-21.38-47.67-47.74v-861.72c0-26.35,21.38-47.67,47.67-47.67h288.72c26.29,0,47.67,21.32,47.67,47.67v653.63ZM1914.98,2489.66c0,26.29-21.38,47.67-47.67,47.67h-288.66c-26.35,0-47.74-21.38-47.74-47.67v-653.63c0-12.62.92-24.98,2.68-37.08,17.98-123.73,124.51-218.75,253.15-218.75h80.57c26.29,0,47.67,21.32,47.67,47.67v861.79ZM2324.55,2118.14c0,32.11-26.03,58.14-58.14,58.14h-267.73c-32.11,0-58.2-26.03-58.2-58.14V867.77c0-32.11,26.09-58.14,58.2-58.14h70.04c128.7,0,235.16,95.02,253.15,218.75,1.77,12.1,2.68,24.46,2.68,37.08v1052.68Z"/>
+</symbol>
+</defs></svg>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="brand">
+      <svg viewBox="0 0 3000 3000" style="fill:var(--coral)"><use href="#mark"/></svg>
+      <div>
+        <div class="brand-name">Somos Reino</div>
+        <div class="brand-sub">Finance &amp; People</div>
+      </div>
+    </div>
+    <div class="org">
+      <div class="org-mark">JUL</div>
+      <div>
+        <div class="org-name">Books open</div>
+        <div class="org-meta">Closes Aug 10</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="rail-foot">
+      <button class="me" data-act="me">
+        <span class="avatar" style="background:var(--coral);color:#3A100D">SC</span>
+        <span>
+          <span class="me-name">Sam Camacho</span><br>
+          <span class="me-role">Admin · Finance</span>
+        </span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <div class="crumb" id="crumb"></div>
+        <h1 id="title"></h1>
+      </div>
+      <div class="topbar-actions" id="topActions"></div>
+    </header>
+    <main class="view" id="view"></main>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script type="module">
+import { getPortalSession, mountAuthGate, mountForbiddenGate } from "/src/lib/auth.js";
+import {
+  createExpense, createMemberAccount, deactivateMember, loadFinanceSnapshot,
+  reactivateMember, reconcileTransactions, recordBankTransaction, setExpenseStatus, undoReconciliation,
+  undoRecordedBankTransaction, updateMemberPermissions,
+} from "/src/lib/api.js";
+import { showModeBadge } from "/src/lib/status.js";
+/* ============================================================
+   Somos Reino — church finance & people hub
+   Single-file demo. All data is in-memory sample data.
+   ============================================================ */
+
+const $ = (s,r=document)=>r.querySelector(s);
+const money = n => (n<0?"-":"") + "$" + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const money0 = n => "$" + Math.round(n).toLocaleString("en-US");
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const initials = n => n.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+const AV = ["#F7746D","#3F7A63","#A97613","#5B5470","#2F6E8F","#8A4A6B","#4C6B3F"];
+const avColor = n => AV[[...n].reduce((a,c)=>a+c.charCodeAt(0),0)%AV.length];
+
+/* ---------------- sample data ---------------- */
+let FUNDS = [
+  {id:"general",   name:"General",     color:"#F7746D", bal:48210.40},
+  {id:"building",  name:"Building",    color:"#3F7A63", bal:63900.75},
+  {id:"missions",  name:"Missions",    color:"#2F6E8F", bal:12845.00},
+  {id:"benev",     name:"Benevolence", color:"#A97613", bal:7655.10},
+  {id:"youth",     name:"Youth",       color:"#8A4A6B", bal:4120.30},
+];
+const fundName = id => (FUNDS.find(f=>f.id===id)||{name:"—"}).name;
+const fundColor = id => (FUNDS.find(f=>f.id===id)||{color:"#9A9299"}).color;
+
+const state = {
+  view:"today",
+  sel:{payout:null,bank:null},
+  recTab:"open",
+  expFilter:"pending",
+  giveFund:"all",
+  giveMethod:"all",
+  personId:"p1",
+  peopleQ:"",
+  peopleRole:"all",
+  peopleStatus:"active",
+  modal:null,
+};
+
+let payouts = [
+  {id:"po_4821", ref:"PO-4821", date:"Jul 27", arrives:"Jul 29", gross:6318.44, fees:176.26, net:6142.18, gifts:71, matched:null},
+  {id:"po_4809", ref:"PO-4809", date:"Jul 20", arrives:"Jul 22", gross:5020.11, fees:139.58, net:4880.53, gifts:58, matched:null},
+  {id:"po_4796", ref:"PO-4796", date:"Jul 13", arrives:"Jul 16", gross:7514.62, fees:208.72, net:7305.90, gifts:83, matched:null},
+  {id:"po_4783", ref:"PO-4783", date:"Jul 06", arrives:"Jul 08", gross:5363.40, fees:148.74, net:5214.66, gifts:64, matched:null},
+  {id:"po_4770", ref:"PO-4770", date:"Jun 29", arrives:"Jul 01", gross:9362.28, fees:259.97, net:9102.31, gifts:96, matched:"bk_9903"},
+];
+let bank = [
+  {id:"bk_9941", ref:"9941", date:"Jul 29", desc:"STRIPE TRANSFER ST-K7QP", amount:6142.18, kind:"stripe", matched:null},
+  {id:"bk_9938", ref:"9938", date:"Jul 27", desc:"Counted offering — cash & checks", amount:2415.00, kind:"deposit", matched:null},
+  {id:"bk_9930", ref:"9930", date:"Jul 22", desc:"STRIPE TRANSFER ST-K7BM", amount:4880.53, kind:"stripe", matched:null},
+  {id:"bk_9922", ref:"9922", date:"Jul 16", desc:"STRIPE TRANSFER ST-K6XR", amount:7305.90, kind:"stripe", matched:null},
+  {id:"bk_9915", ref:"9915", date:"Jul 14", desc:"Facility rental — Vida Nueva", amount:1200.00, kind:"other", matched:null},
+  {id:"bk_9908", ref:"9908", date:"Jul 08", desc:"STRIPE TRANSFER ST-K6DJ", amount:5214.66, kind:"stripe", matched:null},
+  {id:"bk_9903", ref:"9903", date:"Jul 01", desc:"STRIPE TRANSFER ST-K5WT", amount:9102.31, kind:"stripe", matched:"po_4770"},
+];
+
+let expenses = [
+  {id:"e1", desc:"Sound board channel repair", who:"Elias Moreno", team:"Media", fund:"general", amount:485.00, date:"Jul 28", status:"pending", receipt:true, note:"X32 channel 9 preamp"},
+  {id:"e2", desc:"Kids curriculum — Q3", who:"Ana Beltrán", team:"Kids", fund:"general", amount:1240.00, date:"Jul 26", status:"pending", receipt:true, note:""},
+  {id:"e3", desc:"Youth camp deposit", who:"Karina Espinal", team:"Youth", fund:"youth", amount:3000.00, date:"Jul 25", status:"pending", receipt:false, note:"Needs a second approval over $2,500"},
+  {id:"e4", desc:"Coffee & hospitality restock", who:"Priscila Duarte", team:"Hospitality", fund:"general", amount:186.42, date:"Jul 24", status:"approved", receipt:true, note:""},
+  {id:"e5", desc:"Van fuel — outreach run", who:"Roberto Salgado", team:"Facilities", fund:"missions", amount:92.15, date:"Jul 21", status:"approved", receipt:true, note:""},
+  {id:"e6", desc:"Missions travel — Honduras", who:"Daniel Reyes", team:"Pastoral", fund:"missions", amount:1845.60, date:"Jul 15", status:"reimbursed", receipt:true, note:""},
+  {id:"e7", desc:"Streaming license — annual", who:"Elias Moreno", team:"Media", fund:"general", amount:59.00, date:"Jul 12", status:"reimbursed", receipt:true, note:"Recurring every July"},
+  {id:"e8", desc:"Family assistance — utilities", who:"Marisol Ortega", team:"Care", fund:"benev", amount:340.00, date:"Jul 10", status:"approved", receipt:true, note:""},
+  {id:"e9", desc:"Stage lighting gels", who:"Elias Moreno", team:"Media", fund:"building", amount:128.75, date:"Jul 09", status:"denied", receipt:false, note:"No receipt attached after 14 days"},
+];
+
+let gifts = [
+  {id:"g1", who:"Marisol Ortega", fund:"general", amount:450.00, date:"Jul 27", method:"Card", recurring:true, fee:13.35, covered:true},
+  {id:"g2", who:"Anonymous", fund:"building", amount:1000.00, date:"Jul 27", method:"ACH", recurring:false, fee:5.00, covered:false},
+  {id:"g3", who:"Héctor Peña", fund:"general", amount:120.00, date:"Jul 27", method:"Card", recurring:true, fee:3.78, covered:true},
+  {id:"g4", who:"Noelia Ramírez", fund:"youth", amount:75.00, date:"Jul 26", method:"Apple Pay", recurring:false, fee:2.48, covered:false},
+  {id:"g5", who:"Tomás Aguilar", fund:"missions", amount:250.00, date:"Jul 26", method:"Card", recurring:true, fee:7.55, covered:true},
+  {id:"g6", who:"Priscila Duarte", fund:"benev", amount:60.00, date:"Jul 25", method:"Card", recurring:false, fee:2.04, covered:false},
+  {id:"g7", who:"Josué Villanueva", fund:"general", amount:300.00, date:"Jul 24", method:"ACH", recurring:true, fee:1.50, covered:true},
+  {id:"g8", who:"Ana Beltrán", fund:"building", amount:500.00, date:"Jul 23", method:"Card", recurring:false, fee:14.80, covered:false},
+  {id:"g9", who:"Karina Espinal", fund:"youth", amount:40.00, date:"Jul 22", method:"Apple Pay", recurring:true, fee:1.46, covered:true},
+  {id:"g10",who:"Anonymous", fund:"general", amount:25.00, date:"Jul 21", method:"Card", recurring:false, fee:1.03, covered:false},
+];
+
+let people = [
+  {id:"p1", name:"Sam Camacho", role:"Admin", teams:["Finance","Media"], email:"sam@somosreino.org", phone:"(407) 555-0142", since:"2019", last:"Today", bg:"cleared", perms:{finance:true,approve:true,refund:true,people:true,payouts:true}},
+  {id:"p2", name:"Marisol Ortega", role:"Finance", teams:["Finance","Care"], email:"marisol@somosreino.org", phone:"(407) 555-0198", since:"2017", last:"2h ago", bg:"cleared", perms:{finance:true,approve:true,refund:true,people:false,payouts:true}},
+  {id:"p3", name:"Daniel Reyes", role:"Staff", teams:["Pastoral"], email:"daniel@somosreino.org", phone:"(407) 555-0110", since:"2015", last:"Yesterday", bg:"cleared", perms:{finance:true,approve:true,refund:false,people:true,payouts:false}},
+  {id:"p4", name:"Crystal Camacho", role:"Team Lead", teams:["Hospitality","Kids"], email:"crystal@somosreino.org", phone:"(407) 555-0177", since:"2019", last:"Today", bg:"cleared", perms:{finance:false,approve:true,refund:false,people:true,payouts:false}},
+  {id:"p5", name:"Josué Villanueva", role:"Staff", teams:["Worship"], email:"josue@somosreino.org", phone:"(407) 555-0155", since:"2018", last:"3d ago", bg:"cleared", perms:{finance:false,approve:true,refund:false,people:false,payouts:false}},
+  {id:"p6", name:"Elias Moreno", role:"Team Lead", teams:["Media","Production"], email:"elias@somosreino.org", phone:"(407) 555-0163", since:"2020", last:"Today", bg:"cleared", perms:{finance:false,approve:false,refund:false,people:false,payouts:false}},
+  {id:"p7", name:"Ana Beltrán", role:"Team Lead", teams:["Kids"], email:"ana@somosreino.org", phone:"(407) 555-0129", since:"2021", last:"Yesterday", bg:"cleared", perms:{finance:false,approve:false,refund:false,people:true,payouts:false}},
+  {id:"p8", name:"Karina Espinal", role:"Team Lead", teams:["Youth"], email:"karina@somosreino.org", phone:"(407) 555-0184", since:"2022", last:"4d ago", bg:"expiring", perms:{finance:false,approve:false,refund:false,people:false,payouts:false}},
+  {id:"p9", name:"Priscila Duarte", role:"Volunteer", teams:["Hospitality"], email:"priscila@somosreino.org", phone:"(407) 555-0136", since:"2022", last:"1w ago", bg:"cleared", perms:{finance:false,approve:false,refund:false,people:false,payouts:false}},
+  {id:"p10",name:"Roberto Salgado", role:"Volunteer", teams:["Facilities"], email:"roberto@somosreino.org", phone:"(407) 555-0171", since:"2020", last:"5d ago", bg:"cleared", perms:{finance:false,approve:false,refund:false,people:false,payouts:false}},
+  {id:"p11",name:"Tomás Aguilar", role:"Volunteer", teams:["Parking","Facilities"], email:"tomas@somosreino.org", phone:"(407) 555-0192", since:"2023", last:"1w ago", bg:"missing", perms:{finance:false,approve:false,refund:false,people:false,payouts:false}},
+  {id:"p12",name:"Noelia Ramírez", role:"Volunteer", teams:["Welcome"], email:"noelia@somosreino.org", phone:"(407) 555-0148", since:"2024", last:"2w ago", bg:"missing", perms:{finance:false,approve:false,refund:false,people:false,payouts:false}},
+  {id:"p13",name:"Héctor Peña", role:"Volunteer", teams:["Production","Media"], email:"hector@somosreino.org", phone:"(407) 555-0119", since:"2023", last:"6d ago", bg:"cleared", perms:{finance:false,approve:false,refund:false,people:false,payouts:false}},
+];
+
+let weekly = [
+  {w:"Jun 01", v:7420},{w:"Jun 08", v:6180},{w:"Jun 15", v:9310},{w:"Jun 22", v:6740},
+  {w:"Jun 29", v:9362},{w:"Jul 06", v:5363},{w:"Jul 13", v:7515},{w:"Jul 20", v:5020},{w:"Jul 27", v:6318},
+];
+
+let feed = [
+  {who:"Marisol Ortega", what:"approved <b>Coffee &amp; hospitality restock</b> — $186.42", t:"12m"},
+  {who:"Stripe", what:"payout <b>PO-4821</b> sent to Truist ••4417", t:"1h"},
+  {who:"Elias Moreno", what:"submitted <b>Sound board channel repair</b>", t:"3h"},
+  {who:"Sam Camacho", what:"reconciled <b>PO-4770</b> against deposit 9903", t:"Yesterday"},
+  {who:"Ana Beltrán", what:"added <b>Noelia Ramírez</b> to the Welcome team", t:"2d"},
+  {who:"Daniel Reyes", what:"moved $2,000 from General to <b>Benevolence</b>", t:"3d"},
+];
+
+const NAV = [
+  {g:"Money", items:[
+    {id:"today", label:"Today", ico:"M3 10.5 9 4l6 6.5M4.5 9v6.5h9V9"},
+    {id:"reconcile", label:"Reconcile", ico:"M3 6h5l2 6h5M3 12h5M11 3l3 3-3 3"},
+    {id:"expenses", label:"Expenses", ico:"M4 3h10v13l-2.5-1.5L9 16l-2.5-1.5L4 16V3ZM7 7h4M7 10h4"},
+    {id:"giving", label:"Giving", ico:"M9 15s-5.5-3.4-5.5-7A2.9 2.9 0 0 1 9 6.4 2.9 2.9 0 0 1 14.5 8c0 3.6-5.5 7-5.5 7Z"},
+  ]},
+  {g:"Church", items:[
+    {id:"people", label:"People", ico:"M7 8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM2.5 15c0-2.5 2-4.2 4.5-4.2s4.5 1.7 4.5 4.2M12.5 4.2a2.3 2.3 0 0 1 0 4.4M15.5 15c0-1.9-.9-3.2-2.5-3.8"},
+    {id:"accounts", label:"Accounts", ico:"M2.5 6.5 9 3l6.5 3.5M3.5 7.5v6M7 7.5v6M11 7.5v6M14.5 7.5v6M2.5 15h13"},
+  ]},
+];
+
+const TITLES = {
+  today:{c:"Today / Sunday, August 2", t:"Good morning, Sam"},
+  reconcile:{c:"Money / Reconciliation", t:"Reconcile"},
+  expenses:{c:"Money / Expenses", t:"Expenses"},
+  giving:{c:"Money / Giving via Stripe", t:"Giving"},
+  people:{c:"Church / Volunteers & leaders", t:"People"},
+  accounts:{c:"Church / Connected accounts & funds", t:"Accounts"},
+};
+
+/* ---------------- derived ---------------- */
+const openPayouts = () => payouts.filter(p=>!p.matched);
+const openBank = () => bank.filter(b=>!b.matched);
+const unreconciled = () => openPayouts().reduce((s,p)=>s+p.net,0) + openBank().reduce((s,b)=>s+b.amount,0);
+const pendingExp = () => expenses.filter(e=>e.status==="pending");
+const suggestionFor = p => openBank().find(b=>Math.abs(b.amount-p.net)<0.01);
+const totalFunds = () => FUNDS.reduce((s,f)=>s+f.bal,0);
+const givingMTD = () => gifts.reduce((s,g)=>s+g.amount,0);
+
+/* ---------------- render: nav ---------------- */
+function renderNav(){
+  const counts = {reconcile:openPayouts().length+openBank().length, expenses:pendingExp().length};
+  $("#nav").innerHTML = NAV.map(g=>`
+    <div class="nav-eyebrow">${g.g}</div>
+    ${g.items.map(i=>`
+      <button class="nav-item" data-nav="${i.id}" aria-current="${state.view===i.id}">
+        <svg class="nav-ico" viewBox="0 0 18 18"><path d="${i.ico}"/></svg>
+        <span>${i.label}</span>
+        ${counts[i.id] ? `<span class="nav-count${i.id==="expenses"?" quiet":""}">${counts[i.id]}</span>` : ""}
+      </button>`).join("")}
+  `).join("");
+}
+
+/* ---------------- shared blocks ---------------- */
+function ribbon(){
+  const t = totalFunds();
+  return `<div class="ribbon">
+    <div class="ribbon-top">
+      <span class="eyebrow">Held across ${FUNDS.length} funds</span>
+      <span class="ribbon-total" style="margin-left:auto">${money(t)}</span>
+    </div>
+    <div class="ribbon-bar">
+      ${FUNDS.map(f=>`<div class="ribbon-seg" style="flex:${f.bal};background:${f.color}" title="${f.name} ${money(f.bal)}"></div>`).join("")}
+    </div>
+    <div class="ribbon-key">
+      ${FUNDS.map(f=>`<span class="ribbon-key-item"><span class="sw" style="background:${f.color}"></span>${f.name}<span class="amt">${money(f.bal)}</span></span>`).join("")}
+    </div>
+  </div>`;
+}
+
+function chart(){
+  const max = Math.max(...weekly.map(d=>d.v));
+  const W=100, gap=1.6, bw=(W-gap*(weekly.length-1))/weekly.length;
+  return `<svg class="chart" viewBox="0 0 100 46" preserveAspectRatio="none" role="img" aria-label="Weekly giving, last nine weeks">
+    ${weekly.map((d,i)=>{
+      const h = (d.v/max)*38;
+      return `<rect class="bar${i<weekly.length-1?" pale":""}" x="${(bw+gap)*i}" y="${40-h}" width="${bw}" height="${h}" rx="0.8"><title>${d.w} — ${money0(d.v)}</title></rect>`;
+    }).join("")}
+    ${weekly.map((d,i)=>i%2===0?`<text x="${(bw+gap)*i+bw/2}" y="45" font-size="2.6" fill="#9A9299" text-anchor="middle" font-family="IBM Plex Mono">${d.w.split(" ")[1]}</text>`:"").join("")}
+  </svg>`;
+}
+
+/* ---------------- view: today ---------------- */
+function viewToday(){
+  const att = [];
+  const un = openPayouts().length+openBank().length;
+  if(un) att.push({c:"var(--coral)", t:`${un} lines waiting to be reconciled`, d:`${money(unreconciled())} across Stripe payouts and Truist activity`, go:"reconcile"});
+  if(pendingExp().length) att.push({c:"var(--amber)", t:`${pendingExp().length} expenses need a decision`, d:`${money(pendingExp().reduce((s,e)=>s+e.amount,0))} submitted by 3 team leads`, go:"expenses"});
+  const noBg = people.filter(p=>p.bg!=="cleared");
+  if(noBg.length) att.push({c:"var(--amber)", t:`${noBg.length} volunteers missing a current background check`, d:noBg.map(p=>p.name).join(", "), go:"people"});
+  att.push({c:"var(--sage)", t:"Next Stripe payout lands Tuesday", d:"Estimated "+money(5840.22)+" to Truist ••4417", go:"giving"});
+
+  return `
+  <div class="grid" style="gap:14px">
+    ${ribbon()}
+    <div class="tiles">
+      <button class="tile tile-hot" data-nav="reconcile">
+        <div class="eyebrow">Unreconciled</div>
+        <div class="tile-v">${money(unreconciled())}</div>
+        <div class="tile-note">${un} open lines · oldest 6 days</div>
+      </button>
+      <button class="tile" data-nav="expenses">
+        <div class="eyebrow">Awaiting approval</div>
+        <div class="tile-v">${money(pendingExp().reduce((s,e)=>s+e.amount,0))}</div>
+        <div class="tile-note">${pendingExp().length} expenses · 1 needs two approvals</div>
+      </button>
+      <button class="tile" data-nav="giving">
+        <div class="eyebrow">Giving this month</div>
+        <div class="tile-v">${money(givingMTD())}</div>
+        <div class="tile-note">${gifts.length} gifts · ${gifts.filter(g=>g.recurring).length} recurring</div>
+      </button>
+      <button class="tile" data-nav="people">
+        <div class="eyebrow">Serving this weekend</div>
+        <div class="tile-v">${people.length}</div>
+        <div class="tile-note">Across 9 teams · 4 with finance access</div>
+      </button>
+    </div>
+
+    <div class="split">
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Needs your attention</span><span class="eyebrow" style="margin-left:auto">Sorted by cost of waiting</span></div>
+        ${att.map(a=>`
+          <button class="att" data-nav="${a.go}">
+            <span class="att-bar" style="background:${a.c}"></span>
+            <span>
+              <span class="att-t">${a.t}</span>
+              <span class="att-d">${esc(a.d)}</span>
+            </span>
+            <span class="att-go">Open →</span>
+          </button>`).join("")}
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Weekly giving</span><span class="eyebrow" style="margin-left:auto">9 weeks</span></div>
+          <div class="card-bd" style="padding:14px 16px 10px">
+            ${chart()}
+            <div style="display:flex;gap:18px;margin-top:10px">
+              <div><div class="eyebrow">4-week average</div><div class="num" style="font-size:15px;font-weight:600">${money0(weekly.slice(-4).reduce((s,d)=>s+d.v,0)/4)}</div></div>
+              <div><div class="eyebrow">vs. same period last year</div><div class="num" style="font-size:15px;font-weight:600;color:var(--sage)">+11.4%</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Activity</span></div>
+          <div class="card-bd" style="padding:4px 16px">
+            ${feed.map(f=>`
+              <div class="feed-item">
+                <span class="avatar" style="background:${avColor(f.who)};color:#fff">${initials(f.who)}</span>
+                <span class="feed-t"><b>${esc(f.who)}</b> ${f.what}</span>
+                <span class="feed-time">${f.t}</span>
+              </div>`).join("")}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: reconcile (signature) ---------------- */
+function payoutCard(p){
+  const sug = suggestionFor(p);
+  const on = state.sel.payout===p.id;
+  return `<button class="rowc" data-payout="${p.id}" aria-pressed="${on}">
+    ${sug?`<span class="tag t-ok sug"><span class="dot"></span>Match found</span>`:""}
+    <span class="rowc-top">
+      <span class="rowc-id">${p.ref}</span>
+      <span class="rowc-amt">${money(p.net)}</span>
+    </span>
+    <span class="rowc-desc">Stripe payout · ${p.gifts} gifts</span>
+    <span class="rowc-meta">
+      <span>Sent ${p.date} → arrives ${p.arrives}</span>
+      <span class="num" style="color:var(--text-3)">gross ${money(p.gross)} − fees ${money(p.fees)}</span>
+    </span>
+  </button>`;
+}
+function bankCard(b){
+  const on = state.sel.bank===b.id;
+  const label = b.kind==="stripe" ? "Stripe transfer" : b.kind==="deposit" ? "Branch deposit" : "Other income";
+  return `<button class="rowc" data-bank="${b.id}" aria-pressed="${on}">
+    <span class="rowc-top">
+      <span class="rowc-id">Truist ••4417 · ${b.ref}</span>
+      <span class="rowc-amt">${money(b.amount)}</span>
+    </span>
+    <span class="rowc-desc">${esc(b.desc)}</span>
+    <span class="rowc-meta">
+      <span>Posted ${b.date}</span>
+      <span class="tag ${b.kind==="stripe"?"t-mute":"t-wait"}">${label}</span>
+    </span>
+  </button>`;
+}
+
+function viewReconcile(){
+  const total = payouts.length + bank.length;
+  const done = payouts.filter(p=>p.matched).length + bank.filter(b=>b.matched).length;
+  const pct = Math.round(done/total*100);
+  const sugCount = openPayouts().filter(p=>suggestionFor(p)).length;
+
+  const sp = payouts.find(p=>p.id===state.sel.payout);
+  const sb = bank.find(b=>b.id===state.sel.bank);
+  const variance = sp&&sb ? sb.amount-sp.net : null;
+  const canMatch = sp&&sb;
+  const canCode = sb && !sp && sb.kind!=="stripe";
+
+  const matchedPairs = payouts.filter(p=>p.matched).map(p=>({p, b:bank.find(b=>b.id===p.matched)}));
+  const recorded = bank.filter(b=>typeof b.matched==="string" && b.matched.startsWith("fund:"));
+
+  const body = state.recTab==="open" ? `
+    <div class="matcher">
+      <div>
+        <div class="col-hd"><span class="src">Stripe payouts</span><span class="n">${openPayouts().length} open</span></div>
+        <div class="lane">
+          ${openPayouts().length ? openPayouts().map(payoutCard).join("")
+            : `<div class="card empty"><strong>Every payout is accounted for</strong>New Stripe payouts show up here the day they're sent.</div>`}
+        </div>
+      </div>
+
+      <div class="seam">
+        <div class="seam-line"></div>
+        <div class="seam-box">
+          <div class="thread ${canMatch?"on":""}"></div>
+          <div class="seam-var">
+            ${canMatch ? `
+              <span class="lab">Difference</span>
+              <span style="font-size:15px;font-weight:600;color:${Math.abs(variance)<0.01?"var(--sage)":"var(--coral-deep)"}">${money(variance)}</span>
+            ` : canCode ? `<span class="lab">No Stripe counterpart</span><span style="font-size:12px;color:var(--text-2);line-height:1.35">This money didn't come through Stripe. Record it straight to a fund.</span>`
+            : `<span class="lab">Pick one from each side</span>`}
+          </div>
+          ${canCode
+            ? `<button class="btn btn-primary btn-sm" data-act="codeBank" style="width:100%;justify-content:center">Record to a fund</button>`
+            : `<button class="btn btn-primary btn-sm" data-act="match" ${canMatch?"":"disabled"} style="width:100%;justify-content:center">Match these</button>`}
+          ${sugCount ? `<button class="btn btn-sm" data-act="acceptAll" style="width:100%;justify-content:center">Accept ${sugCount} found</button>` : ""}
+          ${(canMatch||canCode) ? `<button class="btn btn-ghost btn-sm" data-act="clearSel" style="width:100%;justify-content:center">Clear</button>` : ""}
+          <div class="thread ${canMatch?"on":""}"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-hd"><span class="src">Truist checking ••4417</span><span class="n">${openBank().length} open</span></div>
+        <div class="lane">
+          ${openBank().length ? openBank().map(bankCard).join("")
+            : `<div class="card empty"><strong>The bank feed is clear</strong>Truist syncs every morning at 6:00.</div>`}
+        </div>
+      </div>
+    </div>
+  ` : `
+    <div class="card">
+      ${matchedPairs.length ? matchedPairs.map(({p,b})=>`
+        <div class="matched-row">
+          <div>
+            <div style="font-size:13px;font-weight:600">${p.ref} · ${money(p.net)}</div>
+            <div style="font-size:11.5px;color:var(--text-2)">Sent ${p.date} · ${p.gifts} gifts · ${money(p.fees)} in fees</div>
+          </div>
+          <div class="link-mark">Reconciled</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div>
+              <div style="font-size:13px;font-weight:600">${b?b.ref:"—"} · ${b?money(b.amount):""}</div>
+              <div style="font-size:11.5px;color:var(--text-2)">${b?esc(b.desc):""} · posted ${b?b.date:""}</div>
+            </div>
+            <button class="btn btn-sm btn-ghost" data-unmatch="${p.id}" style="margin-left:auto">Undo</button>
+          </div>
+        </div>`).join("") : ""}
+      ${recorded.map(b=>`
+        <div class="matched-row">
+          <div>
+            <div style="font-size:13px;font-weight:600">${esc(b.desc)}</div>
+            <div style="font-size:11.5px;color:var(--text-2)">Deposit ${b.ref} · posted ${b.date}</div>
+          </div>
+          <div class="link-mark">Recorded</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div>
+              <div style="font-size:13px;font-weight:600">${money(b.amount)} → ${fundName(b.matched.slice(5))}</div>
+              <div style="font-size:11.5px;color:var(--text-2)">No Stripe counterpart · entered by Sam Camacho</div>
+            </div>
+            <button class="btn btn-sm btn-ghost" data-uncode="${b.id}" style="margin-left:auto">Undo</button>
+          </div>
+        </div>`).join("")}
+      ${(!matchedPairs.length && !recorded.length)
+        ? `<div class="empty"><strong>Nothing reconciled yet</strong>Matched pairs and recorded deposits land here with a full audit trail.</div>` : ""}
+    </div>
+  `;
+
+  return `
+  <div class="grid" style="gap:14px">
+    <div class="rec-bar">
+      <div>
+        <div class="k">Unreconciled</div>
+        <div class="v">${money(unreconciled())}</div>
+      </div>
+      <div>
+        <div class="k">Open lines</div>
+        <div class="v">${openPayouts().length+openBank().length}</div>
+      </div>
+      <div class="rec-prog">
+        <div class="k">July progress · ${done} of ${total} cleared</div>
+        <div class="rec-track"><div class="rec-fill" style="width:${pct}%"></div></div>
+      </div>
+      <button class="btn btn-sm" data-act="exportRec" style="background:transparent;border-color:#3E3948;color:#EDE8EA">Export to CSV</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="pills">
+        <button class="pill" data-rectab="open" aria-pressed="${state.recTab==="open"}">To match<span class="c">${openPayouts().length+openBank().length}</span></button>
+        <button class="pill" data-rectab="done" aria-pressed="${state.recTab==="done"}">Reconciled<span class="c">${matchedPairs.length+recorded.length}</span></button>
+      </div>
+      <span style="margin-left:auto;font-size:12px;color:var(--text-2)">Stripe fees post to <b>General → Processing fees</b> automatically.</span>
+    </div>
+
+    ${body}
+  </div>`;
+}
+
+/* ---------------- view: expenses ---------------- */
+function viewExpenses(){
+  const f = state.expFilter;
+  const rows = expenses.filter(e=> f==="all" ? true : e.status===f);
+  const counts = {
+    pending:expenses.filter(e=>e.status==="pending").length,
+    approved:expenses.filter(e=>e.status==="approved").length,
+    reimbursed:expenses.filter(e=>e.status==="reimbursed").length,
+    all:expenses.length
+  };
+  const byFund = FUNDS.map(fd=>({...fd, spent:expenses.filter(e=>e.fund===fd.id&&e.status!=="denied").reduce((s,e)=>s+e.amount,0)})).filter(x=>x.spent>0);
+  const statusTag = s => ({
+    pending:'<span class="tag t-wait"><span class="dot"></span>Awaiting approval</span>',
+    approved:'<span class="tag t-ok"><span class="dot"></span>Approved</span>',
+    reimbursed:'<span class="tag t-mute">Reimbursed</span>',
+    denied:'<span class="tag t-hot">Denied</span>'
+  })[s];
+
+  return `
+  <div class="side">
+    <div class="grid" style="gap:12px">
+      <div class="pills">
+        ${[["pending","Awaiting approval"],["approved","Approved"],["reimbursed","Reimbursed"],["all","All"]].map(([k,l])=>
+          `<button class="pill" data-expfilter="${k}" aria-pressed="${f===k}">${l}<span class="c">${counts[k]}</span></button>`).join("")}
+      </div>
+      <div class="card">
+        <div class="tbl"><table>
+          <thead><tr><th>Expense</th><th>Submitted by</th><th>Fund</th><th class="ta-r">Amount</th><th style="width:1%"></th></tr></thead>
+          <tbody>
+          ${rows.length ? rows.map(e=>`
+            <tr>
+              <td>
+                <div style="font-weight:600;font-size:13.5px">${esc(e.desc)}</div>
+                <div style="display:flex;gap:8px;align-items:center;margin-top:3px">
+                  ${statusTag(e.status)}
+                  ${e.receipt?'<span style="font-size:11.5px;color:var(--text-2)">Receipt attached</span>':'<span class="tag t-hot">No receipt</span>'}
+                </div>
+                ${e.note?`<div style="font-size:11.5px;color:var(--text-2);margin-top:4px">${esc(e.note)}</div>`:""}
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span class="avatar" style="background:${avColor(e.who)};color:#fff">${initials(e.who)}</span>
+                  <span><span style="font-size:13px;font-weight:500">${esc(e.who)}</span><br><span style="font-size:11px;color:var(--text-2)">${e.team} · ${e.date}</span></span>
+                </div>
+              </td>
+              <td>
+                <select class="input" data-fundset="${e.id}" style="width:130px;font-size:12.5px;padding:5px 8px">
+                  ${FUNDS.map(fd=>`<option value="${fd.id}" ${fd.id===e.fund?"selected":""}>${fd.name}</option>`).join("")}
+                </select>
+              </td>
+              <td class="ta-r num" style="font-size:14px;font-weight:600">${money(e.amount)}</td>
+              <td>
+                <div style="display:flex;gap:6px;justify-content:flex-end">
+                  ${e.status==="pending" ? `
+                    <button class="btn btn-sm btn-dark" data-approve="${e.id}">Approve</button>
+                    <button class="btn btn-sm" data-deny="${e.id}">Deny</button>` :
+                    e.status==="approved" ? `<button class="btn btn-sm" data-reimburse="${e.id}">Mark reimbursed</button>` : ""}
+                </div>
+              </td>
+            </tr>`).join("")
+          : `<tr><td colspan="5"><div class="empty"><strong>Nothing here</strong>Try another filter, or submit the first expense.</div></td></tr>`}
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Spent this month</span></div>
+        <div class="card-bd" style="padding:12px 16px">
+          ${byFund.map(fd=>`<div class="kv"><span class="k"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${fd.color};margin-right:7px"></span>${fd.name}</span><span class="v">${money(fd.spent)}</span></div>`).join("")}
+          <div class="kv" style="border-top:1px solid var(--line-2);margin-top:4px;padding-top:9px"><span class="k" style="font-weight:600;color:var(--text)">Total</span><span class="v" style="font-weight:600">${money(byFund.reduce((s,x)=>s+x.spent,0))}</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Approval rules</span></div>
+        <div class="card-bd" style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+          <div><div style="font-size:13px;font-weight:600">Two approvals over $2,500</div><div style="font-size:11.5px;color:var(--text-2)">Treasurer plus one pastor.</div></div>
+          <div><div style="font-size:13px;font-weight:600">Receipts within 14 days</div><div style="font-size:11.5px;color:var(--text-2)">After that the expense is denied and the submitter is notified.</div></div>
+          <div><div style="font-size:13px;font-weight:600">No self-approval</div><div style="font-size:11.5px;color:var(--text-2)">Anyone can submit; nobody clears their own.</div></div>
+          <button class="btn btn-sm" data-act="rules" style="align-self:flex-start">Edit rules</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: giving ---------------- */
+function viewGiving(){
+  let rows = gifts.slice();
+  if(state.giveFund!=="all") rows = rows.filter(g=>g.fund===state.giveFund);
+  if(state.giveMethod!=="all") rows = rows.filter(g=>g.method===state.giveMethod);
+  const fees = gifts.reduce((s,g)=>s+g.fee,0);
+  const covered = gifts.filter(g=>g.covered).reduce((s,g)=>s+g.fee,0);
+  const methods = [...new Set(gifts.map(g=>g.method))];
+
+  return `
+  <div class="grid" style="gap:14px">
+    <div class="card" style="display:flex;align-items:center;gap:20px;padding:14px 18px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:11px">
+        <span class="conn-logo" style="background:#635BFF;color:#fff;width:32px;height:32px;font-size:13px">S</span>
+        <span>
+          <span style="font-size:13.5px;font-weight:700;display:block">Stripe · acct ••7QP4</span>
+          <span class="tag t-ok" style="margin-top:3px"><span class="dot"></span>Live — accepting payments</span>
+        </span>
+      </div>
+      <div style="border-left:1px solid var(--line);padding-left:20px"><div class="eyebrow">Payout schedule</div><div style="font-size:13px;font-weight:600">Weekly, Tuesdays → Truist ••4417</div></div>
+      <div style="border-left:1px solid var(--line);padding-left:20px"><div class="eyebrow">Next payout</div><div class="num" style="font-size:13px;font-weight:600">${money(5840.22)} on Aug 4</div></div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-sm" data-act="stripeDash">Open Stripe</button>
+        <button class="btn btn-sm btn-primary" data-act="newLink">Create a giving link</button>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><div class="eyebrow">Received this month</div><div class="tile-v">${money(givingMTD())}</div><div class="tile-note">${gifts.length} gifts from ${new Set(gifts.map(g=>g.who)).size} givers</div></div>
+      <div class="tile"><div class="eyebrow">Recurring</div><div class="tile-v">${gifts.filter(g=>g.recurring).length}</div><div class="tile-note">${money(gifts.filter(g=>g.recurring).reduce((s,g)=>s+g.amount,0))} of the month's total</div></div>
+      <div class="tile"><div class="eyebrow">Processing fees</div><div class="tile-v">${money(fees)}</div><div class="tile-note">${money(covered)} covered by givers</div></div>
+      <div class="tile"><div class="eyebrow">Average gift</div><div class="tile-v">${money(givingMTD()/gifts.length)}</div><div class="tile-note">ACH gifts average 3× card gifts</div></div>
+    </div>
+
+    <div class="side">
+      <div class="grid" style="gap:12px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select class="input" data-givefund style="width:auto"><option value="all">All funds</option>${FUNDS.map(f=>`<option value="${f.id}" ${state.giveFund===f.id?"selected":""}>${f.name}</option>`).join("")}</select>
+          <select class="input" data-givemethod style="width:auto"><option value="all">All methods</option>${methods.map(m=>`<option value="${m}" ${state.giveMethod===m?"selected":""}>${m}</option>`).join("")}</select>
+          <span style="margin-left:auto;align-self:center;font-size:12px;color:var(--text-2)">${rows.length} of ${gifts.length} gifts</span>
+        </div>
+        <div class="card">
+          <div class="tbl"><table>
+            <thead><tr><th>Giver</th><th>Fund</th><th>Method</th><th>Date</th><th class="ta-r">Amount</th><th class="ta-r">Fee</th><th style="width:1%"></th></tr></thead>
+            <tbody>
+              ${rows.length ? rows.map(g=>`
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:8px">
+                    <span class="avatar" style="background:${g.who==="Anonymous"?"#B7AFA9":avColor(g.who)};color:#fff">${g.who==="Anonymous"?"·":initials(g.who)}</span>
+                    <span><span style="font-size:13px;font-weight:500">${esc(g.who)}</span>${g.recurring?'<br><span class="tag t-mute" style="margin-top:2px">Monthly</span>':""}</span>
+                  </div></td>
+                  <td><span class="tag" style="background:${fundColor(g.fund)}1A;color:${fundColor(g.fund)}">${fundName(g.fund)}</span></td>
+                  <td style="font-size:12.5px;color:var(--text-2)">${g.method}</td>
+                  <td class="num" style="font-size:12px;color:var(--text-2)">${g.date}</td>
+                  <td class="ta-r num" style="font-size:14px;font-weight:600">${money(g.amount)}</td>
+                  <td class="ta-r num" style="font-size:12px;color:${g.covered?"var(--sage)":"var(--text-3)"}">${money(g.fee)}${g.covered?" ✓":""}</td>
+                  <td><button class="btn btn-sm btn-ghost" data-refund="${g.id}">Refund</button></td>
+                </tr>`).join("")
+              : `<tr><td colspan="7"><div class="empty"><strong>No gifts match those filters</strong>Widen the fund or method to see more.</div></td></tr>`}
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Where it's designated</span></div>
+          <div class="card-bd" style="padding:12px 16px">
+            ${FUNDS.map(f=>{
+              const amt = gifts.filter(g=>g.fund===f.id).reduce((s,g)=>s+g.amount,0);
+              const pct = givingMTD()? amt/givingMTD()*100 : 0;
+              return `<div style="margin-bottom:9px">
+                <div class="kv" style="border:none;padding:0 0 4px"><span class="k">${f.name}</span><span class="v">${money(amt)}</span></div>
+                <div style="height:5px;background:#F1ECE9;border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${f.color};border-radius:3px"></div></div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Giving page</span></div>
+          <div class="card-bd" style="padding:12px 16px;display:flex;flex-direction:column;gap:9px">
+            <div style="font-family:var(--mono);font-size:11.5px;background:#F6F1EE;border:1px solid var(--line);border-radius:7px;padding:8px 10px;word-break:break-all">give.somosreino.org</div>
+            <div style="font-size:12px;color:var(--text-2)">Funds, suggested amounts, and the fee-cover checkbox come straight from this page's settings.</div>
+            <button class="btn btn-sm" data-act="givingSettings" style="align-self:flex-start">Edit giving page</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: people ---------------- */
+const PERM_DEFS = [
+  {k:"finance", t:"See financial reports", d:"Balances, giving totals, fund activity."},
+  {k:"approve", t:"Approve expenses", d:"Clear submissions up to the policy limit."},
+  {k:"refund",  t:"Issue refunds in Stripe", d:"Reverse a gift and notify the giver."},
+  {k:"people",  t:"Manage people", d:"Add volunteers, edit teams and roles."},
+  {k:"payouts", t:"Change payout settings", d:"Bank destination and payout schedule."},
+];
+function viewPeople(){
+  let rows = people.slice();
+  if(state.peopleQ) rows = rows.filter(p=>(p.name+" "+p.teams.join(" ")+" "+p.role).toLowerCase().includes(state.peopleQ.toLowerCase()));
+  if(state.peopleRole!=="all") rows = rows.filter(p=>p.role===state.peopleRole);
+  if(state.peopleStatus!=="all") rows = rows.filter(p=>state.peopleStatus==="active" ? p.active!==false : p.active===false);
+  const person = people.find(p=>p.id===state.personId) || people[0];
+  const roles = [...new Set(people.map(p=>p.role))];
+  const personActive = person.active!==false;
+  const activeCount = people.filter(p=>p.active!==false).length;
+  const bgTag = b => b==="cleared" ? '<span class="tag t-ok"><span class="dot"></span>Background check current</span>'
+    : b==="expiring" ? '<span class="tag t-wait"><span class="dot"></span>Background check expires in 21 days</span>'
+    : '<span class="tag t-hot"><span class="dot"></span>Background check missing</span>';
+
+  return `
+  <div class="roster">
+    <div class="grid" style="gap:12px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input class="input" data-peopleq placeholder="Search by name, team, or role" value="${esc(state.peopleQ)}" style="max-width:280px">
+        <select class="input" data-peoplerole style="width:auto"><option value="all">Every role</option>${roles.map(r=>`<option ${state.peopleRole===r?"selected":""}>${r}</option>`).join("")}</select>
+        <select class="input" data-peoplestatus style="width:auto"><option value="active" ${state.peopleStatus==="active"?"selected":""}>Active accounts</option><option value="inactive" ${state.peopleStatus==="inactive"?"selected":""}>Removed access</option><option value="all" ${state.peopleStatus==="all"?"selected":""}>Every status</option></select>
+        <span style="margin-left:auto;align-self:center;font-size:12px;color:var(--text-2)">${activeCount} active · ${people.length-activeCount} inactive</span>
+      </div>
+      <div class="card">
+        ${rows.length ? rows.map(p=>`
+          <button class="prow" data-person="${p.id}" aria-pressed="${p.id===person.id}">
+            <span class="avatar" style="background:${avColor(p.name)};color:#fff;width:30px;height:30px;font-size:11.5px">${initials(p.name)}</span>
+            <span>
+              <span class="prow-name">${esc(p.name)}</span>
+              <span class="prow-sub">${p.role} · ${p.teams.join(", ")||"No team"} · ${p.active===false?"access removed":`active ${p.last.toLowerCase()}`}</span>
+            </span>
+            <span class="chips">
+              ${p.active===false?'<span class="tag t-hot"><span class="dot"></span>Access removed</span>':""}
+              ${p.perms.finance?'<span class="tag t-mute">Finance access</span>':""}
+              ${p.perms.approve?'<span class="tag t-mute">Approves</span>':""}
+              ${p.bg!=="cleared"?`<span class="tag ${p.bg==="expiring"?"t-wait":"t-hot"}"><span class="dot"></span>${p.bg==="expiring"?"Expiring":"No check"}</span>`:""}
+            </span>
+          </button>`).join("")
+        : `<div class="empty"><strong>Nobody matches that search</strong>Clear the filters or invite someone new.</div>`}
+      </div>
+    </div>
+
+    <div class="card" style="position:sticky;top:104px">
+      <div class="card-bd" style="display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line)">
+        <span class="avatar" style="background:${avColor(person.name)};color:#fff;width:42px;height:42px;font-size:15px">${initials(person.name)}</span>
+        <span style="min-width:0">
+          <div style="font-family:var(--display);font-size:17px;font-weight:800;letter-spacing:-.03em">${esc(person.name)}</div>
+          <div style="font-size:12px;color:var(--text-2)">${person.role} · serving since ${person.since}</div>
+        </span>
+      </div>
+      <div class="card-bd" style="padding:13px 16px;border-bottom:1px solid var(--line)">
+        <div class="kv"><span class="k">Email</span><span class="v" style="font-size:12px">${esc(person.email)}</span></div>
+        <div class="kv"><span class="k">Phone</span><span class="v" style="font-size:12px">${person.phone}</span></div>
+        <div class="kv"><span class="k">Teams</span><span class="v" style="font-family:var(--ui);font-size:12.5px">${person.teams.join(", ")}</span></div>
+        <div class="kv"><span class="k">Last active</span><span class="v" style="font-size:12px">${person.last}</span></div>
+        <div class="kv"><span class="k">Account</span><span class="v">${personActive?'<span class="tag t-ok"><span class="dot"></span>Active</span>':'<span class="tag t-hot"><span class="dot"></span>Access removed</span>'}</span></div>
+        <div style="margin-top:9px">${bgTag(person.bg)}</div>
+      </div>
+      <div class="card-bd" style="padding:6px 16px 13px">
+        <div class="eyebrow" style="padding:10px 0 2px">What ${person.name.split(" ")[0]} can do</div>
+        ${PERM_DEFS.map(pd=>`
+          <div class="perm">
+            <span>
+              <span class="perm-t">${pd.t}</span>
+              <span class="perm-d">${pd.d}</span>
+            </span>
+            <button class="sw-toggle" data-perm="${pd.k}" data-pid="${person.id}" aria-pressed="${person.perms[pd.k]}" aria-label="${pd.t}" ${personActive?"":"disabled"}></button>
+          </div>`).join("")}
+        <div style="display:flex;gap:8px;margin-top:13px">
+          <button class="btn btn-sm" data-act="message" data-pid="${person.id}">Send a message</button>
+          ${personActive
+            ? `<button class="btn btn-sm btn-ghost" data-act="remove" data-pid="${person.id}" style="color:var(--coral-deep)" ${person.id===currentUserId?"disabled title=\"You cannot remove your own access\"":""}>Remove access</button>`
+            : `<button class="btn btn-sm btn-primary" data-act="restore" data-pid="${person.id}">Restore access</button>`}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: accounts ---------------- */
+function viewAccounts(){
+  const conns = [
+    {n:"Stripe", d:"Card, ACH, Apple Pay and Google Pay for the giving page.", s:"live", meta:"acct ••7QP4 · connected Mar 2024", bg:"#635BFF", fg:"#fff", mark:"S"},
+    {n:"Truist checking ••4417", d:"Operating account. Payouts and expense reimbursements.", s:"live", meta:"Synced 6:02 AM today", bg:"#2A2733", fg:"#fff", mark:"T"},
+    {n:"Truist savings ••8802", d:"Building fund reserve.", s:"attention", meta:"Reconnect needed — the bank rotated credentials", bg:"#2A2733", fg:"#fff", mark:"T"},
+    {n:"QuickBooks Online", d:"Push a journal entry each time a payout is reconciled.", s:"off", meta:"Not connected", bg:"#F1ECE9", fg:"#6A6371", mark:"Q"},
+  ];
+  const sTag = s => s==="live" ? '<span class="tag t-ok"><span class="dot"></span>Connected</span>'
+    : s==="attention" ? '<span class="tag t-hot"><span class="dot"></span>Needs attention</span>'
+    : '<span class="tag t-mute">Not connected</span>';
+
+  return `
+  <div class="grid" style="gap:14px">
+    ${ribbon()}
+    <div class="duo">
+      ${conns.map(c=>`
+        <div class="conn">
+          <span class="conn-logo" style="background:${c.bg};color:${c.fg}">${c.mark}</span>
+          <span style="min-width:0;flex:1">
+            <span style="display:flex;align-items:center;gap:8px"><span class="conn-name">${c.n}</span>${sTag(c.s)}</span>
+            <span class="conn-d">${c.d}</span>
+            <span style="display:block;font-family:var(--mono);font-size:10.5px;color:var(--text-3);margin-top:6px">${c.meta}</span>
+          </span>
+          <button class="btn btn-sm ${c.s==="live"?"":"btn-primary"}" data-act="conn" data-name="${c.n}">${c.s==="live"?"Manage":c.s==="attention"?"Reconnect":"Connect"}</button>
+        </div>`).join("")}
+    </div>
+
+    <div class="side-lg">
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Funds</span><button class="btn btn-sm" data-act="addFund" style="margin-left:auto">Add a fund</button></div>
+        <div class="tbl"><table>
+          <thead><tr><th>Fund</th><th>Shows on the giving page</th><th class="ta-r">Received this month</th><th class="ta-r">Spent</th><th class="ta-r">Balance</th></tr></thead>
+          <tbody>
+            ${FUNDS.map(f=>{
+              const inn = gifts.filter(g=>g.fund===f.id).reduce((s,g)=>s+g.amount,0);
+              const out = expenses.filter(e=>e.fund===f.id&&e.status!=="denied").reduce((s,e)=>s+e.amount,0);
+              return `<tr>
+                <td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${f.color};margin-right:8px"></span><b style="font-size:13.5px">${f.name}</b></td>
+                <td><button class="sw-toggle" data-fundvis="${f.id}" aria-pressed="${f.id!=="benev"}" aria-label="Show ${f.name} on giving page" style="margin:0"></button></td>
+                <td class="ta-r num" style="color:var(--sage)">${money(inn)}</td>
+                <td class="ta-r num" style="color:var(--text-2)">${money(out)}</td>
+                <td class="ta-r num" style="font-weight:600;font-size:14px">${money(f.bal)}</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Payouts</span></div>
+          <div class="card-bd" style="padding:12px 16px">
+            <div class="kv"><span class="k">Schedule</span><span class="v" style="font-family:var(--ui);font-size:12.5px">Weekly · Tuesday</span></div>
+            <div class="kv"><span class="k">Destination</span><span class="v" style="font-size:12px">Truist ••4417</span></div>
+            <div class="kv"><span class="k">Card rate</span><span class="v">2.2% + $0.30</span></div>
+            <div class="kv"><span class="k">ACH rate</span><span class="v">0.8% · $5 cap</span></div>
+            <button class="btn btn-sm" data-act="payoutSettings" style="margin-top:11px">Change payout settings</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Who has the keys</span></div>
+          <div class="card-bd" style="padding:10px 16px">
+            ${people.filter(p=>p.perms.payouts||p.perms.refund).map(p=>`
+              <div class="feed-item" style="align-items:center">
+                <span class="avatar" style="background:${avColor(p.name)};color:#fff">${initials(p.name)}</span>
+                <span><span style="font-size:13px;font-weight:600">${esc(p.name)}</span><br><span style="font-size:11px;color:var(--text-2)">${[p.perms.payouts?"Payout settings":null,p.perms.refund?"Refunds":null].filter(Boolean).join(" · ")}</span></span>
+              </div>`).join("")}
+            <button class="btn btn-sm btn-ghost" data-nav="people" style="margin-top:8px">Review all access</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- top bar actions ---------------- */
+function topActions(){
+  const map = {
+    today:`<button class="btn btn-sm" data-act="exportRec">Weekly summary</button><button class="btn btn-sm btn-primary" data-act="newExpense">Submit an expense</button>`,
+    reconcile:`<button class="btn btn-sm" data-act="rules">Matching rules</button><button class="btn btn-sm btn-primary" data-act="acceptAll">Accept found matches</button>`,
+    expenses:`<button class="btn btn-sm" data-act="exportRec">Export</button><button class="btn btn-sm btn-primary" data-act="newExpense">Submit an expense</button>`,
+    giving:`<button class="btn btn-sm" data-act="exportRec">Export gifts</button><button class="btn btn-sm btn-primary" data-act="newLink">Create a giving link</button>`,
+    people:`<button class="btn btn-sm" data-act="exportRec">Export roster</button><button class="btn btn-sm btn-primary" data-act="createAccount">Create user account</button>`,
+    accounts:`<button class="btn btn-sm btn-primary" data-act="conn" data-name="a new account">Connect an account</button>`,
+  };
+  return map[state.view]||"";
+}
+
+/* ---------------- modals ---------------- */
+function modalHTML(){
+  if(!state.modal) return "";
+  const m = state.modal;
+  const bodies = {
+    newExpense:{
+      t:"Submit an expense", d:"It goes to a treasurer or pastor for approval, usually same week.",
+      body:`
+        <div class="field"><label>What was it for</label><input class="input" id="mx_desc" placeholder="Cables for the stage snake"></div>
+        <div class="duo">
+          <div class="field"><label>Amount</label><input class="input" id="mx_amt" placeholder="0.00" inputmode="decimal"></div>
+          <div class="field"><label>Fund</label><select class="input" id="mx_fund">${FUNDS.map(f=>`<option value="${f.id}">${f.name}</option>`).join("")}</select></div>
+        </div>
+        <div class="field"><label>Team</label><select class="input" id="mx_team">${["Media","Kids","Youth","Worship","Hospitality","Facilities","Care","Pastoral"].map(t=>`<option>${t}</option>`).join("")}</select></div>
+        <div class="field"><label>Receipt</label><div style="border:1px dashed var(--line-2);border-radius:8px;padding:16px;text-align:center;font-size:12.5px;color:var(--text-2)">Drop a photo or PDF here<br><span style="font-size:11px">Required within 14 days</span></div></div>`,
+      ok:"Submit for approval"
+    },
+    createAccount:{
+      t:"Create a user account", d:"Add this person to Somos Reino and email a secure invitation to set their password.",
+      body:`
+        <div class="field"><label>Full name</label><input class="input" id="mi_name" placeholder="Gabriela Núñez"></div>
+        <div class="field"><label>Email</label><input class="input" id="mi_email" placeholder="name@somosreino.org" type="email"></div>
+        <div class="duo">
+          <div class="field"><label>Account role</label><select class="input" id="mi_role"><option>Member</option><option>Finance</option><option>Admin</option></select></div>
+          <div class="field"><label>Team</label><select class="input" id="mi_team">${["Welcome","Media","Kids","Youth","Worship","Hospitality","Facilities","Care","Parking"].map(t=>`<option>${t}</option>`).join("")}</select></div>
+        </div>
+        <div style="background:#FBF7F4;border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-size:12px;color:var(--text-2)">Member accounts open the giving portal. Finance and Admin accounts can sign in to this leadership portal. Only Admin accounts can create or remove users.</div>`,
+      ok:"Create account & send invite"
+    },
+    removeAccess:{
+      t:"Remove this person's access?", d:`${esc(m.personName||"This person")} will no longer be able to sign in.`,
+      body:`<div style="background:#FFF5F3;border:1px solid #F2C6C2;border-radius:8px;padding:12px;font-size:12px;color:var(--text-2)">Their giving, expense, reconciliation, and audit history will be preserved. An administrator can restore access later.</div>`,
+      ok:"Remove access"
+    },
+    newLink:{
+      t:"Create a giving link", d:"A Stripe-hosted page you can drop into a text, bulletin, or QR code.",
+      body:`
+        <div class="field"><label>Name it</label><input class="input" id="ml_name" placeholder="Youth camp scholarships"></div>
+        <div class="field"><label>Fund</label><select class="input" id="ml_fund">${FUNDS.map(f=>`<option value="${f.id}">${f.name}</option>`).join("")}</select></div>
+        <div class="field"><label>Suggested amounts</label><input class="input" id="ml_amts" value="25, 50, 100, 250"></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 0"><span><span style="font-size:13px;font-weight:600">Let givers cover the processing fee</span><span style="display:block;font-size:11.5px;color:var(--text-2)">Checked by default on the page.</span></span><button class="sw-toggle" data-modaltoggle aria-pressed="true" style="margin-left:auto"></button></div>`,
+      ok:"Create the link"
+    },
+    codeBank:{
+      t:"Record this deposit", d:m.desc||"",
+      body:`
+        <div class="field"><label>Fund</label><select class="input" id="mc_fund">${FUNDS.map(f=>`<option value="${f.id}">${f.name}</option>`).join("")}</select></div>
+        <div class="field"><label>Category</label><select class="input" id="mc_cat">${["Offering — cash & checks","Facility rental income","Designated gift","Reimbursement received","Interest","Other income"].map(c=>`<option>${c}</option>`).join("")}</select></div>
+        <div class="field"><label>Note for the audit trail</label><textarea class="input" id="mc_note" rows="2" placeholder="Counted by two people on Jul 27"></textarea></div>
+        <div style="background:#FBF7F4;border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-size:12px;color:var(--text-2)">Recording clears the line from the bank feed and adds it to the fund balance. You can undo it from the Reconciled tab.</div>`,
+      ok:"Record it"
+    },
+    generic:{ t:m.title||"Coming up next", d:m.desc||"", body:`<div style="font-size:13px;color:var(--text-2)">${m.body||""}</div>`, ok:"Got it" }
+  };
+  const cfg = bodies[m.kind] || bodies.generic;
+  return `<div class="scrim" data-scrim>
+    <div class="modal" role="dialog" aria-modal="true" aria-label="${cfg.t}">
+      <div class="modal-hd"><div class="modal-t">${cfg.t}</div>${cfg.d?`<div class="modal-d">${cfg.d}</div>`:""}</div>
+      <div class="modal-bd">${cfg.body}</div>
+      <div class="modal-ft">
+        <button class="btn btn-sm" data-act="closeModal">Cancel</button>
+        <button class="btn btn-sm btn-primary" data-act="confirmModal">${cfg.ok}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- toast ---------------- */
+let toastTimer;
+function toast(msg){
+  const el = $("#toast");
+  el.innerHTML = `<span class="tick">✓</span> ${msg}`;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove("on"), 2600);
+}
+
+/* ---------------- render ---------------- */
+const VIEWS = {today:viewToday, reconcile:viewReconcile, expenses:viewExpenses, giving:viewGiving, people:viewPeople, accounts:viewAccounts};
+function render(){
+  renderNav();
+  $("#crumb").textContent = TITLES[state.view].c;
+  $("#title").textContent = TITLES[state.view].t;
+  $("#topActions").innerHTML = topActions();
+  $("#view").innerHTML = VIEWS[state.view]();
+  $("#modalRoot").innerHTML = modalHTML();
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click", async e=>{
+  const t = e.target.closest("[data-nav],[data-payout],[data-bank],[data-act],[data-rectab],[data-expfilter],[data-approve],[data-deny],[data-reimburse],[data-person],[data-perm],[data-unmatch],[data-uncode],[data-refund],[data-fundvis],[data-modaltoggle],[data-scrim]");
+  if(!t) return;
+
+  if(t.hasAttribute("data-scrim") && e.target===t){ state.modal=null; return render(); }
+
+  const nav = t.dataset.nav;
+  if(nav){ state.view=nav; window.scrollTo({top:0}); return render(); }
+
+  if(t.dataset.rectab){ state.recTab=t.dataset.rectab; return render(); }
+  if(t.dataset.expfilter){ state.expFilter=t.dataset.expfilter; return render(); }
+  if(t.dataset.person){ state.personId=t.dataset.person; return render(); }
+
+  if(t.dataset.payout){
+    state.sel.payout = state.sel.payout===t.dataset.payout ? null : t.dataset.payout;
+    const p = payouts.find(x=>x.id===state.sel.payout);
+    if(p && !state.sel.bank){ const s = suggestionFor(p); if(s) state.sel.bank = s.id; }
+    return render();
+  }
+  if(t.dataset.bank){
+    state.sel.bank = state.sel.bank===t.dataset.bank ? null : t.dataset.bank;
+    return render();
+  }
+
+  if(t.dataset.uncode){
+    const b = bank.find(x=>x.id===t.dataset.uncode);
+    if(backendMode==="ready"){
+      try{ await undoRecordedBankTransaction(b.id); }
+      catch(error){ toast(error.message); return; }
+    }
+    const f = FUNDS.find(x=>x.id===b.matched.slice(5)); if(f) f.bal -= b.amount;
+    b.matched=null;
+    toast(`Deposit ${b.ref} moved back to the open list`);
+    return render();
+  }
+  if(t.dataset.unmatch){
+    const p = payouts.find(x=>x.id===t.dataset.unmatch);
+    if(backendMode==="ready"){
+      try{ await undoReconciliation(p.matchId); }
+      catch(error){ toast(error.message); return; }
+    }
+    const b = bank.find(x=>x.id===p.matched);
+    p.matched=null; if(b) b.matched=null;
+    toast(`${p.ref} moved back to the open list`);
+    return render();
+  }
+
+  if(t.dataset.approve){ const ex=expenses.find(x=>x.id===t.dataset.approve); if(backendMode==="ready"){try{await setExpenseStatus(ex.id,"approved");}catch(error){toast(error.message);return;}} ex.status="approved"; toast(`Approved ${ex.desc} — ${money(ex.amount)}`); return render(); }
+  if(t.dataset.deny){ const ex=expenses.find(x=>x.id===t.dataset.deny); ex.note="Denied by finance leadership — the submitter was notified"; if(backendMode==="ready"){try{await setExpenseStatus(ex.id,"denied",ex.note);}catch(error){toast(error.message);return;}} ex.status="denied"; toast(`Denied ${ex.desc}`); return render(); }
+  if(t.dataset.reimburse){ const ex=expenses.find(x=>x.id===t.dataset.reimburse); if(backendMode==="ready"){try{await setExpenseStatus(ex.id,"reimbursed");}catch(error){toast(error.message);return;}} ex.status="reimbursed"; toast(`${ex.who} will be reimbursed ${money(ex.amount)}`); return render(); }
+  if(t.dataset.refund){ const g=gifts.find(x=>x.id===t.dataset.refund); state.modal={kind:"generic",title:"Refund this gift?",desc:`${g.who} · ${money(g.amount)} to ${fundName(g.fund)}`,body:"Stripe returns the full amount in 5–10 days. The fund balance and the giver's statement both update tonight. Processing fees are not returned."}; return render(); }
+
+  if(t.dataset.perm){
+    const p = people.find(x=>x.id===t.dataset.pid);
+    p.perms[t.dataset.perm] = !p.perms[t.dataset.perm];
+    if(backendMode==="ready"){
+      try{ await updateMemberPermissions(p.id,p.perms); }
+      catch(error){ p.perms[t.dataset.perm]=!p.perms[t.dataset.perm]; toast(error.message); return; }
+    }
+    const def = PERM_DEFS.find(d=>d.k===t.dataset.perm);
+    toast(`${p.name.split(" ")[0]} ${p.perms[t.dataset.perm]?"can now":"can no longer"} ${def.t.toLowerCase()}`);
+    return render();
+  }
+  if(t.hasAttribute("data-fundvis")||t.hasAttribute("data-modaltoggle")){
+    const on = t.getAttribute("aria-pressed")==="true";
+    t.setAttribute("aria-pressed", String(!on));
+    return;
+  }
+
+  const act = t.dataset.act;
+  if(!act) return;
+
+  if(act==="match"){
+    const p = payouts.find(x=>x.id===state.sel.payout), b = bank.find(x=>x.id===state.sel.bank);
+    if(!p||!b) return;
+    if(backendMode==="ready"){
+      try{ const result=await reconcileTransactions(p.id,b.id); p.matchId=result.id; }
+      catch(error){ toast(error.message); return; }
+    }
+    p.matched=b.id; b.matched=p.id;
+    state.sel={payout:null,bank:null};
+    toast(`${p.ref} reconciled against deposit ${b.ref}`);
+    return render();
+  }
+  if(act==="acceptAll"){
+    let n=0;
+    const candidates=openPayouts().map(p=>({p,s:suggestionFor(p)})).filter(x=>x.s);
+    for(const {p,s} of candidates){
+      if(backendMode==="ready"){
+        try{ const result=await reconcileTransactions(p.id,s.id); p.matchId=result.id; }
+        catch(error){ toast(error.message); continue; }
+      }
+      p.matched=s.id; s.matched=p.id; n++;
+    }
+    state.sel={payout:null,bank:null};
+    if(state.view!=="reconcile") state.view="reconcile";
+    toast(n? `${n} payouts reconciled` : "No confident matches left — the rest need a human");
+    return render();
+  }
+  if(act==="clearSel"){ state.sel={payout:null,bank:null}; return render(); }
+  if(act==="codeBank"){
+    const b = bank.find(x=>x.id===state.sel.bank);
+    if(!b) return;
+    state.modal={kind:"codeBank", desc:`${b.desc} · ${money(b.amount)} · posted ${b.date}`};
+    return render();
+  }
+
+  if(act==="newExpense"){ state.modal={kind:"newExpense"}; return render(); }
+  if(act==="createAccount"){ state.modal={kind:"createAccount"}; return render(); }
+  if(act==="remove"){
+    const person=people.find(p=>p.id===t.dataset.pid);
+    if(person){ state.modal={kind:"removeAccess",personId:person.id,personName:person.name}; return render(); }
+  }
+  if(act==="restore"){
+    const person=people.find(p=>p.id===t.dataset.pid);
+    if(!person) return;
+    if(backendMode==="ready"){
+      try{ await reactivateMember(person.id); }
+      catch(error){ toast(error.message); return; }
+    }
+    person.active=true; person.disabledAt=null;
+    state.peopleStatus="active";
+    toast(`${person.name}'s account is active again`);
+    return render();
+  }
+  if(act==="newLink"){ state.modal={kind:"newLink"}; return render(); }
+  if(act==="closeModal"){ state.modal=null; return render(); }
+
+  if(act==="confirmModal"){
+    const kind = state.modal?.kind;
+    if(kind==="newExpense"){
+      const desc = $("#mx_desc")?.value.trim(), amt = parseFloat($("#mx_amt")?.value||"0");
+      if(desc && amt>0){
+        let created={id:"e"+Date.now()};
+        if(backendMode==="ready"){
+          try{ created=await createExpense({submitter_id:currentUserId,fund_id:FUNDS.find(f=>f.id===$("#mx_fund").value).dbId,description:desc,team_name:$("#mx_team").value,amount_cents:Math.round(amt*100),note:"Receipt still needed"}); }
+          catch(error){ toast(error.message); return; }
+        }
+        expenses.unshift({id:created.id, desc, who:currentUserName, team:$("#mx_team").value, fund:$("#mx_fund").value, amount:amt, date:new Date().toLocaleDateString("en-US",{month:"short",day:"2-digit"}), status:"pending", receipt:false, note:"Receipt still needed"});
+        state.expFilter="pending"; state.view="expenses";
+        toast(`Sent ${desc} to Marisol for approval`);
+      } else toast("Add a description and an amount above zero");
+    } else if(kind==="createAccount"){
+      const name = $("#mi_name")?.value.trim(), email = $("#mi_email")?.value.trim();
+      if(name && email){
+        let invited={userId:"p"+Date.now()};
+        if(backendMode==="ready"){
+          const uiRole=$("#mi_role").value;
+          const role=uiRole==="Admin"?"admin":uiRole==="Finance"?"finance":"member";
+          try{ invited=await createMemberAccount({email,fullName:name,role,teamName:$("#mi_team").value}); }
+          catch(error){ toast(error.message); return; }
+        }
+        people.push({id:invited.userId, name, role:$("#mi_role").value, teams:[$("#mi_team").value], email, phone:"—", since:String(new Date().getFullYear()), last:"Invited", bg:"missing", active:true, disabledAt:null, perms:{finance:false,approve:false,refund:false,people:false,payouts:false}});
+        state.view="people"; state.personId = people[people.length-1].id;
+        state.peopleStatus="active";
+        toast(`Account created — invite sent to ${email}`);
+      } else { toast("A name and an email are needed to create the account"); return; }
+    } else if(kind==="removeAccess"){
+      const person=people.find(p=>p.id===state.modal.personId);
+      if(!person) return;
+      if(backendMode==="ready"){
+        try{ await deactivateMember(person.id); }
+        catch(error){ toast(error.message); return; }
+      }
+      person.active=false; person.disabledAt=new Date().toISOString();
+      state.peopleStatus="inactive";
+      toast(`${person.name}'s access was removed`);
+    } else if(kind==="codeBank"){
+      const b = bank.find(x=>x.id===state.sel.bank);
+      const fid = $("#mc_fund").value;
+      if(b){
+        if(backendMode==="ready"){
+          try{ await recordBankTransaction(b.id,FUNDS.find(f=>f.id===fid).dbId,$("#mc_cat").value,$("#mc_note").value); }
+          catch(error){ toast(error.message); return; }
+        }
+        b.matched = "fund:"+fid;
+        const f = FUNDS.find(x=>x.id===fid); if(f) f.bal += b.amount;
+        state.sel={payout:null,bank:null};
+        toast(`${money(b.amount)} recorded to ${fundName(fid)}`);
+      }
+    } else if(kind==="newLink"){
+      const n = $("#ml_name")?.value.trim() || "Untitled";
+      toast(`Live at give.somosreino.org/${n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}`);
+    } else {
+      toast("Done");
+    }
+    state.modal=null;
+    return render();
+  }
+
+  const blurbs = {
+    exportRec:"CSV on its way to your downloads",
+    rules:"Matching rules open in the full build",
+    stripeDash:"Opening the Stripe dashboard",
+    givingSettings:"Giving page settings open in the full build",
+    payoutSettings:"Payout settings open in the full build",
+    addFund:"New fund setup opens in the full build",
+    message:"Message composer opens in the full build",
+    conn:`Starting the connection for ${t.dataset.name||"this account"}`,
+    me:"Your profile opens in the full build",
+  };
+  if(blurbs[act]) toast(blurbs[act]);
+});
+
+document.addEventListener("input", e=>{
+  const t=e.target;
+  if(t.hasAttribute("data-peopleq")){ state.peopleQ=t.value; const pos=t.selectionStart; render(); const el=$("[data-peopleq]"); if(el){el.focus(); el.setSelectionRange(pos,pos);} }
+});
+document.addEventListener("change", e=>{
+  const t=e.target;
+  if(t.hasAttribute("data-peoplerole")){ state.peopleRole=t.value; return render(); }
+  if(t.hasAttribute("data-peoplestatus")){ state.peopleStatus=t.value; return render(); }
+  if(t.hasAttribute("data-givefund")){ state.giveFund=t.value; return render(); }
+  if(t.hasAttribute("data-givemethod")){ state.giveMethod=t.value; return render(); }
+  if(t.dataset.fundset){ const ex=expenses.find(x=>x.id===t.dataset.fundset); ex.fund=t.value; toast(`${ex.desc} now codes to ${fundName(t.value)}`); return render(); }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal){ state.modal=null; render(); } });
+
+let backendMode="demo";
+let currentUserId=null;
+let currentUserName="Sam Camacho";
+
+function shortDate(value){ return value ? new Date(value.includes("T")?value:value+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"2-digit"}) : "—"; }
+function hydrateFinance(snapshot,profile){
+  const fundIdByDb=new Map(snapshot.funds.map(f=>[f.id,f.slug]));
+  const matchByPayout=new Map(snapshot.matches.map(m=>[m.payout_id,m]));
+  const matchByBank=new Map(snapshot.matches.map(m=>[m.bank_transaction_id,m]));
+  const ledgerByBank=new Map(snapshot.ledgerEntries.map(e=>[e.bank_transaction_id,e]));
+  FUNDS=snapshot.funds.map(f=>({id:f.slug,dbId:f.id,name:f.name_en,color:f.color,bal:f.current_balance_cents/100}));
+  payouts=snapshot.payouts.map(p=>{const m=matchByPayout.get(p.id);return{id:p.id,ref:p.stripe_payout_id,date:shortDate(p.created_at),arrives:shortDate(p.arrival_date),gross:p.gross_cents/100,fees:p.fee_cents/100,net:p.net_cents/100,gifts:p.gift_count,matched:m?.bank_transaction_id||null,matchId:m?.id||null};});
+  bank=snapshot.bankTransactions.map(b=>{const m=matchByBank.get(b.id),entry=ledgerByBank.get(b.id);return{id:b.id,ref:b.external_transaction_id?.slice(-8)||b.id.slice(0,8),date:shortDate(b.posted_at),desc:b.description,amount:b.amount_cents/100,kind:b.kind,matched:m?.payout_id||(entry?`fund:${entry.funds.slug}`:null)};});
+  expenses=snapshot.expenses.map(e=>({id:e.id,desc:e.description,who:e.profiles?.full_name||"Unknown",team:e.team_name||"—",fund:fundIdByDb.get(e.fund_id),amount:e.amount_cents/100,date:shortDate(e.created_at),status:e.status,receipt:Boolean(e.receipt_path),note:e.note||""}));
+  gifts=snapshot.donations.map(g=>({id:g.id,who:g.anonymous?"Anonymous":g.profiles?.full_name||"Unknown",fund:g.funds.slug,amount:g.amount_cents/100,date:shortDate(g.occurred_at),method:g.payment_method_type||"Card",recurring:Boolean(g.recurring_gift_id),fee:g.processing_fee_cents/100,covered:g.processing_fee_cents>0}));
+  people=snapshot.profiles.map(p=>({id:p.id,name:p.full_name||p.email,role:p.role==="admin"?"Admin":p.role==="finance"?"Finance":"Member",teams:p.team_names||[],email:p.email,phone:p.phone||"—",since:new Date(p.created_at).getFullYear().toString(),last:"—",bg:"missing",active:p.is_active!==false,disabledAt:p.disabled_at,perms:{finance:false,approve:false,refund:false,people:false,payouts:false,...(p.permissions||{})}}));
+  weekly=[...Array(9)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-(8-i)*7);const next=new Date(d);next.setDate(next.getDate()+7);return{w:shortDate(d.toISOString()),v:gifts.filter(g=>{const gd=new Date(g.date+", "+new Date().getFullYear());return gd>=d&&gd<next;}).reduce((s,g)=>s+g.amount,0)};});
+  feed=[];
+  currentUserId=profile.id; currentUserName=profile.full_name||profile.email;
+  state.personId=people[0]?.id||null;
+  const nameEl=document.querySelector(".me-name");if(nameEl)nameEl.textContent=currentUserName;
+}
+
+async function startPortal(){
+  render();
+  try{
+    const session=await getPortalSession({staffOnly:true});
+    backendMode=session.mode;
+    if(session.mode==="demo")return showModeBadge({mode:"demo",portal:"Finance"});
+    if(session.mode==="signed-out")return mountAuthGate({staffOnly:true});
+    if(session.mode==="disabled")return mountForbiddenGate("This account has been deactivated. Ask another administrator to restore access.");
+    if(session.mode==="forbidden")return mountForbiddenGate();
+    const snapshot=await loadFinanceSnapshot();
+    hydrateFinance(snapshot,session.profile);
+    render();
+    showModeBadge({mode:"ready",portal:"Finance"});
+  }catch(error){showModeBadge({mode:"error",portal:"Finance",error:error.message});}
+}
+
+await startPortal();
+</script>
+</body>
+</html>
