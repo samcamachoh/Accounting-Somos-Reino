@@ -150,14 +150,30 @@ Deno.serve(async (req) => {
         if (problem) return bad(problem);
       }
 
-      const { data: created, error } = await service.auth.admin.createUser({
-        email,
-        password: password || undefined,
-        email_confirm: true,
-      });
-      if (error) return bad(`Could not create the account: ${error.message}`);
+      /* With a password the account is usable immediately. Without one,
+         inviteUserByEmail both creates the user and sends the invite —
+         generateLink only returns a link and mails nothing, which would
+         strand the person with no way in. */
+      const redirectTo = body.redirectTo ? String(body.redirectTo) : undefined;
+      let userId: string;
 
-      const userId = created.user.id;
+      if (password) {
+        const { data: created, error } = await service.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+        });
+        if (error) return bad(`Could not create the account: ${error.message}`);
+        userId = created.user.id;
+      } else {
+        const { data: invited, error } = await service.auth.admin.inviteUserByEmail(
+          email,
+          redirectTo ? { redirectTo } : undefined,
+        );
+        if (error) return bad(`Could not send the invite: ${error.message}`);
+        userId = invited.user.id;
+      }
+
       const { error: profileError } = await service.from("profiles").upsert({
         id: userId,
         email,
@@ -173,11 +189,6 @@ Deno.serve(async (req) => {
       if (profileError) {
         await service.auth.admin.deleteUser(userId);
         return bad(`Could not save the profile: ${profileError.message}`, 500);
-      }
-
-      /* No password given means they set their own via an invite link. */
-      if (!password) {
-        await service.auth.admin.generateLink({ type: "invite", email });
       }
 
       return json({ userId, invited: !password });
@@ -233,7 +244,14 @@ Deno.serve(async (req) => {
       const email = String(body.email ?? "").trim().toLowerCase();
       if (!email) return bad("An email address is required.");
 
-      const { error } = await service.auth.admin.generateLink({ type: "recovery", email });
+      /* resetPasswordForEmail actually delivers the mail; the admin
+         generateLink call only hands back a URL. */
+      const asAnon = createClient(SUPABASE_URL, ANON_KEY);
+      const redirectTo = body.redirectTo ? String(body.redirectTo) : undefined;
+      const { error } = await asAnon.auth.resetPasswordForEmail(
+        email,
+        redirectTo ? { redirectTo } : undefined,
+      );
       if (error) return bad(`Could not send the reset link: ${error.message}`);
 
       return json({ ok: true });
