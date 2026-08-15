@@ -73,6 +73,36 @@ export async function loadGivingSnapshot(userId) {
   };
 }
 
+/**
+ * The household a person belongs to, with everyone in it.
+ *
+ * Returns null when they aren't in a family — that is an ordinary
+ * state, not a failure, and the portal falls back to the surname
+ * on the profile. Row Level Security limits this to the caller's
+ * own family; there is no way to read another household's people.
+ *
+ * @param {{family_id?:string}} profile The signed-in profile.
+ * @returns {Promise<{family:object, members:object[]}|null>}
+ */
+export async function loadHousehold(profile) {
+  const db = requireClient();
+  if (!profile?.family_id) return null;
+
+  const [family, members] = await Promise.all([
+    db.from(TABLES.families).select("*").eq("id", profile.family_id).maybeSingle(),
+    db
+      .from(TABLES.profiles)
+      .select("id, full_name, family_role, is_active")
+      .eq("family_id", profile.family_id)
+      .order("full_name"),
+  ]);
+
+  const record = unwrap(family, "Loading your household");
+  if (!record) return null;
+
+  return { family: record, members: unwrap(members, "Loading your household") ?? [] };
+}
+
 /* ------------------------------------------------------------
    Expenses
    ------------------------------------------------------------ */

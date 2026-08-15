@@ -38,6 +38,7 @@ export const supabase = isConfigured
 export const TABLES = {
   funds: "funds",
   profiles: "profiles",
+  families: "families",
   donations: "donations",
   expenses: "expenses",
   payouts: "payouts",

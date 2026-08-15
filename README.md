@@ -8,7 +8,7 @@ Giving and accounting for Somos Reino, in one record.
 | `login.html` | Sign in, reset a password, choose a new one |
 | `giving.html` | Members: give, review history, manage recurring gifts (ES/EN) |
 | `finance.html` | Leadership: deposits, expenses, funds, people, reconciliation |
-| `settings.html` | Admins: add, edit, deactivate, and delete accounts |
+| `settings.html` | Admins: accounts, capabilities, and families |
 
 ## Running it
 
@@ -58,10 +58,28 @@ the Edge Function's admin check are the real boundary — a signed-out
 visitor who fetches the page directly still gets nothing back from the
 database.
 
-## Account management
+## The admin dashboard
 
-`settings.html` covers adding people, editing roles and permissions,
-setting passwords, emailing reset links, deactivating, and deleting.
+`settings.html` is where an administrator manages the church's people and
+its households. It opens on two tabs over one load, with a row of counts
+above them — people, admins, families, who isn't in a household, who was
+invited but has never signed in.
+
+**People** covers adding someone, changing their name, email, phone, team,
+role, and capabilities, setting a password or emailing a reset link,
+moving them between families, deactivating, and deleting.
+
+**Families** groups the people who give from one household. A family
+carries the name, address, phone, and whoever the office should call
+first, so those live in one place instead of being retyped onto every
+account. Members can be added while creating the family, moved in from a
+person's own row, or managed together in the member editor — where each
+change saves as it is made. Deleting a family releases its members and
+touches nothing else: accounts, giving, and history all stay.
+
+Every giver sees their own household on the account tab of the giving
+portal — the family name, its address, and who else is in it. Amounts are
+never shared across a family; giving stays private to whoever gave it.
 
 Creating users and setting passwords require the `service_role` key, which
 cannot live in a browser. Those operations run in an Edge Function that
@@ -78,10 +96,12 @@ provides all three automatically. Before going live, narrow
 `Access-Control-Allow-Origin` in `supabase/functions/admin-users/index.ts`
 from `*` to your own domain.
 
-Three guard rails are built in: an admin cannot deactivate their own
-account, cannot remove their own admin role, and deleting someone who
-appears in the books is refused until explicitly confirmed a second time —
-deactivating keeps the audit trail whole.
+Four guard rails are built in: an admin cannot deactivate their own
+account, cannot remove their own admin role, deleting someone who appears
+in the books is refused until explicitly confirmed a second time —
+deactivating keeps the audit trail whole — and a family's primary contact
+has to be someone who actually lives in it, so moving a person out clears
+the contact they were named for.
 
 ## Schema
 
@@ -90,6 +110,17 @@ derived from what the pages already expect. Names the pages didn't pin
 down — `reconciliation_matches`, `ledger_entries` — are collected there so
 a differing schema is a one-place change.
 
-Expected tables: `profiles`, `funds`, `donations`, `expenses`, `payouts`,
-`bank_transactions`, `reconciliation_matches`, `ledger_entries`,
+Expected tables: `profiles`, `families`, `funds`, `donations`, `expenses`,
+`payouts`, `bank_transactions`, `reconciliation_matches`, `ledger_entries`,
 `payment_methods`, `recurring_gifts`.
+
+`families` is the one table this repo defines itself, in
+`supabase/migrations/`. Apply it with `supabase db push`, or paste the file
+into the SQL editor. It creates the table, adds `family_id`,
+`family_role`, and `household_name` to `profiles`, and adds its policies
+alongside whatever is already on those tables — nothing existing is
+dropped or rewritten, and it can be re-run safely.
+
+Until it runs, the dashboard still loads its people and says in the banner
+why the families tab is empty; the giving portal simply omits the
+household card.
