@@ -216,6 +216,12 @@ const FAMILY_ROLES = [
 const familyRoleLabel = (v) => FAMILY_ROLES.find(r => r.value === (v || ""))?.label ?? "";
 
 let users = [], families = [], callerId = null, live = false;
+
+/* False when the families migration hasn't been run on this
+   project. The people half of the page works either way, so the
+   household fields come off the forms rather than sending columns
+   the profiles table doesn't have yet. */
+let familiesReady = true;
 const state = { tab:"people", q:"", role:"all", status:"active", family:"all", fq:"", modal:null, busy:false };
 
 let toastTimer;
@@ -341,7 +347,7 @@ function renderPeople(){
       <td class="hide">
         ${household
           ? `<div class="nm" style="font-size:14px">${esc(household)}</div>${relation && u.family_role ? `<div class="em">${esc(relation)}</div>` : ""}`
-          : `<button class="linkish" data-fam="${esc(u.id)}">Add to a family</button>`}
+          : familiesReady ? `<button class="linkish" data-fam="${esc(u.id)}">Add to a family</button>` : `<span class="em">—</span>`}
       </td>
       <td class="hide">${esc(teams)}</td>
       <td class="hide seen">${esc(sinceLabel(u.last_sign_in_at))}</td>
@@ -349,7 +355,7 @@ function renderPeople(){
         <div class="rowacts">
           <button data-edit="${esc(u.id)}">Edit</button>
           <button data-pw="${esc(u.id)}">Password</button>
-          <button data-fam="${esc(u.id)}">Family</button>
+          ${familiesReady ? `<button data-fam="${esc(u.id)}">Family</button>` : ""}
           <button data-active="${esc(u.id)}">${active ? "Deactivate" : "Restore"}</button>
           <button class="danger" data-del="${esc(u.id)}">Delete</button>
         </div>
@@ -411,9 +417,11 @@ function renderFamilies(){
   const none = list.length === 0;
   empty.hidden = !none;
   if(none){
-    empty.innerHTML = families.length
-      ? "No families match that search."
-      : `No families yet.<div class="hint">A family groups the people who give from one household, so an address and a phone number live in one place instead of on every account.</div>`;
+    empty.innerHTML = !familiesReady
+      ? `Families aren't set up on this project yet.<div class="hint">Apply <code>supabase/migrations/</code> — <code>supabase db push</code>, or paste the file into the SQL editor. Everything else on this page works meanwhile.</div>`
+      : families.length
+        ? "No families match that search."
+        : `No families yet.<div class="hint">A family groups the people who give from one household, so an address and a phone number live in one place instead of on every account.</div>`;
   }
   $("#countFamilies").textContent = families.length;
 }
@@ -436,6 +444,8 @@ function render(){
   $("#tabPeople").setAttribute("aria-selected", String(people));
   $("#tabFamilies").setAttribute("aria-selected", String(!people));
   $("#btnAdd").textContent = people ? "＋ Add person" : "＋ New family";
+  /* Nothing to add a family to until the table exists. */
+  $("#btnAdd").disabled = !people && !familiesReady;
 
   renderStats();
   renderFamilyFilter();
@@ -523,7 +533,7 @@ const familyRoleOptions = (current) => FAMILY_ROLES
  * relationship, and the option to start a family on the spot so
  * placing someone never means leaving the form first.
  */
-const familyFields = (user = {}) => `
+const familyFields = (user = {}) => !familiesReady ? "" : `
   <div class="pair">
     <div class="field">
       <label for="f_family">Family</label>
@@ -554,17 +564,30 @@ function mountFamilyFields(){
 }
 
 /**
- * Turn the family picker into an id, creating the family first
- * when the form asked for a new one.
+ * The household half of a save, as the function wants it.
+ *
+ * A brand new family travels as a name rather than being created
+ * here first: one request then either places the person in a new
+ * household or leaves nothing behind, instead of stranding an
+ * empty family when the account save is the thing that fails.
+ *
+ * Returns nothing at all when the form had no household fields —
+ * either the picker isn't on this form, or the families migration
+ * hasn't run and `family_id` is not a column yet.
  */
-async function resolveFamilySelection(){
-  const value = $("#f_family").value;
-  if(value !== "__new") return value || null;
+function householdPayload(){
+  if(!familiesReady || !$("#f_family")) return {};
 
-  const name = $("#f_newfam").value.trim();
-  if(!name) throw new Error("Name the new family, or pick an existing one.");
-  const created = await createFamily({ name });
-  return created.familyId;
+  const value = $("#f_family").value;
+  const familyRole = $("#f_famrole").value || null;
+
+  if(value === "__new"){
+    const name = $("#f_newfam").value.trim();
+    if(!name) throw new Error("Name the new family, or pick an existing one.");
+    return { familyName: name, familyRole };
+  }
+
+  return { familyId: value || null, familyRole: value ? familyRole : null };
 }
 
 function requireLive(){
@@ -595,8 +618,8 @@ function addPerson(){
     onConfirm: async () => {
       const password = $("#f_pw").value;
       if(password && password.length < 8) throw new Error("Password must be at least 8 characters.");
+      const household = householdPayload();
       requireLive();
-      const familyId = await resolveFamilySelection();
       const result = await createUser({
         fullName: $("#f_name").value.trim(),
         email: $("#f_email").value.trim(),
@@ -605,8 +628,7 @@ function addPerson(){
         phone: $("#f_phone").value.trim(),
         password: password || undefined,
         permissions: readPerms(),
-        familyId,
-        familyRole: familyId ? ($("#f_famrole").value || null) : null,
+        ...household,
       });
       toast(result.invited ? "Account created — invite sent." : "Account created.");
       await refresh();
@@ -633,8 +655,8 @@ function editPerson(user){
     confirmText: "Save changes",
     onMount: mountFamilyFields,
     onConfirm: async () => {
+      const household = householdPayload();
       requireLive();
-      const familyId = await resolveFamilySelection();
       await updateUser(user.id, {
         fullName: $("#f_name").value.trim(),
         email: $("#f_email").value.trim(),
@@ -642,8 +664,7 @@ function editPerson(user){
         teamName: $("#f_team").value.trim(),
         phone: $("#f_phone").value.trim(),
         permissions: readPerms(),
-        familyId,
-        familyRole: familyId ? ($("#f_famrole").value || null) : null,
+        ...household,
       });
       toast("Changes saved.");
       await refresh();
@@ -692,10 +713,10 @@ function assignFamily(user){
     confirmText: "Save household",
     onMount: mountFamilyFields,
     onConfirm: async () => {
+      const household = householdPayload();
       requireLive();
-      const familyId = await resolveFamilySelection();
-      await setUserFamily(user.id, familyId, familyId ? ($("#f_famrole").value || null) : null);
-      toast(familyId ? "Household updated." : "Removed from the household.");
+      await setUserFamily(user.id, household);
+      toast(household.familyId || household.familyName ? "Household updated." : "Removed from the household.");
       await refresh();
     },
   });
@@ -888,7 +909,7 @@ function manageMembers(family){
       const id = $("#mm_add").value;
       if(!id) throw new Error("Choose someone to add.");
       requireLive();
-      await setUserFamily(id, family.id);
+      await setUserFamily(id, { familyId: family.id });
       await refresh();
       toast("Added to the family.");
       mount();
@@ -897,7 +918,7 @@ function manageMembers(family){
     for(const select of document.querySelectorAll("[data-role-for]")){
       select.addEventListener("change", () => inlineSave(async () => {
         requireLive();
-        await setUserFamily(select.dataset.roleFor, family.id, select.value || null);
+        await setUserFamily(select.dataset.roleFor, { familyId: family.id, familyRole: select.value || null });
         await refresh();
         toast("Relationship saved.");
         mount();
@@ -907,7 +928,7 @@ function manageMembers(family){
     for(const button of document.querySelectorAll("[data-remove]")){
       button.addEventListener("click", () => inlineSave(async () => {
         requireLive();
-        await setUserFamily(button.dataset.remove, null);
+        await setUserFamily(button.dataset.remove, { familyId: null });
         await refresh();
         toast("Removed from the family.");
         mount();
@@ -984,13 +1005,17 @@ async function refresh(){
   users = data.users;
   families = data.families;
   callerId = data.callerId;
+  familiesReady = !data.familiesError;
 
-  /* People still load when the families migration hasn't run. Say
-     so once, in the banner, rather than failing the whole page. */
+  /* People still load when the families migration hasn't run — and
+     keep working, because the household fields come off the forms
+     rather than writing columns that aren't there. Say so once, in
+     the banner, rather than failing the whole page. */
   if(data.familiesError){
     $("#banner").hidden = false;
     $("#banner").textContent =
-      `Families are unavailable: ${data.familiesError}. Run supabase/migrations to add the families table.`;
+      `Families are unavailable: ${data.familiesError}. Apply supabase/migrations to add the families table — ` +
+      `accounts, passwords, and permissions all work meanwhile.`;
   }
 
   render();

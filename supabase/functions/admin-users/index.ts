@@ -121,6 +121,33 @@ function familyMembership(body: Record<string, unknown>, patch: Record<string, u
 }
 
 /**
+ * A person form may name a household that doesn't exist yet.
+ *
+ * Creating it here rather than in the browser is what makes the
+ * pair atomic from the admin's side: one request either places
+ * the person in a new family or leaves nothing behind. The
+ * caller undoes it with `undoFamily` when its own write fails.
+ */
+async function createNamedFamily(service: SupabaseClient, body: Record<string, unknown>) {
+  const name = text(body.familyName);
+  if (!name) return {} as { familyId?: string; error?: Response };
+
+  const { data, error } = await service
+    .from("families")
+    .insert({ name, is_active: true })
+    .select("id")
+    .single();
+
+  if (error) return { error: bad(`Could not create the family: ${error.message}`) };
+  return { familyId: data.id as string };
+}
+
+/** Take back a family created moments ago for a save that failed. */
+async function undoFamily(service: SupabaseClient, familyId?: string) {
+  if (familyId) await service.from("families").delete().eq("id", familyId);
+}
+
+/**
  * A primary contact who doesn't live in the family would show a
  * stranger's phone number on the household card.
  */
@@ -290,6 +317,13 @@ Deno.serve(async (req) => {
         if (problem) return bad(problem);
       }
 
+      /* A brand new household is made before the account so its id
+         can go straight onto the profile. Everything after this
+         point undoes it on the way out. */
+      const made = await createNamedFamily(service, body);
+      if (made.error) return made.error;
+      if (made.familyId) body.familyId = made.familyId;
+
       /* With a password the account is usable immediately. Without one,
          inviteUserByEmail both creates the user and sends the invite —
          generateLink only returns a link and mails nothing, which would
@@ -303,14 +337,20 @@ Deno.serve(async (req) => {
           password,
           email_confirm: true,
         });
-        if (error) return bad(`Could not create the account: ${error.message}`);
+        if (error) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not create the account: ${error.message}`);
+        }
         userId = created.user.id;
       } else {
         const { data: invited, error } = await service.auth.admin.inviteUserByEmail(
           email,
           redirectTo ? { redirectTo } : undefined,
         );
-        if (error) return bad(`Could not send the invite: ${error.message}`);
+        if (error) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not send the invite: ${error.message}`);
+        }
         userId = invited.user.id;
       }
 
@@ -318,6 +358,7 @@ Deno.serve(async (req) => {
       const householdProblem = familyMembership(body, household);
       if (householdProblem) {
         await service.auth.admin.deleteUser(userId);
+        await undoFamily(service, made.familyId);
         return bad(householdProblem);
       }
 
@@ -336,6 +377,7 @@ Deno.serve(async (req) => {
       /* Don't leave an auth user stranded without a profile. */
       if (profileError) {
         await service.auth.admin.deleteUser(userId);
+        await undoFamily(service, made.familyId);
         return bad(`Could not save the profile: ${profileError.message}`, 500);
       }
 
@@ -359,8 +401,18 @@ Deno.serve(async (req) => {
         patch.role = role;
       }
 
+      /* Everything that can be rejected outright is checked above,
+         so a household named here is only created once the save is
+         all but certain — and undone if it still falls over. */
+      const made = await createNamedFamily(service, body);
+      if (made.error) return made.error;
+      if (made.familyId) body.familyId = made.familyId;
+
       const householdProblem = familyMembership(body, patch);
-      if (householdProblem) return bad(householdProblem);
+      if (householdProblem) {
+        await undoFamily(service, made.familyId);
+        return bad(householdProblem);
+      }
 
       /* Moving out of a family they were the contact for would leave
          the household pointing at someone who no longer lives there. */
@@ -370,19 +422,28 @@ Deno.serve(async (req) => {
           .update({ primary_contact_id: null })
           .eq("primary_contact_id", targetId)
           .neq("id", patch.family_id ?? "00000000-0000-0000-0000-000000000000");
-        if (contactError) return bad(`Could not update the household contact: ${contactError.message}`);
+        if (contactError) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not update the household contact: ${contactError.message}`);
+        }
       }
 
       const newEmail = body.email ? String(body.email).trim().toLowerCase() : "";
       if (newEmail) {
         const { error } = await service.auth.admin.updateUserById(targetId, { email: newEmail });
-        if (error) return bad(`Could not change the email: ${error.message}`);
+        if (error) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not change the email: ${error.message}`);
+        }
         patch.email = newEmail;
       }
 
       if (Object.keys(patch).length) {
         const { error } = await service.from("profiles").update(patch).eq("id", targetId);
-        if (error) return bad(`Could not save the changes: ${error.message}`);
+        if (error) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not save the changes: ${error.message}`);
+        }
       }
 
       return json({ ok: true });
@@ -475,19 +536,34 @@ Deno.serve(async (req) => {
     case "setFamily": {
       if (!targetId) return bad("Which account?");
 
+      const made = await createNamedFamily(service, body);
+      if (made.error) return made.error;
+
       const patch: Record<string, unknown> = {};
-      const problem = familyMembership({ familyId: body.familyId ?? null, familyRole: body.familyRole }, patch);
-      if (problem) return bad(problem);
+      const problem = familyMembership(
+        { familyId: made.familyId ?? body.familyId ?? null, familyRole: body.familyRole },
+        patch,
+      );
+      if (problem) {
+        await undoFamily(service, made.familyId);
+        return bad(problem);
+      }
 
       const { error: contactError } = await service
         .from("families")
         .update({ primary_contact_id: null })
         .eq("primary_contact_id", targetId)
         .neq("id", patch.family_id ?? "00000000-0000-0000-0000-000000000000");
-      if (contactError) return bad(`Could not update the household contact: ${contactError.message}`);
+      if (contactError) {
+        await undoFamily(service, made.familyId);
+        return bad(`Could not update the household contact: ${contactError.message}`);
+      }
 
       const { error } = await service.from("profiles").update(patch).eq("id", targetId);
-      if (error) return bad(`Could not change the household: ${error.message}`);
+      if (error) {
+        await undoFamily(service, made.familyId);
+        return bad(`Could not change the household: ${error.message}`);
+      }
 
       return json({ ok: true });
     }

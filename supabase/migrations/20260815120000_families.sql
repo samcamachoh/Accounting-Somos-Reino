@@ -182,10 +182,29 @@ create policy families_member_read_own on public.families
   for select
   using (id = public.sr_family_id());
 
--- ...and the people in it, so the giving portal can list them.
--- Policies are OR'd, so this widens reads without loosening any
--- rule already on `profiles`.
+-- ...and the people in it, through a function that hands back four
+-- columns and nothing else.
+--
+-- A SELECT policy would have been shorter, and wrong: RLS grants
+-- whole rows, so "let me see my household" would also have handed
+-- every member each other's phone, role, and permissions the moment
+-- they queried `profiles` directly. The giving portal only ever
+-- needed a name and a relationship, so that is all this returns.
+create or replace function public.sr_household_members()
+returns table (id uuid, full_name text, family_role text, is_active boolean)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.id, p.full_name, p.family_role, coalesce(p.is_active, true)
+  from public.profiles p
+  where p.family_id is not null
+    and p.family_id = public.sr_family_id();
+$$;
+
+grant execute on function public.sr_household_members() to authenticated;
+
+-- An earlier draft of this migration widened row access on
+-- `profiles` instead. Drop it if it is still there.
 drop policy if exists profiles_read_own_family on public.profiles;
-create policy profiles_read_own_family on public.profiles
-  for select
-  using (family_id is not null and family_id = public.sr_family_id());

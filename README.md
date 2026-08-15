@@ -143,6 +143,12 @@ into the SQL editor. It creates the table, adds `family_id`,
 alongside whatever is already on those tables — nothing existing is
 dropped or rewritten, and it can be re-run safely.
 
+Members read their own household through `sr_household_members()` rather
+than a policy on `profiles`. RLS grants whole rows, so "let me see my
+household" would also have handed relatives each other's phone, role, and
+permissions; the function returns a name, a relationship, and nothing
+else.
+
 Until it runs, the dashboard still loads its people and says in the banner
 why the families tab is empty; the giving portal simply omits the
 household card.

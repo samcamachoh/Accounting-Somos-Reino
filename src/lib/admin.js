@@ -59,7 +59,10 @@ export async function listUsers() {
 /**
  * Create an account. Omit `password` to email an invite instead,
  * letting the person choose their own.
- * @param {{email:string,fullName:string,role?:string,teamName?:string,phone?:string,password?:string,permissions?:object,familyId?:string,familyRole?:string}} user
+ * Pass `familyName` in place of `familyId` to start a household in
+ * the same call; it is discarded again if the account can't be made.
+ *
+ * @param {{email:string,fullName:string,role?:string,teamName?:string,phone?:string,password?:string,permissions?:object,familyId?:string,familyName?:string,familyRole?:string}} user
  */
 export function createUser(user) {
   if (!user?.email) fail("An email address is required.");
@@ -70,7 +73,7 @@ export function createUser(user) {
 /**
  * Change a person's details. Only the fields you pass are touched.
  * @param {string} id
- * @param {{fullName?:string,email?:string,role?:string,teamName?:string,phone?:string,permissions?:object,familyId?:string|null,familyRole?:string|null}} changes
+ * @param {{fullName?:string,email?:string,role?:string,teamName?:string,phone?:string,permissions?:object,familyId?:string|null,familyName?:string,familyRole?:string|null}} changes
  */
 export function updateUser(id, changes) {
   if (!id) fail("Which account?");
@@ -147,11 +150,17 @@ export function deleteFamily(familyId) {
 
 /**
  * Put one person in a household, or take them out with a null id.
+ *
+ * Pass `familyName` instead of `familyId` to start a household and
+ * place them in it in a single call — the function creates it and
+ * throws it away again if the move fails, so a rejected save never
+ * leaves an empty family behind.
+ *
  * @param {string} id The profile being moved.
- * @param {string|null} familyId
- * @param {"head"|"spouse"|"child"|"other"|null} [familyRole]
+ * @param {{familyId?:string|null, familyName?:string, familyRole?:"head"|"spouse"|"child"|"other"|null}} household
  */
-export function setUserFamily(id, familyId, familyRole = null) {
+export function setUserFamily(id, household = {}) {
   if (!id) fail("Which account?");
-  return call("setFamily", { id, familyId: familyId || null, familyRole });
+  const { familyId = null, familyName, familyRole = null } = household;
+  return call("setFamily", { id, familyId: familyId || null, familyName, familyRole });
 }
