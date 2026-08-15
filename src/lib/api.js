@@ -73,6 +73,42 @@ export async function loadGivingSnapshot(userId) {
   };
 }
 
+/**
+ * The household a person belongs to, with everyone in it.
+ *
+ * Returns null when they aren't in a family — that is an ordinary
+ * state, not a failure, and the portal falls back to the surname
+ * on the profile.
+ *
+ * The member list comes from `sr_household_members()` rather than
+ * a select on `profiles`. Both are limited to the caller's own
+ * household, but the function returns four columns instead of
+ * whole rows, so reading a relative's name never means reading
+ * their role, permissions, or phone number too.
+ *
+ * @param {{family_id?:string}} profile The signed-in profile.
+ * @returns {Promise<{family:object, members:object[]}|null>}
+ */
+export async function loadHousehold(profile) {
+  const db = requireClient();
+  if (!profile?.family_id) return null;
+
+  const [family, members] = await Promise.all([
+    db.from(TABLES.families).select("*").eq("id", profile.family_id).maybeSingle(),
+    db.rpc("sr_household_members"),
+  ]);
+
+  const record = unwrap(family, "Loading your household");
+  if (!record) return null;
+
+  /* The function has no ORDER BY of its own; sorting here keeps
+     the household card from reshuffling between loads. */
+  const people = unwrap(members, "Loading your household") ?? [];
+  people.sort((a, b) => String(a.full_name ?? "").localeCompare(String(b.full_name ?? "")));
+
+  return { family: record, members: people };
+}
+
 /* ------------------------------------------------------------
    Expenses
    ------------------------------------------------------------ */

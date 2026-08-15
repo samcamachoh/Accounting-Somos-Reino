@@ -1,9 +1,14 @@
 /* ============================================================
-   Somos Reino — admin user management
+   Somos Reino — admin user and family management
    ------------------------------------------------------------
    Creating users, changing passwords, and deleting accounts all
    need the service_role key. That key must never reach a
    browser, so every one of those operations runs here.
+
+   Families ride along in the same function. They need no
+   elevated key of their own, but keeping them here means one
+   admin check, one round trip for the dashboard, and one place
+   where "who may change this" is decided.
 
    Each request is checked twice before anything happens:
 
@@ -30,9 +35,28 @@ const CORS = {
 
 const MIN_PASSWORD_LENGTH = 8;
 const ROLES = ["admin", "finance", "member"];
-const PERMISSION_KEYS = ["finance", "approve", "refund", "people", "payouts"];
+const PERMISSION_KEYS = ["finance", "approve", "refund", "people", "payouts", "families"];
 /* A banned user cannot sign in. ~100 years stands in for "until lifted". */
 const BAN_FOREVER = "876000h";
+
+/* Where someone stands in their household. Null means "in the
+   family, unspecified" — the dashboard leaves it blank rather
+   than guessing. */
+const FAMILY_ROLES = ["head", "spouse", "child", "other"];
+
+/* Request field -> column, for everything on a family that is
+   plain contact detail. `name` and `primary_contact_id` are
+   handled on their own because both carry rules. */
+const FAMILY_FIELDS: Record<string, string> = {
+  email: "email",
+  phone: "phone",
+  addressLine1: "address_line1",
+  addressLine2: "address_line2",
+  city: "city",
+  state: "state",
+  postalCode: "postal_code",
+  notes: "notes",
+};
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -42,7 +66,7 @@ const json = (body: unknown, status = 200) =>
 
 const bad = (message: string, status = 400) => json({ error: message }, status);
 
-/** Normalize an incoming permissions object to the five known flags. */
+/** Normalize an incoming permissions object to the known flags. */
 function cleanPermissions(input: unknown) {
   if (!input || typeof input !== "object") return undefined;
   const out: Record<string, boolean> = {};
@@ -55,6 +79,130 @@ function checkPassword(password: unknown): string | null {
     return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
   }
   return null;
+}
+
+/** Trim to a string, or null when the field was cleared. */
+const text = (value: unknown) => {
+  const trimmed = String(value ?? "").trim();
+  return trimmed ? trimmed : null;
+};
+
+/** Collect the contact fields a request is actually changing. */
+function familyPatch(body: Record<string, unknown>) {
+  const patch: Record<string, unknown> = {};
+  for (const [field, column] of Object.entries(FAMILY_FIELDS)) {
+    if (body[field] !== undefined) patch[column] = text(body[field]);
+  }
+  if (body.isActive !== undefined) patch.is_active = Boolean(body.isActive);
+  return patch;
+}
+
+/**
+ * The household fields on a person. Returns an error message when
+ * the request asks for something that isn't allowed.
+ */
+function familyMembership(body: Record<string, unknown>, patch: Record<string, unknown>): string | null {
+  if (body.familyId !== undefined) {
+    patch.family_id = body.familyId ? String(body.familyId) : null;
+    /* Leaving a family takes the relationship with it — "child" of
+       nothing is a leftover, not a fact. */
+    if (!body.familyId) patch.family_role = null;
+  }
+
+  if (body.familyRole !== undefined) {
+    const role = text(body.familyRole);
+    if (role && !FAMILY_ROLES.includes(role)) return "Unknown household relationship.";
+    /* Don't let a relationship survive the removal it was sent with. */
+    if (!(body.familyId !== undefined && !body.familyId)) patch.family_role = role;
+  }
+
+  if (body.householdName !== undefined) patch.household_name = text(body.householdName);
+  return null;
+}
+
+/**
+ * A person form may name a household that doesn't exist yet.
+ *
+ * Creating it here rather than in the browser is what makes the
+ * pair atomic from the admin's side: one request either places
+ * the person in a new family or leaves nothing behind. The
+ * caller undoes it with `undoFamily` when its own write fails.
+ */
+async function createNamedFamily(service: SupabaseClient, body: Record<string, unknown>) {
+  const name = text(body.familyName);
+  if (!name) return {} as { familyId?: string; error?: Response };
+
+  const { data, error } = await service
+    .from("families")
+    .insert({ name, is_active: true })
+    .select("id")
+    .single();
+
+  if (error) return { error: bad(`Could not create the family: ${error.message}`) };
+  return { familyId: data.id as string };
+}
+
+/** Take back a family created moments ago for a save that failed. */
+async function undoFamily(service: SupabaseClient, familyId?: string) {
+  if (familyId) await service.from("families").delete().eq("id", familyId);
+}
+
+/**
+ * A primary contact who doesn't live in the family would show a
+ * stranger's phone number on the household card.
+ */
+async function checkPrimaryContact(
+  service: SupabaseClient,
+  familyId: string,
+  contactId: string,
+): Promise<string | null> {
+  const { data, error } = await service
+    .from("profiles")
+    .select("family_id")
+    .eq("id", contactId)
+    .maybeSingle();
+
+  if (error) return `Could not check that contact: ${error.message}`;
+  if (!data) return "That person no longer has an account.";
+  if (data.family_id !== familyId) return "The primary contact has to be a member of this family.";
+  return null;
+}
+
+/**
+ * Add this year's giving to each family, summed across its
+ * members. Best effort: a project without a donations table
+ * still gets its families back, with the total left null so the
+ * dashboard shows a dash instead of a confident zero.
+ */
+async function withGivingTotals(
+  service: SupabaseClient,
+  families: Record<string, unknown>[],
+  users: Record<string, unknown>[],
+) {
+  if (!families.length) return families;
+
+  const year = new Date().getUTCFullYear();
+  const familyOf = new Map(users.map((u) => [u.id as string, u.family_id as string | null]));
+
+  const { data: gifts, error } = await service
+    .from("donations")
+    .select("profile_id, amount_cents")
+    .gte("occurred_at", `${year}-01-01`);
+
+  if (error) return families.map((f) => ({ ...f, giving_cents_ytd: null, giving_year: year }));
+
+  const totals = new Map<string, number>();
+  for (const gift of gifts ?? []) {
+    const familyId = familyOf.get(gift.profile_id);
+    if (!familyId) continue;
+    totals.set(familyId, (totals.get(familyId) ?? 0) + (gift.amount_cents ?? 0));
+  }
+
+  return families.map((f) => ({
+    ...f,
+    giving_cents_ytd: totals.get(f.id as string) ?? 0,
+    giving_year: year,
+  }));
 }
 
 /** Resolve the caller and confirm they are an admin. */
@@ -133,7 +281,26 @@ Deno.serve(async (req) => {
         };
       });
 
-      return json({ users, callerId });
+      /* Families come back in the same reply. The dashboard renders
+         both tabs off one load, and a family's members are just the
+         users above carrying its id — no second lookup. */
+      const { data: families, error: familyError } = await service
+        .from("families")
+        .select("*")
+        .order("name");
+
+      /* A project that hasn't run the families migration yet should
+         still get its people, so this failure is reported inline
+         rather than replacing the whole reply with an error. */
+      if (familyError) {
+        return json({ users, families: [], callerId, familiesError: familyError.message });
+      }
+
+      return json({
+        users,
+        families: await withGivingTotals(service, families ?? [], users),
+        callerId,
+      });
     }
 
     /* ---------------- create ---------------- */
@@ -150,6 +317,13 @@ Deno.serve(async (req) => {
         if (problem) return bad(problem);
       }
 
+      /* A brand new household is made before the account so its id
+         can go straight onto the profile. Everything after this
+         point undoes it on the way out. */
+      const made = await createNamedFamily(service, body);
+      if (made.error) return made.error;
+      if (made.familyId) body.familyId = made.familyId;
+
       /* With a password the account is usable immediately. Without one,
          inviteUserByEmail both creates the user and sends the invite —
          generateLink only returns a link and mails nothing, which would
@@ -163,15 +337,29 @@ Deno.serve(async (req) => {
           password,
           email_confirm: true,
         });
-        if (error) return bad(`Could not create the account: ${error.message}`);
+        if (error) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not create the account: ${error.message}`);
+        }
         userId = created.user.id;
       } else {
         const { data: invited, error } = await service.auth.admin.inviteUserByEmail(
           email,
           redirectTo ? { redirectTo } : undefined,
         );
-        if (error) return bad(`Could not send the invite: ${error.message}`);
+        if (error) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not send the invite: ${error.message}`);
+        }
         userId = invited.user.id;
+      }
+
+      const household: Record<string, unknown> = {};
+      const householdProblem = familyMembership(body, household);
+      if (householdProblem) {
+        await service.auth.admin.deleteUser(userId);
+        await undoFamily(service, made.familyId);
+        return bad(householdProblem);
       }
 
       const { error: profileError } = await service.from("profiles").upsert({
@@ -183,11 +371,13 @@ Deno.serve(async (req) => {
         team_names: body.teamName ? [String(body.teamName)] : [],
         permissions: cleanPermissions(body.permissions) ?? {},
         is_active: true,
+        ...household,
       });
 
       /* Don't leave an auth user stranded without a profile. */
       if (profileError) {
         await service.auth.admin.deleteUser(userId);
+        await undoFamily(service, made.familyId);
         return bad(`Could not save the profile: ${profileError.message}`, 500);
       }
 
@@ -211,16 +401,49 @@ Deno.serve(async (req) => {
         patch.role = role;
       }
 
+      /* Everything that can be rejected outright is checked above,
+         so a household named here is only created once the save is
+         all but certain — and undone if it still falls over. */
+      const made = await createNamedFamily(service, body);
+      if (made.error) return made.error;
+      if (made.familyId) body.familyId = made.familyId;
+
+      const householdProblem = familyMembership(body, patch);
+      if (householdProblem) {
+        await undoFamily(service, made.familyId);
+        return bad(householdProblem);
+      }
+
+      /* Moving out of a family they were the contact for would leave
+         the household pointing at someone who no longer lives there. */
+      if (patch.family_id !== undefined) {
+        const { error: contactError } = await service
+          .from("families")
+          .update({ primary_contact_id: null })
+          .eq("primary_contact_id", targetId)
+          .neq("id", patch.family_id ?? "00000000-0000-0000-0000-000000000000");
+        if (contactError) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not update the household contact: ${contactError.message}`);
+        }
+      }
+
       const newEmail = body.email ? String(body.email).trim().toLowerCase() : "";
       if (newEmail) {
         const { error } = await service.auth.admin.updateUserById(targetId, { email: newEmail });
-        if (error) return bad(`Could not change the email: ${error.message}`);
+        if (error) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not change the email: ${error.message}`);
+        }
         patch.email = newEmail;
       }
 
       if (Object.keys(patch).length) {
         const { error } = await service.from("profiles").update(patch).eq("id", targetId);
-        if (error) return bad(`Could not save the changes: ${error.message}`);
+        if (error) {
+          await undoFamily(service, made.familyId);
+          return bad(`Could not save the changes: ${error.message}`);
+        }
       }
 
       return json({ ok: true });
@@ -304,6 +527,132 @@ Deno.serve(async (req) => {
       if (error) return bad(`Could not delete the account: ${error.message}`);
 
       return json({ ok: true, deletedRecords: records });
+    }
+
+    /* ---------------- setFamily ---------------- */
+    /* Move one person in or out of a household. The dashboard uses
+       this for drag-free member management: the same call adds
+       someone, changes their relationship, or takes them out. */
+    case "setFamily": {
+      if (!targetId) return bad("Which account?");
+
+      const made = await createNamedFamily(service, body);
+      if (made.error) return made.error;
+
+      const patch: Record<string, unknown> = {};
+      const problem = familyMembership(
+        { familyId: made.familyId ?? body.familyId ?? null, familyRole: body.familyRole },
+        patch,
+      );
+      if (problem) {
+        await undoFamily(service, made.familyId);
+        return bad(problem);
+      }
+
+      const { error: contactError } = await service
+        .from("families")
+        .update({ primary_contact_id: null })
+        .eq("primary_contact_id", targetId)
+        .neq("id", patch.family_id ?? "00000000-0000-0000-0000-000000000000");
+      if (contactError) {
+        await undoFamily(service, made.familyId);
+        return bad(`Could not update the household contact: ${contactError.message}`);
+      }
+
+      const { error } = await service.from("profiles").update(patch).eq("id", targetId);
+      if (error) {
+        await undoFamily(service, made.familyId);
+        return bad(`Could not change the household: ${error.message}`);
+      }
+
+      return json({ ok: true });
+    }
+
+    /* ---------------- createFamily ---------------- */
+    case "createFamily": {
+      const name = String(body.name ?? "").trim();
+      if (!name) return bad("A family needs a name.");
+
+      const { data: family, error } = await service
+        .from("families")
+        .insert({ name, ...familyPatch(body), is_active: true })
+        .select()
+        .single();
+      if (error) return bad(`Could not create the family: ${error.message}`);
+
+      /* Members can come along with the family so an admin isn't
+         made to create an empty household and fill it separately. */
+      const memberIds = Array.isArray(body.memberIds) ? body.memberIds.map(String) : [];
+      if (memberIds.length) {
+        const { error: memberError } = await service
+          .from("profiles")
+          .update({ family_id: family.id })
+          .in("id", memberIds);
+        if (memberError) return bad(`The family was created, but its members were not added: ${memberError.message}`, 500);
+      }
+
+      const contactId = body.primaryContactId ? String(body.primaryContactId) : "";
+      if (contactId) {
+        const contactProblem = await checkPrimaryContact(service, family.id, contactId);
+        if (contactProblem) return bad(contactProblem);
+        const { error: contactError } = await service
+          .from("families")
+          .update({ primary_contact_id: contactId })
+          .eq("id", family.id);
+        if (contactError) return bad(`The family was created, but its contact was not set: ${contactError.message}`, 500);
+      }
+
+      return json({ familyId: family.id, members: memberIds.length });
+    }
+
+    /* ---------------- updateFamily ---------------- */
+    case "updateFamily": {
+      const familyId = String(body.familyId ?? "");
+      if (!familyId) return bad("Which family?");
+
+      const patch = familyPatch(body);
+      if (body.name !== undefined) {
+        const name = String(body.name).trim();
+        if (!name) return bad("A family needs a name.");
+        patch.name = name;
+      }
+
+      if (body.primaryContactId !== undefined) {
+        const contactId = body.primaryContactId ? String(body.primaryContactId) : "";
+        if (contactId) {
+          const problem = await checkPrimaryContact(service, familyId, contactId);
+          if (problem) return bad(problem);
+        }
+        patch.primary_contact_id = contactId || null;
+      }
+
+      if (!Object.keys(patch).length) return json({ ok: true });
+
+      const { error } = await service.from("families").update(patch).eq("id", familyId);
+      if (error) return bad(`Could not save the family: ${error.message}`);
+
+      return json({ ok: true });
+    }
+
+    /* ---------------- deleteFamily ---------------- */
+    /* Deleting a household is not deleting its people. Members are
+       released first so the outcome is one they can see coming:
+       everyone stays, they just aren't grouped any more. */
+    case "deleteFamily": {
+      const familyId = String(body.familyId ?? "");
+      if (!familyId) return bad("Which family?");
+
+      const { data: released, error: releaseError } = await service
+        .from("profiles")
+        .update({ family_id: null, family_role: null })
+        .eq("family_id", familyId)
+        .select("id");
+      if (releaseError) return bad(`Could not release the members: ${releaseError.message}`);
+
+      const { error } = await service.from("families").delete().eq("id", familyId);
+      if (error) return bad(`Could not delete the family: ${error.message}`);
+
+      return json({ ok: true, released: released?.length ?? 0 });
     }
 
     default:

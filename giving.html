@@ -275,7 +275,7 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 
 <script type="module">
 import { getPortalSession, mountAuthGate, mountForbiddenGate, signOut } from "/src/lib/auth.js";
-import { loadGivingSnapshot, openBillingPortal, startCheckout, updateMyProfile } from "/src/lib/api.js";
+import { loadGivingSnapshot, loadHousehold, openBillingPortal, startCheckout, updateMyProfile } from "/src/lib/api.js";
 import { showModeBadge } from "/src/lib/status.js";
 /* ============================================================
    Somos Reino — giver portal (give, history, recurring, account)
@@ -355,6 +355,14 @@ const STR = {
   saveChanges:{es:"Guardar cambios", en:"Save changes"},
   householdSection:{es:"Familia", en:"Household"},
   partOfHousehold:{es:"Parte de la familia {h}", en:"Part of the {h} household"},
+  householdMembers:{es:"En tu familia", en:"In your household"},
+  householdNone:{es:"Todavía no estás en una familia. Pídele a la oficina que te agregue.", en:"You're not in a family yet. Ask the office to add you."},
+  householdContact:{es:"Contacto principal", en:"Primary contact"},
+  youTag:{es:"tú", en:"you"},
+  relHead:{es:"Cabeza de familia", en:"Head of household"},
+  relSpouse:{es:"Cónyuge", en:"Spouse"},
+  relChild:{es:"Hijo/a", en:"Child"},
+  relOther:{es:"Otro", en:"Other"},
   paymentSection:{es:"Métodos de pago", en:"Payment methods"},
   defaultTag:{es:"Predeterminada", en:"Default"},
   setDefault:{es:"Usar por defecto", en:"Set default"},
@@ -405,10 +413,23 @@ let FUNDS = [
 const fundById = id => FUNDS.find(f=>f.id===id);
 
 let ME = {
+  id:"p2",
   name:"Marisol Ortega",
   household:"Ortega",
   email:"marisol@gmail.com",
   phone:"(407) 555-0198",
+  /* The household the office keeps for this person: the same
+     family an administrator manages in the admin dashboard.
+     Null when they haven't been placed in one. */
+  family:{
+    name:"Ortega",
+    address:"88 Kingsley St, Orlando, FL 32803",
+    contactId:"p2",
+    members:[
+      {id:"p2", name:"Marisol Ortega", role:"head"},
+      {id:"p7", name:"Noé Ortega",     role:"child"},
+    ],
+  },
 };
 
 let cards = [
@@ -697,6 +718,41 @@ function viewRecurring(){
   </div>`;
 }
 
+/* ---------------- household ---------------- */
+const REL_STRING = { head:"relHead", spouse:"relSpouse", child:"relChild", other:"relOther" };
+const relLabel = (role) => REL_STRING[role] ? t(REL_STRING[role]) : "";
+
+/**
+ * The family the church has this person in — the same household
+ * an administrator manages on the admin page. Members are shown
+ * by name only: giving stays private to whoever gave it, even
+ * inside a family.
+ */
+function householdCard(){
+  const family = ME.family;
+
+  return `
+  <div class="section">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:8px">${t("householdSection")}</h2>
+      ${!family ? `<div style="font-size:13px;color:var(--text-2);line-height:1.5">${t("householdNone")}</div>` : `
+        <div style="font-size:13px;color:var(--text-2)">${t("partOfHousehold",{h:esc(family.name)})}</div>
+        ${family.address ? `<div style="font-size:12.5px;color:var(--text-3);margin-top:3px">${esc(family.address)}</div>` : ""}
+        ${family.members.length ? `
+          <div class="eyebrow" style="margin:14px 0 8px">${t("householdMembers")}</div>
+          ${family.members.map(m => `
+            <div class="paycard">
+              <span style="flex:1">
+                <span style="font-size:13.5px;font-weight:600;display:block">${esc(m.name)}${m.id === ME.id ? ` · ${t("youTag")}` : ""}</span>
+                ${relLabel(m.role) ? `<span style="font-size:11.5px;color:var(--text-2)">${relLabel(m.role)}</span>` : ""}
+              </span>
+              ${m.id === family.contactId ? `<span class="tag t-mute">${t("householdContact")}</span>` : ""}
+            </div>`).join("")}` : ""}
+      `}
+    </div>
+  </div>`;
+}
+
 /* ---------------- view: account ---------------- */
 function viewAccount(){
   return `
@@ -711,9 +767,10 @@ function viewAccount(){
       <div class="field" style="margin-bottom:9px"><label>${t("emailF")}</label><input class="input" id="acc_email" value="${esc(ME.email)}"></div>
       <div class="field" style="margin-bottom:12px"><label>${t("phoneF")}</label><input class="input" id="acc_phone" value="${esc(ME.phone)}"></div>
       <button class="btn btn-dark btn-sm" data-act="saveProfile">${t("saveChanges")}</button>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #F2ECE8;font-size:12.5px;color:var(--text-2)">${t("partOfHousehold",{h:ME.household})}</div>
     </div>
   </div>
+
+  ${householdCard()}
 
   <div class="section">
     <div class="card" style="padding:16px">
@@ -967,7 +1024,15 @@ document.addEventListener("input", e=>{
 });
 document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal){ state.modal=null; render(); } });
 
-function hydrateGiving(snapshot, profile){
+/** Flatten a family's address into the one line the card shows. */
+function householdAddress(family){
+  const street = [family.address_line1, family.address_line2].filter(Boolean).join(", ");
+  const region = [family.city, [family.state, family.postal_code].filter(Boolean).join(" ").trim()]
+    .filter(Boolean).join(", ");
+  return [street, region].filter(Boolean).join(", ");
+}
+
+function hydrateGiving(snapshot, profile, household){
   FUNDS = snapshot.funds.map(f=>({
     id:f.slug, dbId:f.id, color:f.color, wash:f.color+"1f",
     name:{es:f.name_es,en:f.name_en},
@@ -975,10 +1040,20 @@ function hydrateGiving(snapshot, profile){
     ...(f.campaign_goal_cents ? {campaign:{goal:f.campaign_goal_cents/100,raised:f.current_balance_cents/100}} : {}),
   }));
   ME = {
+    id:profile.id,
     name:profile.full_name,
-    household:profile.household_name||profile.full_name.split(" ").slice(-1)[0]||"",
+    household:household?.family?.name||profile.household_name||profile.full_name.split(" ").slice(-1)[0]||"",
     email:profile.email,
     phone:profile.phone||"",
+    family:household ? {
+      name:household.family.name,
+      address:householdAddress(household.family),
+      contactId:household.family.primary_contact_id,
+      /* Someone whose account was closed stays in the books but
+         shouldn't be listed as living here. */
+      members:household.members.filter(m=>m.is_active!==false)
+        .map(m=>({id:m.id, name:m.full_name, role:m.family_role})),
+    } : null,
   };
   cards = snapshot.paymentMethods.map(m=>({
     id:m.id, brand:(m.brand||"CARD").toUpperCase(), last4:m.last4,
@@ -1010,7 +1085,10 @@ async function startPortal(){
     if(session.mode==="signed-out") return mountAuthGate();
     if(session.mode==="disabled") return mountForbiddenGate("This account has been deactivated. Ask a church administrator to restore access.");
     const snapshot = await loadGivingSnapshot(session.user.id);
-    hydrateGiving(snapshot, session.profile);
+    /* The household is a nicety, not the point of this page: a
+       project that hasn't added families yet still gives. */
+    const household = await loadHousehold(session.profile).catch(() => null);
+    hydrateGiving(snapshot, session.profile, household);
     render();
     showModeBadge({mode:"ready",portal:"Giving"});
   }catch(error){
