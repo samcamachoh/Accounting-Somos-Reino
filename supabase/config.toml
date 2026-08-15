@@ -1,0 +1,11 @@
+# Minimal config so `supabase functions deploy` works from a clone.
+# Run `supabase init` if you later want the full local-development stack
+# (database, studio, migrations) — it generates a much longer file.
+
+project_id = "qbqjmdyqknuqlkfbubml"
+
+[functions.admin-users]
+# Supabase verifies the caller's JWT before the function runs. The
+# function then re-reads the caller's role from the database, because a
+# valid token only proves who someone is, not what they may do.
+verify_jwt = true
