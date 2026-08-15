@@ -11,8 +11,10 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: page("index"),
+        login: page("login"),
         finance: page("finance"),
         giving: page("giving"),
+        settings: page("settings"),
       },
     },
   },

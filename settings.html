@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Somos Reino · Accounts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--coral:#F7746D;--coral-deep:#C8483F;--coral-wash:#FDECEA;--ink:#17151C;--paper:#FAF7F5;--card:#fff;--line:#E9E2DD;--line-2:#D8CFC8;--text:#1E1B22;--text-2:#6A6371;--text-3:#9A9299;--sage:#3F7A63;--sage-wash:#E7F1EC;--amber:#A97613;--amber-wash:#FBF0DC;--mono:"IBM Plex Mono",ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--text);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:32px 24px 80px}
+header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:28px}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);font-weight:700}
+h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-spacing:-.04em;margin:10px 0 8px}
+.lead{color:var(--text-2);line-height:1.5;max-width:620px}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button{font-family:inherit;cursor:pointer}
+.btn{padding:10px 16px;border-radius:9px;border:1px solid var(--line-2);background:#fff;color:var(--text);font:600 14px/1 inherit}
+.btn:hover{border-color:var(--text-3)}
+.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.btn.danger{color:var(--coral-deep);border-color:#F3C9C5}
+.btn:disabled{opacity:.55;cursor:default}
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--line-2);border-radius:9px;font:400 14px/1 inherit;background:#fff;color:inherit}
+.toolbar input{flex:1;min-width:200px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-weight:700;padding:14px 16px;border-bottom:1px solid var(--line)}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tr.inactive td{opacity:.55}
+.who{display:flex;align-items:center;gap:11px}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 12px/1 inherit;flex:none}
+.nm{font-weight:600}
+.em{color:var(--text-2);font-size:13px}
+.tag{display:inline-block;padding:4px 9px;border-radius:999px;font:700 11px/1.25 inherit;letter-spacing:.02em}
+.tag.admin{background:var(--coral-wash);color:var(--coral-deep)}
+.tag.finance{background:var(--sage-wash);color:var(--sage)}
+.tag.member{background:#F0EAE6;color:var(--text-2)}
+.tag.off{background:var(--amber-wash);color:var(--amber)}
+.seen{font-family:var(--mono);font-size:12px;color:var(--text-2)}
+.rowacts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.rowacts button{padding:6px 10px;border-radius:7px;border:1px solid var(--line-2);background:#fff;font:600 12px/1 inherit;color:var(--text-2)}
+.rowacts button:hover{color:var(--text);border-color:var(--text-3)}
+.rowacts button.danger:hover{color:var(--coral-deep);border-color:#F3C9C5}
+.empty{padding:48px 20px;text-align:center;color:var(--text-2)}
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:20px}
+.modal{background:#fff;border-radius:18px;width:min(520px,100%);max-height:90vh;overflow:auto;padding:28px}
+.modal h2{font:800 24px/1.1 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;margin-bottom:6px}
+.modal p.sub{color:var(--text-2);font-size:14px;line-height:1.5;margin-bottom:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+.field input,.field select{width:100%;padding:11px 13px;border:1px solid var(--line-2);border-radius:9px;font:400 15px/1.2 inherit;background:#fff;color:inherit}
+.field .hint{font-size:12px;color:var(--text-3);margin-top:5px;line-height:1.45}
+.perms{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:6px}
+.perms label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;text-transform:capitalize}
+/* The .field rule above stretches inputs to 100%; checkboxes must not be. */
+.perms input[type=checkbox]{width:16px;height:16px;flex:none;margin:0;accent-color:var(--coral)}
+.modal .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;flex-wrap:wrap}
+.modal .err{color:var(--coral-deep);font-size:14px;line-height:1.45;margin-top:14px;min-height:1.2em}
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:11px 17px;border-radius:9px;font-size:13px;font-weight:500;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:min(520px,90vw)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.banner{background:var(--amber-wash);border:1px solid #E8D5A8;color:var(--amber);padding:13px 16px;border-radius:12px;font-size:14px;line-height:1.5;margin-bottom:20px}
+@media(max-width:760px){ th.hide,td.hide{display:none} .wrap{padding:24px 16px 70px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Somos Reino · Administración</div>
+      <h1>Accounts</h1>
+      <p class="lead">Add people, change what they can reach, and reset passwords. Only administrators can open this page.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/finance.html">Finance</a>
+      <button class="btn" id="btnSignOut">Sign out</button>
+      <button class="btn primary" id="btnAdd">＋ Add person</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="Search by name or email" aria-label="Search people">
+    <select id="filterRole" aria-label="Filter by role">
+      <option value="all">All roles</option>
+      <option value="admin">Admin</option>
+      <option value="finance">Finance</option>
+      <option value="member">Member</option>
+    </select>
+    <select id="filterStatus" aria-label="Filter by status">
+      <option value="all">Active and inactive</option>
+      <option value="active" selected>Active only</option>
+      <option value="inactive">Inactive only</option>
+    </select>
+  </div>
+
+  <div class="panel">
+    <table>
+      <thead>
+        <tr>
+          <th>Person</th>
+          <th>Role</th>
+          <th class="hide">Team</th>
+          <th class="hide">Last sign-in</th>
+          <th style="text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden></div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script type="module">
+import { requireSession, signOut } from "/src/lib/auth.js";
+import { isConfigured } from "/src/lib/supabase.js";
+import { listUsers, createUser, updateUser, setUserPassword, sendPasswordReset, setUserActive, deleteUser } from "/src/lib/admin.js";
+import { showModeBadge } from "/src/lib/status.js";
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const AV = ["#F7746D","#3F7A63","#A97613","#5B5470","#2F6E8F","#8A4A6B","#4C6B3F"];
+const avColor = (n) => AV[[...String(n||"?")].reduce((a,c)=>a+c.charCodeAt(0),0) % AV.length];
+const initials = (n) => String(n||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+const PERMS = ["finance","approve","refund","people","payouts"];
+
+let users = [], callerId = null, live = false;
+const state = { q:"", role:"all", status:"active", modal:null, busy:false };
+
+let toastTimer;
+function toast(message){
+  const el = $("#toast");
+  el.textContent = message; el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("on"), 4200);
+}
+
+/* ---------------- sample data, used only in demo mode ---------------- */
+const DEMO = [
+  { id:"p1", full_name:"Sam Camacho",     email:"sam@somosreino.org",     role:"admin",   team_names:["Pastoral"],   is_active:true,  last_sign_in_at:new Date(Date.now()-36e5).toISOString(),   permissions:{finance:true,approve:true,refund:true,people:true,payouts:true} },
+  { id:"p2", full_name:"Marisol Ortega",  email:"marisol@somosreino.org", role:"finance", team_names:["Care"],       is_active:true,  last_sign_in_at:new Date(Date.now()-864e5).toISOString(),  permissions:{finance:true,approve:true,refund:false,people:false,payouts:true} },
+  { id:"p3", full_name:"Elias Moreno",    email:"elias@somosreino.org",   role:"member",  team_names:["Media"],      is_active:true,  last_sign_in_at:new Date(Date.now()-3*864e5).toISOString(), permissions:{} },
+  { id:"p4", full_name:"Ana Beltrán",     email:"ana@somosreino.org",     role:"member",  team_names:["Kids"],       is_active:true,  last_sign_in_at:null,                                     permissions:{} },
+  { id:"p5", full_name:"Roberto Salgado", email:"roberto@somosreino.org", role:"member",  team_names:["Facilities"], is_active:false, last_sign_in_at:new Date(Date.now()-90*864e5).toISOString(), permissions:{} },
+];
+
+const roleLabel = (r) => r === "admin" ? "Admin" : r === "finance" ? "Finance" : "Member";
+function sinceLabel(iso){
+  if(!iso) return "never";
+  const days = Math.floor((Date.now() - new Date(iso)) / 864e5);
+  if(days <= 0) return "today";
+  if(days === 1) return "yesterday";
+  if(days < 30) return `${days}d ago`;
+  if(days < 365) return `${Math.floor(days/30)}mo ago`;
+  return `${Math.floor(days/365)}y ago`;
+}
+
+/* ---------------- render ---------------- */
+function visible(){
+  const q = state.q.trim().toLowerCase();
+  return users.filter(u => {
+    if(state.role !== "all" && u.role !== state.role) return false;
+    const active = u.is_active !== false;
+    if(state.status === "active" && !active) return false;
+    if(state.status === "inactive" && active) return false;
+    if(q && !`${u.full_name||""} ${u.email||""}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function render(){
+  const list = visible();
+  const rows = $("#rows"), empty = $("#empty");
+
+  rows.innerHTML = list.map(u => {
+    const active = u.is_active !== false;
+    const name = u.full_name || u.email || "—";
+    const teams = (u.team_names || []).join(", ") || "—";
+    const self = u.id === callerId;
+    return `<tr class="${active ? "" : "inactive"}">
+      <td>
+        <div class="who">
+          <div class="av" style="background:${avColor(name)}">${esc(initials(name))}</div>
+          <div>
+            <div class="nm">${esc(name)}${self ? ' <span class="tag member">you</span>' : ""}</div>
+            <div class="em">${esc(u.email || "")}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="tag ${esc(u.role || "member")}">${esc(roleLabel(u.role))}</span>${active ? "" : ' <span class="tag off">Inactive</span>'}</td>
+      <td class="hide">${esc(teams)}</td>
+      <td class="hide seen">${esc(sinceLabel(u.last_sign_in_at))}</td>
+      <td>
+        <div class="rowacts">
+          <button data-edit="${esc(u.id)}">Edit</button>
+          <button data-pw="${esc(u.id)}">Password</button>
+          <button data-active="${esc(u.id)}">${active ? "Deactivate" : "Restore"}</button>
+          <button class="danger" data-del="${esc(u.id)}">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+
+  const none = list.length === 0;
+  empty.hidden = !none;
+  if(none) empty.textContent = users.length ? "No one matches those filters." : "No accounts yet.";
+}
+
+/* ---------------- modals ---------------- */
+function closeModal(){ $("#modalRoot").innerHTML = ""; state.modal = null; }
+
+function openModal({ title, sub, fields, confirmText, onConfirm, danger }){
+  state.modal = title;
+  $("#modalRoot").innerHTML = `
+    <div class="scrim" id="scrim">
+      <div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+        <h2>${esc(title)}</h2>
+        ${sub ? `<p class="sub">${sub}</p>` : ""}
+        <form id="mform">${fields}</form>
+        <div class="err" id="merr"></div>
+        <div class="foot">
+          <button class="btn" id="mcancel" type="button">Cancel</button>
+          <button class="btn ${danger ? "danger" : "primary"}" id="mok" type="button">${esc(confirmText)}</button>
+        </div>
+      </div>
+    </div>`;
+
+  const finish = async () => {
+    if(state.busy) return;
+    state.busy = true;
+    const ok = $("#mok"), label = ok.textContent;
+    ok.disabled = true; ok.textContent = "Working…"; $("#merr").textContent = "";
+    try {
+      await onConfirm();
+      closeModal();
+    } catch (error) {
+      $("#merr").textContent = error.message;
+      ok.disabled = false; ok.textContent = label;
+    } finally {
+      state.busy = false;
+    }
+  };
+
+  $("#mcancel").addEventListener("click", closeModal);
+  $("#mok").addEventListener("click", finish);
+  $("#mform").addEventListener("submit", (e) => { e.preventDefault(); finish(); });
+  $("#scrim").addEventListener("mousedown", (e) => { if(e.target.id === "scrim") closeModal(); });
+  $("#mform input")?.focus();
+}
+
+const roleOptions = (current) =>
+  ["admin","finance","member"].map(r => `<option value="${r}"${r === current ? " selected" : ""}>${roleLabel(r)}</option>`).join("");
+
+const permBoxes = (perms = {}) => `<div class="perms">${
+  PERMS.map(p => `<label><input type="checkbox" data-perm="${p}"${perms[p] ? " checked" : ""}> ${p}</label>`).join("")
+}</div>`;
+
+const readPerms = () => Object.fromEntries(
+  [...document.querySelectorAll("[data-perm]")].map(el => [el.dataset.perm, el.checked])
+);
+
+function requireLive(){
+  if(!live) throw new Error("Demo mode — connect Supabase to make changes stick.");
+}
+
+function addPerson(){
+  openModal({
+    title: "Add a person",
+    sub: "They get an email invite to choose their own password, unless you set one here.",
+    fields: `
+      <div class="field"><label for="f_name">Full name</label><input id="f_name" required></div>
+      <div class="field"><label for="f_email">Email</label><input id="f_email" type="email" required></div>
+      <div class="field"><label for="f_role">Role</label><select id="f_role">${roleOptions("member")}</select>
+        <div class="hint">Admins manage accounts. Finance reaches the finance portal. Members only see their own giving.</div></div>
+      <div class="field"><label for="f_team">Team</label><input id="f_team" placeholder="Media, Kids, Care…"></div>
+      <div class="field"><label for="f_phone">Phone</label><input id="f_phone" type="tel"></div>
+      <div class="field"><label for="f_pw">Password (optional)</label><input id="f_pw" type="password" autocomplete="new-password">
+        <div class="hint">Leave blank to send an invite. At least 8 characters if you set one.</div></div>
+      <div class="field"><label>Permissions</label>${permBoxes()}</div>`,
+    confirmText: "Create account",
+    onConfirm: async () => {
+      const password = $("#f_pw").value;
+      if(password && password.length < 8) throw new Error("Password must be at least 8 characters.");
+      requireLive();
+      const result = await createUser({
+        fullName: $("#f_name").value.trim(),
+        email: $("#f_email").value.trim(),
+        role: $("#f_role").value,
+        teamName: $("#f_team").value.trim(),
+        phone: $("#f_phone").value.trim(),
+        password: password || undefined,
+        permissions: readPerms(),
+      });
+      toast(result.invited ? "Account created — invite sent." : "Account created.");
+      await refresh();
+    },
+  });
+}
+
+function editPerson(user){
+  openModal({
+    title: `Edit ${esc(user.full_name || user.email)}`,
+    sub: "Changing the email changes what they sign in with.",
+    fields: `
+      <div class="field"><label for="f_name">Full name</label><input id="f_name" value="${esc(user.full_name || "")}" required></div>
+      <div class="field"><label for="f_email">Email</label><input id="f_email" type="email" value="${esc(user.email || "")}" required></div>
+      <div class="field"><label for="f_role">Role</label><select id="f_role">${roleOptions(user.role)}</select>
+        ${user.id === callerId ? '<div class="hint">This is your own account — you can\'t remove your admin role.</div>' : ""}</div>
+      <div class="field"><label for="f_team">Team</label><input id="f_team" value="${esc((user.team_names || []).join(", "))}"></div>
+      <div class="field"><label for="f_phone">Phone</label><input id="f_phone" type="tel" value="${esc(user.phone || "")}"></div>
+      <div class="field"><label>Permissions</label>${permBoxes(user.permissions || {})}</div>`,
+    confirmText: "Save changes",
+    onConfirm: async () => {
+      requireLive();
+      await updateUser(user.id, {
+        fullName: $("#f_name").value.trim(),
+        email: $("#f_email").value.trim(),
+        role: $("#f_role").value,
+        teamName: $("#f_team").value.trim(),
+        phone: $("#f_phone").value.trim(),
+        permissions: readPerms(),
+      });
+      toast("Changes saved.");
+      await refresh();
+    },
+  });
+}
+
+function changePassword(user){
+  openModal({
+    title: "Set a password",
+    sub: `For ${esc(user.full_name || user.email)}. Tell them the new password over a channel they trust, or send a reset link instead so only they ever see it.`,
+    fields: `
+      <div class="field"><label for="f_pw">New password</label><input id="f_pw" type="password" autocomplete="new-password" required>
+        <div class="hint">At least 8 characters.</div></div>
+      <div class="field"><label for="f_pw2">Confirm password</label><input id="f_pw2" type="password" autocomplete="new-password" required></div>
+      <div class="field"><button class="btn" type="button" id="f_reset">Email a reset link instead</button></div>`,
+    confirmText: "Set password",
+    onConfirm: async () => {
+      const a = $("#f_pw").value, b = $("#f_pw2").value;
+      if(a.length < 8) throw new Error("Password must be at least 8 characters.");
+      if(a !== b) throw new Error("The passwords don't match.");
+      requireLive();
+      await setUserPassword(user.id, a);
+      toast("Password updated.");
+    },
+  });
+
+  $("#f_reset").addEventListener("click", async () => {
+    try {
+      requireLive();
+      await sendPasswordReset(user.email);
+      toast(`Reset link sent to ${user.email}.`);
+      closeModal();
+    } catch (error) { $("#merr").textContent = error.message; }
+  });
+}
+
+function toggleActive(user){
+  const active = user.is_active !== false;
+  openModal({
+    title: active ? "Deactivate this account?" : "Restore this account?",
+    sub: active
+      ? `${esc(user.full_name || user.email)} will no longer be able to sign in. Their giving and expense history stays exactly as it is.`
+      : `${esc(user.full_name || user.email)} will be able to sign in again.`,
+    fields: "",
+    confirmText: active ? "Deactivate" : "Restore",
+    danger: active,
+    onConfirm: async () => {
+      requireLive();
+      await setUserActive(user.id, !active);
+      toast(active ? "Account deactivated." : "Account restored.");
+      await refresh();
+    },
+  });
+}
+
+function removePerson(user){
+  let force = false;
+  openModal({
+    title: "Delete this account?",
+    sub: `This permanently removes ${esc(user.full_name || user.email)}. Deactivating is usually the better choice — it blocks sign-in while keeping the books intact.`,
+    fields: "",
+    confirmText: "Delete permanently",
+    danger: true,
+    onConfirm: async () => {
+      requireLive();
+      try {
+        await deleteUser(user.id, { force });
+      } catch (error) {
+        /* The function refuses the first time when the person appears
+           in the books; a second confirm forces it through. */
+        if(!force && /financial record/i.test(error.message)){
+          force = true;
+          $("#mok").textContent = "Delete anyway";
+          throw error;
+        }
+        throw error;
+      }
+      toast("Account deleted.");
+      await refresh();
+    },
+  });
+}
+
+/* ---------------- events ---------------- */
+$("#rows").addEventListener("click", (e) => {
+  const button = e.target.closest("button"); if(!button) return;
+  const id = button.dataset.edit || button.dataset.pw || button.dataset.active || button.dataset.del;
+  const user = users.find(u => u.id === id); if(!user) return;
+
+  if(button.dataset.edit) return editPerson(user);
+  if(button.dataset.pw) return changePassword(user);
+  if(button.dataset.active) return toggleActive(user);
+  if(button.dataset.del) return removePerson(user);
+});
+
+$("#btnAdd").addEventListener("click", addPerson);
+$("#btnSignOut").addEventListener("click", () => signOut());
+$("#q").addEventListener("input", (e) => { state.q = e.target.value; render(); });
+$("#filterRole").addEventListener("change", (e) => { state.role = e.target.value; render(); });
+$("#filterStatus").addEventListener("change", (e) => { state.status = e.target.value; render(); });
+document.addEventListener("keydown", (e) => { if(e.key === "Escape" && state.modal) closeModal(); });
+
+/* ---------------- boot ---------------- */
+async function refresh(){
+  const data = await listUsers();
+  users = data.users;
+  callerId = data.callerId;
+  render();
+}
+
+async function start(){
+  if(!isConfigured){
+    users = DEMO;
+    callerId = "p1";
+    live = false;
+    render();
+    $("#banner").hidden = false;
+    $("#banner").textContent = "Demo mode — this is sample data. Connect Supabase in .env to manage real accounts.";
+    return showModeBadge({ mode:"demo", portal:"Accounts" });
+  }
+
+  const session = await requireSession({ adminOnly:true });
+  if(!session) return;           /* redirected or gated */
+
+  try {
+    live = true;
+    await refresh();
+    showModeBadge({ mode:"ready", portal:"Accounts" });
+  } catch (error) {
+    live = false;
+    $("#banner").hidden = false;
+    $("#banner").textContent = error.message;
+    showModeBadge({ mode:"error", portal:"Accounts", error:error.message });
+  }
+}
+
+await start();
+</script>
+</body>
+</html>

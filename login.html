@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Somos Reino · Iniciar sesión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--coral:#F7746D;--coral-deep:#C8483F;--ink:#17151C;--paper:#FBF8F6;--card:#fff;--line:#E9E2DD;--line-2:#D8CFC8;--muted:#6C6570;--sage:#3F7A63}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;display:grid;place-items:center;background:var(--paper);color:var(--ink);font-family:"Schibsted Grotesk",system-ui,sans-serif;padding:24px}
+    main{width:min(430px,100%)}
+    .brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}
+    .langs{display:flex;gap:2px;background:#F0EAE6;border-radius:999px;padding:3px}
+    .langs button{border:0;background:none;padding:5px 11px;border-radius:999px;font:700 11px/1 inherit;color:var(--muted);cursor:pointer}
+    .langs button[aria-pressed="true"]{background:var(--ink);color:#fff}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:32px}
+    h1{font:800 clamp(28px,5vw,34px)/1.08 "Bricolage Grotesque",sans-serif;letter-spacing:-.035em;margin-bottom:10px}
+    .lead{color:var(--muted);line-height:1.5;font-size:15px;margin-bottom:24px}
+    label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+    input{width:100%;padding:12px 14px;border:1px solid var(--line-2);border-radius:10px;font:400 15px/1.3 inherit;color:inherit;background:#fff;margin-bottom:16px}
+    input:focus{outline:2px solid var(--coral);outline-offset:1px;border-color:transparent}
+    button.primary{width:100%;padding:13px 16px;border:0;border-radius:10px;background:var(--coral);color:#fff;font:700 15px/1 inherit;cursor:pointer}
+    button.primary:disabled{opacity:.6;cursor:default}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+    button.link{background:none;border:0;padding:0;color:var(--coral-deep);font:600 13px/1.4 inherit;cursor:pointer;text-decoration:underline}
+    .msg{margin-top:16px;font-size:14px;line-height:1.5;min-height:1.3em}
+    .msg.err{color:var(--coral-deep)}
+    .msg.ok{color:var(--sage)}
+    .msg.info{color:var(--muted)}
+    .demo{margin-top:20px;padding:14px 16px;border:1px dashed var(--line-2);border-radius:12px;color:var(--muted);font-size:13px;line-height:1.5}
+    .foot{text-align:center;margin-top:20px;font-size:12px;color:var(--muted)}
+    [hidden]{display:none !important}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">
+      <div class="eyebrow">Somos Reino</div>
+      <div class="langs" role="group" aria-label="Idioma">
+        <button type="button" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h1 id="title"></h1>
+      <p class="lead" id="lead"></p>
+
+      <!-- sign in -->
+      <form id="signinForm" novalidate>
+        <label for="email" id="lblEmail"></label>
+        <input id="email" type="email" autocomplete="email" required>
+        <label for="password" id="lblPassword"></label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <button class="primary" type="submit" id="btnSignIn"></button>
+        <div class="row">
+          <button class="link" type="button" id="btnForgot"></button>
+          <button class="link" type="button" id="btnMagic"></button>
+        </div>
+      </form>
+
+      <!-- choose a new password (after a reset link) -->
+      <form id="resetForm" novalidate hidden>
+        <label for="newPassword" id="lblNew"></label>
+        <input id="newPassword" type="password" autocomplete="new-password" required>
+        <label for="confirmPassword" id="lblConfirm"></label>
+        <input id="confirmPassword" type="password" autocomplete="new-password" required>
+        <button class="primary" type="submit" id="btnSave"></button>
+      </form>
+
+      <p class="msg" id="msg" role="status"></p>
+      <div class="demo" id="demoNote" hidden></div>
+    </div>
+
+    <p class="foot" id="foot"></p>
+  </main>
+
+<script type="module">
+import { supabase, isConfigured } from "/src/lib/supabase.js";
+import { signInWithPassword, sendMagicLink, requestPasswordReset, updateMyPassword } from "/src/lib/auth.js";
+
+const $ = (s) => document.querySelector(s);
+
+const STR = {
+  title:      {es:"Iniciar sesión",              en:"Sign in"},
+  lead:       {es:"Entra con tu correo y contraseña para ver el portal.", en:"Enter your email and password to reach the portal."},
+  email:      {es:"Correo",                      en:"Email"},
+  password:   {es:"Contraseña",                  en:"Password"},
+  signIn:     {es:"Entrar",                      en:"Sign in"},
+  forgot:     {es:"Olvidé mi contraseña",        en:"Forgot my password"},
+  magic:      {es:"Enviarme un enlace",          en:"Email me a link"},
+  signingIn:  {es:"Entrando…",                   en:"Signing in…"},
+  sending:    {es:"Enviando…",                   en:"Sending…"},
+  needEmail:  {es:"Escribe tu correo primero.",  en:"Enter your email first."},
+  needBoth:   {es:"Escribe tu correo y contraseña.", en:"Enter your email and password."},
+  resetSent:  {es:"Te enviamos un enlace para cambiar tu contraseña.", en:"We sent you a link to change your password."},
+  magicSent:  {es:"Revisa tu correo para el enlace de acceso.", en:"Check your email for the sign-in link."},
+  newTitle:   {es:"Elige una contraseña nueva",  en:"Choose a new password"},
+  newLead:    {es:"Escribe la contraseña que usarás de ahora en adelante.", en:"Set the password you'll use from now on."},
+  newPass:    {es:"Contraseña nueva",            en:"New password"},
+  confirm:    {es:"Confirmar contraseña",        en:"Confirm password"},
+  save:       {es:"Guardar y entrar",            en:"Save and continue"},
+  saving:     {es:"Guardando…",                  en:"Saving…"},
+  tooShort:   {es:"Usa al menos 8 caracteres.",  en:"Use at least 8 characters."},
+  noMatch:    {es:"Las contraseñas no coinciden.", en:"The passwords don't match."},
+  saved:      {es:"Listo. Entrando…",            en:"Saved. Signing you in…"},
+  foot:       {es:"Protegido por Supabase Auth", en:"Protected by Supabase Auth"},
+  demoTitle:  {es:"Modo demostración",           en:"Demo mode"},
+  demoBody:   {es:"No hay credenciales configuradas, así que no hay cuentas todavía. Copia .env.example a .env y agrega tu proyecto de Supabase para activar el inicio de sesión.",
+               en:"No credentials are configured, so there are no accounts yet. Copy .env.example to .env and add your Supabase project to turn sign-in on."},
+};
+
+let lang = localStorage.getItem("sr-lang") || "es";
+const t = (k) => STR[k][lang];
+
+function paint(){
+  document.documentElement.lang = lang;
+  $("#title").textContent      = mode === "recover" ? t("newTitle") : t("title");
+  $("#lead").textContent       = mode === "recover" ? t("newLead")  : t("lead");
+  $("#lblEmail").textContent   = t("email");
+  $("#lblPassword").textContent= t("password");
+  $("#btnSignIn").textContent  = t("signIn");
+  $("#btnForgot").textContent  = t("forgot");
+  $("#btnMagic").textContent   = t("magic");
+  $("#lblNew").textContent     = t("newPass");
+  $("#lblConfirm").textContent = t("confirm");
+  $("#btnSave").textContent    = t("save");
+  $("#foot").textContent       = t("foot");
+  $("#demoNote").innerHTML     = `<b>${t("demoTitle")}</b><br>${t("demoBody")}`;
+  document.querySelectorAll(".langs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+}
+
+document.querySelectorAll(".langs button").forEach(b => b.addEventListener("click", () => {
+  lang = b.dataset.lang; localStorage.setItem("sr-lang", lang); paint();
+}));
+
+const say = (text, kind = "info") => { const m = $("#msg"); m.className = `msg ${kind}`; m.textContent = text; };
+
+/* Where to land once signed in. Only same-origin paths are honoured,
+   so a crafted ?next= can't bounce anyone off to another site. */
+function destination(){
+  const next = new URLSearchParams(location.search).get("next");
+  if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+  return "/index.html";
+}
+
+let mode = "signin";
+
+function showRecovery(){
+  mode = "recover";
+  $("#signinForm").hidden = true;
+  $("#resetForm").hidden = false;
+  paint();
+}
+
+/* ---- demo mode: no backend, so there is nothing to sign in to ---- */
+if (!isConfigured) {
+  $("#signinForm").hidden = true;
+  $("#demoNote").hidden = false;
+  paint();
+} else {
+  paint();
+
+  /* Arriving from a reset link puts the client in recovery. */
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "PASSWORD_RECOVERY") showRecovery();
+  });
+  if (location.hash.includes("type=recovery")) showRecovery();
+
+  /* Already signed in? Don't make them do it again. */
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session && mode === "signin" && !location.hash.includes("type=recovery")) {
+    location.replace(destination());
+  }
+
+  $("#signinForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = $("#email").value.trim(), password = $("#password").value;
+    if (!email || !password) return say(t("needBoth"), "err");
+
+    const button = $("#btnSignIn");
+    button.disabled = true; button.textContent = t("signingIn"); say("");
+    try {
+      await signInWithPassword(email, password);
+      location.assign(destination());
+    } catch (error) {
+      say(error.message, "err");
+      button.disabled = false; button.textContent = t("signIn");
+    }
+  });
+
+  $("#btnForgot").addEventListener("click", async () => {
+    const email = $("#email").value.trim();
+    if (!email) return say(t("needEmail"), "err");
+    say(t("sending"));
+    try { await requestPasswordReset(email); say(t("resetSent"), "ok"); }
+    catch (error) { say(error.message, "err"); }
+  });
+
+  $("#btnMagic").addEventListener("click", async () => {
+    const email = $("#email").value.trim();
+    if (!email) return say(t("needEmail"), "err");
+    say(t("sending"));
+    try {
+      await sendMagicLink(email, new URL(destination(), location.origin).href);
+      say(t("magicSent"), "ok");
+    } catch (error) { say(error.message, "err"); }
+  });
+
+  $("#resetForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const a = $("#newPassword").value, b = $("#confirmPassword").value;
+    if (a.length < 8) return say(t("tooShort"), "err");
+    if (a !== b) return say(t("noMatch"), "err");
+
+    const button = $("#btnSave");
+    button.disabled = true; button.textContent = t("saving"); say("");
+    try {
+      await updateMyPassword(a);
+      say(t("saved"), "ok");
+      location.assign(destination());
+    } catch (error) {
+      say(error.message, "err");
+      button.disabled = false; button.textContent = t("save");
+    }
+  });
+}
+</script>
+</body>
+</html>

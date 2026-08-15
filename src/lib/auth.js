@@ -5,13 +5,14 @@
    is in. The portals branch on `mode` and render accordingly:
 
      demo       no credentials configured — keep sample data
-     signed-out no Supabase session — show the sign-in gate
+     signed-out no Supabase session — send them to login.html
      disabled   profile exists but has been deactivated
      forbidden  signed in, but not allowed in this portal
      ready      cleared — `user` and `profile` are populated
 
    Authorization is enforced by Row Level Security in the
-   database. The checks here decide what to *render*; they are
+   database, and by the admin-users Edge Function for anything
+   privileged. The checks here decide what to *render*; they are
    not the security boundary on their own.
    ============================================================ */
 import { supabase, isConfigured, TABLES } from "./supabase.js";
@@ -19,34 +20,13 @@ import { supabase, isConfigured, TABLES } from "./supabase.js";
 /** Roles permitted into the finance portal. */
 const STAFF_ROLES = ["admin", "finance"];
 
-const UI = `
-  position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
-  padding:24px; background:#FAF7F5;
-  font-family:"Schibsted Grotesk",system-ui,sans-serif; color:#1E1B22;
-`;
-const CARD = `
-  width:min(420px,100%); background:#fff; border:1px solid #E9E2DD;
-  border-radius:22px; padding:32px;
-`;
-const FIELD = `
-  width:100%; padding:12px 14px; margin:0 0 12px;
-  border:1px solid #D8CFC8; border-radius:10px;
-  font:400 15px/1.3 inherit; color:inherit; background:#fff;
-`;
-const BUTTON = `
-  width:100%; padding:13px 16px; border:0; border-radius:10px;
-  background:#F7746D; color:#fff; font:700 15px/1 inherit; cursor:pointer;
-`;
-const LINK = `
-  display:inline-block; margin-top:18px; background:none; border:0; padding:0;
-  color:#C8483F; font:600 14px/1 inherit; cursor:pointer; text-decoration:underline;
-`;
+export const LOGIN_PAGE = "/login.html";
 
 /**
  * Resolve the visitor's portal state.
- * @param {{staffOnly?:boolean}} options
+ * @param {{staffOnly?:boolean, adminOnly?:boolean}} options
  */
-export async function getPortalSession({ staffOnly = false } = {}) {
+export async function getPortalSession({ staffOnly = false, adminOnly = false } = {}) {
   if (!isConfigured) return { mode: "demo" };
 
   const { data: { session }, error } = await supabase.auth.getSession();
@@ -63,95 +43,72 @@ export async function getPortalSession({ staffOnly = false } = {}) {
   if (profileError) throw new Error(`Could not load your profile: ${profileError.message}`);
   if (!profile) return { mode: "forbidden", user };
   if (profile.is_active === false) return { mode: "disabled", user, profile };
+  if (adminOnly && profile.role !== "admin") return { mode: "forbidden", user, profile };
   if (staffOnly && !STAFF_ROLES.includes(profile.role)) return { mode: "forbidden", user, profile };
 
   return { mode: "ready", user, profile };
 }
 
-/** Sign the current user out and return to a clean page. */
+/* ------------------------------------------------------------
+   Sign in / out
+   ------------------------------------------------------------ */
+
+/** Sign in with email and password. */
+export async function signInWithPassword(email, password) {
+  if (!supabase) throw new Error("Supabase is not configured.");
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+/** Send a one-time sign-in link instead of using a password. */
+export async function sendMagicLink(email, redirectTo = window.location.href) {
+  if (!supabase) throw new Error("Supabase is not configured.");
+  const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+  if (error) throw new Error(error.message);
+}
+
+/** Email the visitor a link to choose a new password. */
+export async function requestPasswordReset(email, redirectTo) {
+  if (!supabase) throw new Error("Supabase is not configured.");
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectTo || new URL(LOGIN_PAGE, window.location.origin).href,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/** Change the signed-in person's own password. */
+export async function updateMyPassword(password) {
+  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!password || password.length < 8) throw new Error("Password must be at least 8 characters.");
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw new Error(error.message);
+}
+
+/** Sign the current user out and return them to the login page. */
 export async function signOut() {
   if (!supabase) return;
   const { error } = await supabase.auth.signOut();
   if (error) throw new Error(`Could not sign out: ${error.message}`);
-  window.location.reload();
+  window.location.assign(LOGIN_PAGE);
 }
 
-function overlay() {
-  document.getElementById("sr-gate")?.remove();
-  const root = document.createElement("div");
-  root.id = "sr-gate";
-  root.style.cssText = UI;
-  return root;
-}
+/* ------------------------------------------------------------
+   Gates
+   ------------------------------------------------------------ */
 
 /**
- * Full-screen sign-in gate. Sends a magic link, so there are no
- * passwords for the church to store or reset.
- * @param {{staffOnly?:boolean}} options
+ * Send an unauthenticated visitor to the login page, remembering
+ * where they were headed.
+ *
+ * The portals call this as mountAuthGate(); it redirects rather
+ * than rendering an inline form so there is one place to sign in.
  */
-export function mountAuthGate({ staffOnly = false } = {}) {
-  const root = overlay();
-  const card = document.createElement("div");
-  card.style.cssText = CARD;
-
-  const title = staffOnly ? "Leadership sign in" : "Sign in to give";
-  const blurb = staffOnly
-    ? "Enter the email your access was granted to. We'll send a one-time sign-in link."
-    : "Enter your email and we'll send a one-time sign-in link — no password needed.";
-
-  card.innerHTML = `
-    <div style="font:700 11px/1 inherit;letter-spacing:.16em;text-transform:uppercase;color:#6A6371">Somos Reino</div>
-    <h1 style="font:800 30px/1.1 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;margin:14px 0 10px">${title}</h1>
-    <p style="color:#6A6371;line-height:1.5;margin:0 0 22px;font-size:15px">${blurb}</p>
-    <form id="sr-gate-form" novalidate>
-      <input id="sr-gate-email" type="email" required autocomplete="email"
-             placeholder="you@example.com" aria-label="Email" style="${FIELD}">
-      <button type="submit" style="${BUTTON}">Send sign-in link</button>
-    </form>
-    <p id="sr-gate-msg" role="status" style="margin:16px 0 0;font-size:14px;line-height:1.5;color:#6A6371;min-height:1.2em"></p>
-  `;
-
-  root.appendChild(card);
-  document.body.appendChild(root);
-
-  const form = card.querySelector("#sr-gate-form");
-  const input = card.querySelector("#sr-gate-email");
-  const msg = card.querySelector("#sr-gate-msg");
-  const button = form.querySelector("button");
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const email = input.value.trim();
-    if (!email) {
-      msg.style.color = "#C8483F";
-      msg.textContent = "Enter your email address.";
-      return;
-    }
-
-    button.disabled = true;
-    button.style.opacity = ".6";
-    msg.style.color = "#6A6371";
-    msg.textContent = "Sending…";
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.href },
-    });
-
-    button.disabled = false;
-    button.style.opacity = "1";
-
-    if (error) {
-      msg.style.color = "#C8483F";
-      msg.textContent = error.message;
-      return;
-    }
-    msg.style.color = "#3F7A63";
-    msg.textContent = `Check ${email} for your sign-in link.`;
-  });
-
-  input.focus();
-  return root;
+export function mountAuthGate() {
+  const next = window.location.pathname + window.location.search;
+  const url = new URL(LOGIN_PAGE, window.location.origin);
+  if (next && next !== LOGIN_PAGE) url.searchParams.set("next", next);
+  window.location.replace(url.href);
 }
 
 /**
@@ -159,21 +116,50 @@ export function mountAuthGate({ staffOnly = false } = {}) {
  * @param {string} [message] Overrides the default explanation.
  */
 export function mountForbiddenGate(message) {
-  const root = overlay();
-  const card = document.createElement("div");
-  card.style.cssText = CARD;
-  const text = message || "This account doesn't have access to this portal. Ask an administrator if you think that's a mistake.";
+  document.getElementById("sr-gate")?.remove();
 
+  const root = document.createElement("div");
+  root.id = "sr-gate";
+  root.style.cssText = `
+    position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
+    padding:24px; background:#FAF7F5;
+    font-family:"Schibsted Grotesk",system-ui,sans-serif; color:#1E1B22;
+  `;
+
+  const card = document.createElement("div");
+  card.style.cssText = "width:min(420px,100%);background:#fff;border:1px solid #E9E2DD;border-radius:22px;padding:32px";
   card.innerHTML = `
     <div style="font:700 11px/1 inherit;letter-spacing:.16em;text-transform:uppercase;color:#6A6371">Somos Reino</div>
     <h1 style="font:800 30px/1.1 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;margin:14px 0 10px">No access</h1>
     <p style="color:#6A6371;line-height:1.5;margin:0;font-size:15px"></p>
-    <button id="sr-gate-signout" style="${LINK}">Sign out</button>
+    <button id="sr-gate-signout" style="display:inline-block;margin-top:18px;background:none;border:0;padding:0;color:#C8483F;font:600 14px/1 inherit;cursor:pointer;text-decoration:underline">Sign out</button>
   `;
-  card.querySelector("p").textContent = text;
+  card.querySelector("p").textContent =
+    message || "This account doesn't have access to this portal. Ask an administrator if you think that's a mistake.";
 
   root.appendChild(card);
   document.body.appendChild(root);
   card.querySelector("#sr-gate-signout").addEventListener("click", () => signOut());
   return root;
+}
+
+/**
+ * Guard a whole page. Redirects to login when signed out, renders
+ * the no-access gate when the role is wrong, and resolves to the
+ * session when the visitor may proceed.
+ *
+ * In demo mode it resolves immediately so local preview still works.
+ * @param {{staffOnly?:boolean, adminOnly?:boolean}} options
+ */
+export async function requireSession(options = {}) {
+  const session = await getPortalSession(options);
+
+  if (session.mode === "signed-out") { mountAuthGate(); return null; }
+  if (session.mode === "disabled") {
+    mountForbiddenGate("This account has been deactivated. Ask an administrator to restore access.");
+    return null;
+  }
+  if (session.mode === "forbidden") { mountForbiddenGate(); return null; }
+
+  return session;
 }
