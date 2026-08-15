@@ -22,6 +22,27 @@ const STAFF_ROLES = ["admin", "finance"];
 
 export const LOGIN_PAGE = "/login.html";
 
+/* ------------------------------------------------------------
+   Who may reach what.
+
+   getPortalSession() gates on these same two predicates, so a
+   link is shown exactly when following it would work. Deciding
+   visibility any other way lets the menu drift away from the
+   permissions and start advertising locked doors.
+
+   These answer "should this be offered", not "is this allowed" —
+   RLS and the admin-users function remain the enforcement.
+   ------------------------------------------------------------ */
+
+/** Finance portal: staff only. */
+export const canAccessFinance = (profile) => STAFF_ROLES.includes(profile?.role);
+
+/** Account management: admins only. */
+export const canAccessSettings = (profile) => profile?.role === "admin";
+
+/** The giving portal is open to anyone with an active account. */
+export const canAccessGiving = () => true;
+
 /**
  * Resolve the visitor's portal state.
  * @param {{staffOnly?:boolean, adminOnly?:boolean}} options
@@ -43,8 +64,8 @@ export async function getPortalSession({ staffOnly = false, adminOnly = false } 
   if (profileError) throw new Error(`Could not load your profile: ${profileError.message}`);
   if (!profile) return { mode: "forbidden", user };
   if (profile.is_active === false) return { mode: "disabled", user, profile };
-  if (adminOnly && profile.role !== "admin") return { mode: "forbidden", user, profile };
-  if (staffOnly && !STAFF_ROLES.includes(profile.role)) return { mode: "forbidden", user, profile };
+  if (adminOnly && !canAccessSettings(profile)) return { mode: "forbidden", user, profile };
+  if (staffOnly && !canAccessFinance(profile)) return { mode: "forbidden", user, profile };
 
   return { mode: "ready", user, profile };
 }
