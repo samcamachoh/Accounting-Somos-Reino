@@ -103,6 +103,28 @@ deactivating keeps the audit trail whole — and a family's primary contact
 has to be someone who actually lives in it, so moving a person out clears
 the contact they were named for.
 
+## The first administrator
+
+Promoting someone is ordinarily done on `settings.html`, which needs an
+admin to already be signed in. To create the first one — or to restore
+access when nobody can reach that page — there is a script:
+
+```bash
+SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+  pnpm grant-admin pastorsam@somosreino.org
+```
+
+It gives them `role = 'admin'`, marks the account active, lifts any
+sign-in ban, and turns on every finance capability. An existing name,
+phone, and teams are left alone — this grants a role, it doesn't rewrite
+the person. When no account exists for that address yet, one is invited by
+email so they choose their own password; `--no-invite` refuses instead.
+
+Both values are read from the environment or from `.env`. `.env` is
+gitignored and Vite only bundles variables prefixed `VITE_`, so the
+service key stays out of what visitors download — as long as it is never
+given that prefix.
+
 ## Schema
 
 The table and column names in `src/lib/supabase.js` (`TABLES`) were
