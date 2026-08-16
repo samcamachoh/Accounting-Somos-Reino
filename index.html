@@ -47,6 +47,11 @@ body:not(.ready) .veil{visibility:hidden}
 .avatar{width:32px;height:32px;border-radius:50%;background:var(--coral);color:#3A100D;display:grid;place-items:center;font-weight:700;font-size:12px;flex:0 0 auto}
 
 .wrap{max-width:640px;margin:0 auto;padding:0 18px}
+/* body carries padding-bottom for the fixed tab bar, but html,body are
+   height:100%, so that padding never extends the scroll area and Sign out
+   ends up under the bar. Reserve the space on the in-flow container
+   instead. Only below 760px, where the bar is actually fixed. */
+@media(max-width:759px){.wrap{padding-bottom:calc(var(--navh) + 24px + env(safe-area-inset-bottom))}}
 
 /* hero */
 .hero{max-width:640px;margin:0 auto;padding:26px 18px 20px}
