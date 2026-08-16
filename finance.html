@@ -51,7 +51,12 @@ button{cursor:pointer;background:none;border:none}
   width:236px;flex:0 0 236px;background:var(--ink);color:#EDE8EA;
   display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
 }
-.brand{display:flex;align-items:center;gap:10px;padding:22px 20px 18px}
+.brand{display:flex;align-items:center;gap:10px;padding:22px 20px 18px;color:inherit;text-decoration:none}
+.brand:hover .brand-name{color:var(--coral)}
+/* Route back to the portal picker. Separated from the view nav above it,
+   which switches views inside this portal rather than leaving it. */
+.nav-extra{margin-top:6px;padding-top:10px;border-top:1px solid #302C38}
+.nav-item[href]{text-decoration:none}
 .brand svg{width:26px;height:26px;display:block}
 .brand-name{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.03em;white-space:nowrap}
 .brand-sub{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7E7686;margin-top:1px}
@@ -306,6 +311,9 @@ button.tile:hover{border-color:var(--line-2);transform:translateY(-1px)}
   .brand{padding:14px 14px}
   .brand-sub,.org,.rail-foot,.nav-eyebrow{display:none}
   .nav{flex-direction:row;padding:0;gap:2px}
+  /* The rail is a horizontal strip here, so the divider moves to the side. */
+  .nav-extra{margin:0 0 0 6px;padding:0 0 0 8px;border-top:0;border-left:1px solid #302C38;flex:0 0 auto}
+  .nav-extra .nav-item{white-space:nowrap}
   .nav-item[aria-current="true"]::before{display:none}
   .topbar{padding:16px 18px 14px}
   .view{padding:16px 18px 50px}
@@ -353,13 +361,13 @@ button.tile:hover{border-color:var(--line-2);transform:translateY(-1px)}
 
 <div class="shell">
   <aside class="rail">
-    <div class="brand">
+    <a class="brand" href="/index.html" title="Back to the portal picker">
       <svg viewBox="0 0 3000 3000" style="fill:var(--coral)"><use href="#mark"/></svg>
       <div>
         <div class="brand-name">Somos Reino</div>
         <div class="brand-sub">Finance &amp; People</div>
       </div>
-    </div>
+    </a>
     <div class="org">
       <div class="org-mark">JUL</div>
       <div>
@@ -368,6 +376,12 @@ button.tile:hover{border-color:var(--line-2);transform:translateY(-1px)}
       </div>
     </div>
     <nav class="nav" id="nav"></nav>
+    <nav class="nav nav-extra" aria-label="Other portals">
+      <a class="nav-item" href="/index.html">
+        <svg class="nav-ico" viewBox="0 0 18 18"><path d="M3 3h5v5H3zM10 3h5v5h-5zM3 10h5v5H3zM10 10h5v5h-5z"/></svg>
+        <span>All portals</span>
+      </a>
+    </nav>
     <div class="rail-foot">
       <button class="me" data-act="me">
         <span class="avatar" style="background:var(--coral);color:#3A100D">SC</span>
