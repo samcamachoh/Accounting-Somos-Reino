@@ -316,6 +316,29 @@ button.tile:hover{border-color:var(--line-2);transform:translateY(-1px)}
   .thread{display:none}
   h1{font-size:22px}
 }
+@media (max-width:900px){
+  /* Grid and flex children default to min-width:auto, so a wide table or
+     pill row stops its card from shrinking and drags the whole page
+     sideways — 425px of it on the expenses view. Letting them shrink is
+     what allows .tbl's own overflow-x:auto to scroll and .pills to wrap,
+     which both already ask for. */
+  .grid,.split,.side,.side-lg,.duo,.roster,.card{min-width:0}
+  .tbl{max-width:100%}
+}
+/* Touch sizing. The finance portal is dense on purpose and a mouse can
+   work it comfortably, so grow the controls only for fingers rather than
+   loosening the desktop layout everyone else uses. */
+@media (max-width:900px),(pointer:coarse){
+  .nav-item{min-height:44px}
+  .btn{min-height:44px}
+  .btn-sm{min-height:44px;padding:8px 12px}
+  .pill{min-height:44px}
+  .input,select.input,textarea.input{min-height:44px;font-size:16px} /* 16px stops iOS zooming on focus */
+  textarea.input{min-height:88px}
+  /* The switch keeps its 36x20 look; ::after is already the knob, so the
+     touch target goes on ::before. */
+  .sw-toggle::before{content:"";position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
+}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important;transition-duration:.01ms !important}
 }
