@@ -36,6 +36,17 @@ button{cursor:pointer;background:none;border:none}
 .hdr-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:13px 18px}
 .hdr-in svg{width:24px;height:24px;fill:var(--coral);flex:0 0 auto}
 .hdr-name{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:-.03em}
+/* The header is the only always-visible chrome here, and it is too tight
+   for another label, so the wordmark carries the route back to the portal
+   picker. The account view has the spelled-out version. */
+.hdr-home{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;position:relative}
+.hdr-home:hover .hdr-name{color:var(--coral-deep)}
+/* Same trick as the language switch and avatar beside it: keep the header
+   its current height, put a 44px target underneath. */
+.hdr-home::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%)}
+/* Centred to match the sign-out button it sits above, which centres its
+   own text by virtue of being a button. */
+a.link{text-decoration:none;text-align:center}
 .langsw{margin-left:auto;display:flex;border:1px solid var(--line-2);border-radius:999px;padding:2px;background:var(--card)}
 .langsw button{padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;color:var(--text-3);letter-spacing:.03em;position:relative}
 /* Header controls stay visually compact but carry a 44px touch target
@@ -47,6 +58,11 @@ button{cursor:pointer;background:none;border:none}
 .avatar::after{content:"";position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
 
 .wrap{max-width:640px;margin:0 auto;padding:18px 18px 8px}
+/* body carries padding-bottom for the fixed tab bar, but html,body are
+   height:100%, so that padding never extends the scroll area and the last
+   row ends up under the bar. Reserve the space on the in-flow container
+   instead. Only below 760px, where the bar is actually fixed. */
+@media(max-width:759px){.wrap{padding-bottom:calc(var(--navh) + 24px + env(safe-area-inset-bottom))}}
 
 /* nav */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(23,21,28,.14)}
@@ -257,8 +273,10 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 
 <header class="hdr">
   <div class="hdr-in">
-    <svg viewBox="0 0 3000 3000"><use href="#mark"/></svg>
-    <span class="hdr-name">Somos Reino</span>
+    <a class="hdr-home" href="/index.html">
+      <svg viewBox="0 0 3000 3000"><use href="#mark"/></svg>
+      <span class="hdr-name">Somos Reino</span>
+    </a>
     <div class="langsw" role="group" aria-label="Language">
       <button data-lang="es" aria-pressed="true">ES</button>
       <button data-lang="en" aria-pressed="false">EN</button>
@@ -365,6 +383,7 @@ const STR = {
   statementReminderT:{es:"Recordatorio del comprobante anual", en:"Annual statement reminder"},
   statementReminderD:{es:"Un aviso en enero para el comprobante de impuestos", en:"A nudge in January for your tax statement"},
   signOut:{es:"Cerrar sesión", en:"Sign out"},
+  allPortals:{es:"Ver todos los portales", en:"See all portals"},
   notYou:{es:"¿No eres tú, {n}?", en:"Not you, {n}?"},
 
   add:{es:"Agregar", en:"Add"},
@@ -748,6 +767,7 @@ function viewAccount(){
   </div>
 
   <div class="section">
+    <a class="link" href="/index.html">${t("allPortals")} →</a>
     <button class="link" data-act="signOut">${t("notYou",{n:ME.name.split(" ")[0]})} ${t("signOut")}</button>
   </div>`;
 }
