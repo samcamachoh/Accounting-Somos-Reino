@@ -64,7 +64,34 @@ tr.inactive td{opacity:.55}
 #toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:11px 17px;border-radius:9px;font-size:13px;font-weight:500;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:min(520px,90vw)}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 .banner{background:var(--amber-wash);border:1px solid #E8D5A8;color:var(--amber);padding:13px 16px;border-radius:12px;font-size:14px;line-height:1.5;margin-bottom:20px}
-@media(max-width:760px){ th.hide,td.hide{display:none} .wrap{padding:24px 16px 70px} }
+@media(max-width:760px){
+  th.hide,td.hide{display:none}
+  .wrap{padding:24px 16px 70px}
+  /* The table needs ~482px and .panel clips at overflow:hidden, so on a
+     phone every row action sat past the right edge — invisible and
+     impossible to tap. Stack each person into a card instead. */
+  .panel table,.panel tbody,.panel tr,.panel td{display:block;width:100%}
+  .panel thead{display:none}
+  .panel tr{padding:14px 16px;border-bottom:1px solid var(--line)}
+  .panel tr:last-child{border-bottom:0}
+  .panel td{border:0;padding:5px 0}
+  .panel td:first-child{padding-top:0}
+  /* Team and last sign-in are dropped from the table for width; a
+     stacked card has room for them, so put them back deliberately
+     rather than leaning on a specificity tie with td.hide. */
+  .panel td.hide{display:block}
+  .rowacts{justify-content:flex-start;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .rowacts button{flex:1 1 auto;min-width:calc(50% - 4px)}
+}
+/* Touch sizing. A mouse keeps the denser layout; fingers get 44px. */
+@media(max-width:760px),(pointer:coarse){
+  .btn{min-height:44px}
+  .rowacts button{min-height:44px;padding:10px 12px}
+  .toolbar input,.toolbar select,.field input,.field select{min-height:44px}
+  /* iOS Safari zooms the page when a focused input is under 16px. */
+  .toolbar input,.toolbar select,.field input,.field select{font-size:16px}
+  .perms label{min-height:44px}
+}
 </style>
 </head>
 <body>
