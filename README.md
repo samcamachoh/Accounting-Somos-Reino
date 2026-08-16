@@ -1,10 +1,12 @@
 # Accounting-Somos-Reino
 
-Giving and accounting for Somos Reino, in one record.
+A member portal for Somos Reino — give, review your history, and manage
+recurring gifts in Spanish or English. The same records feed the
+leadership side of the books, behind the same sign-in.
 
 | Page | Who it's for |
 |---|---|
-| `index.html` | Landing page — routes to the two portals |
+| `index.html` | Home — the member portal entry, plus leadership routes when the role allows |
 | `login.html` | Sign in, reset a password, choose a new one |
 | `giving.html` | Members: give, review history, manage recurring gifts (ES/EN) |
 | `finance.html` | Leadership: deposits, expenses, funds, people, reconciliation |
