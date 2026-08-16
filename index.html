@@ -1,75 +1,517 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Somos Reino · Portal del miembro</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Schibsted+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{--coral:#f7746d;--ink:#17151c;--paper:#fbf8f6;--line:#eee6e0;--muted:#6c6570}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--paper);color:var(--ink);font-family:"Schibsted Grotesk",system-ui,sans-serif;padding:24px}
-    main{width:min(920px,100%)}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}h1{font:800 clamp(42px,8vw,82px)/.94 "Bricolage Grotesque",sans-serif;letter-spacing:-.055em;margin:18px 0 20px;max-width:800px}.lead{font-size:18px;line-height:1.55;color:var(--muted);max-width:660px}
-    .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:42px}.choice{display:flex;flex-direction:column;min-height:210px;padding:26px;border:1px solid var(--line);border-radius:22px;background:#fff;color:inherit;text-decoration:none;transition:.18s transform,.18s border-color}.choice:hover{transform:translateY(-3px);border-color:var(--coral)}.choice b{font:800 27px "Bricolage Grotesque",sans-serif}.choice p{color:var(--muted);line-height:1.5}.choice span{margin-top:auto;color:#c8483f;font-weight:700}@media(max-width:650px){.choices{grid-template-columns:1fr}.choice{min-height:170px}}
-    .choices.single{grid-template-columns:minmax(0,460px)}
-    /* .choice sets display:flex, which would otherwise beat the UA
-       rule behind the hidden attribute and show a gated card. */
-    [hidden]{display:none !important}
-    .utility{display:flex;gap:18px;align-items:center;margin-top:34px;font-size:14px}.utility a,.utility button{color:var(--muted);font:600 14px inherit;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}.utility a:hover,.utility button:hover{color:var(--coral-deep,#c8483f)}
-    /* Hidden until the session check clears, so a signed-out visitor
-       never sees the portal links flash by before the redirect. */
-    main{visibility:hidden}main.ready{visibility:visible}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Somos Reino · Portal del miembro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --coral:#F7746D; --coral-deep:#C8483F; --coral-wash:#FDECEA;
+  --ink:#17151C; --paper:#FBF8F6; --card:#FFFFFF;
+  --line:#EEE6E0; --line-2:#DED3CA;
+  --text:#1E1B22; --text-2:#6C6570; --text-3:#A29AA0;
+  --sage:#3F7A63;
+  --r:18px; --r-sm:12px;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --ui:"Schibsted Grotesk",system-ui,sans-serif;
+  --display:"Bricolage Grotesque","Schibsted Grotesk",sans-serif;
+  --navh:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--ui);background:var(--paper);color:var(--text);-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45;padding-bottom:calc(var(--navh) + 22px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--coral);outline-offset:2px;border-radius:6px}
+
+/* Nothing below the header is painted until the session check has
+   decided which tabs this person may see. A signed-out visitor is
+   redirected before the portal links ever flash by, and a member never
+   sees the leadership tab appear and then vanish. */
+body:not(.ready) .veil{visibility:hidden}
+
+/* header */
+.hdr{position:sticky;top:0;z-index:30;background:rgba(251,248,246,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hdr-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:13px 18px}
+.hdr-in>svg{width:24px;height:24px;fill:var(--coral);flex:0 0 auto}
+.hdr-name{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:-.03em}
+.langsw{margin-left:auto;display:flex;border:1px solid var(--line-2);border-radius:999px;padding:2px;background:var(--card)}
+.langsw button{padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;color:var(--text-3);letter-spacing:.03em;position:relative}
+/* Compact to look at, but still a 44px touch target (WCAG 2.5.5). */
+.langsw button::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%)}
+.langsw button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--coral);color:#3A100D;display:grid;place-items:center;font-weight:700;font-size:12px;flex:0 0 auto}
+
+.wrap{max-width:640px;margin:0 auto;padding:0 18px}
+
+/* hero */
+.hero{max-width:640px;margin:0 auto;padding:26px 18px 20px}
+.hero .eyebrow{margin-bottom:8px}
+.hero h1{font-family:var(--display);font-size:clamp(28px,6vw,40px);font-weight:800;letter-spacing:-.04em;line-height:1.04}
+.hero p{color:var(--text-2);font-size:15.5px;line-height:1.5;margin-top:10px;max-width:34em}
+
+/* tabs — one per portal, plus settings and this page */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(23,21,28,.14)}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px 10px;border-radius:12px;color:#8B8394;flex:1;max-width:110px;min-height:44px}
+.tab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab span{font-size:10px;font-weight:600;letter-spacing:.01em}
+.tab[aria-current="page"]{color:#fff}
+.tab[aria-current="page"] svg{stroke:var(--coral)}
+@media(min-width:760px){
+  /* The bar sits after the panel in the DOM, which is what the fixed
+     mobile bar wants. Once it goes static, order it under the hero so
+     the tabs read as navigation rather than a footer. */
+  body{padding-bottom:40px;display:flex;flex-direction:column}
+  .hdr{order:1} .hero{order:2} #tabbar{order:3} #view{order:4} #modalRoot{order:5}
+  /* A flex item with auto side margins is not stretched, so these would
+     collapse to fit-content and the account rows would be squeezed into
+     a ~360px column. Give them the width back; max-width still caps it
+     and the auto margins still centre it. */
+  .hdr-in,.hero,#view{width:100%}
+  .tabbar{position:static;background:var(--card);border:1px solid var(--line);border-radius:999px;max-width:520px;margin:0 auto 22px;padding:5px;box-shadow:none}
+  .tab{flex-direction:row;border-radius:999px;padding:8px 14px;max-width:none}
+  .tab[aria-current="page"]{background:var(--ink)}
+  .tab span{font-size:12.5px}
+}
+
+/* primitives */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-3)}
+h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.025em}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:999px;font-size:14px;font-weight:700;border:1px solid var(--line-2);background:var(--card);transition:transform .08s,background .13s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--coral);border-color:var(--coral);color:#3A100D}
+.btn-primary:hover{background:#F4605A}
+.btn-dark{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-ghost:hover{background:#F1EAE5}
+.btn-sm{padding:6px 12px;font-size:12.5px}
+/* Set default, Remove and Save are finger targets on a phone; size them
+   by the input device rather than bulking up the desktop rows. */
+@media(max-width:759px),(pointer:coarse){
+  .btn-sm{min-height:44px;padding:8px 14px}
+  .link{position:relative;display:inline-block}
+  .link::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%)}
+}
+.link{color:var(--coral-deep);font-weight:600;font-size:13px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-family:var(--mono);font-size:10px;letter-spacing:.03em;text-transform:uppercase;font-weight:600;background:#F1ECE9;color:var(--text-2)}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-2)}
+.input{border:1px solid var(--line-2);border-radius:12px;padding:11px 13px;background:var(--card);font-size:14.5px;width:100%}
+.input:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sw-toggle{width:38px;height:22px;border-radius:12px;background:#DDD5CF;position:relative;flex:0 0 auto;transition:background .16s}
+.sw-toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .16s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw-toggle[aria-pressed="true"]{background:var(--sage)}
+.sw-toggle[aria-pressed="true"]::after{transform:translateX(16px)}
+.section{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
+
+/* account rows */
+.cardchip{width:34px;height:24px;border-radius:5px;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--mono);font-size:9px;font-weight:700;flex:0 0 auto}
+.paycard{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid #F2ECE8;flex-wrap:wrap}
+.paycard:last-of-type{border-bottom:none}
+/* The card number, the default tag and two buttons do not fit one line
+   on a phone. Keep them on one row where there is room, and drop the
+   actions onto their own line — aligned past the chip — where there
+   isn't, rather than letting "•••• 4412" break across lines. */
+.paycard-id{flex:1 1 150px;min-width:0}
+.paycard-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
+@media(max-width:430px){.paycard-actions{width:100%;margin-left:45px}}
+.notif{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #F2ECE8}
+.notif:last-child{border-bottom:none}
+.notif-t{font-size:13.5px;font-weight:600}
+.notif-d{font-size:11.5px;color:var(--text-2);margin-top:1px}
+.stripe-note{display:flex;align-items:center;gap:11px;padding:12px 0 2px;font-size:12.5px;color:var(--text-2)}
+
+/* modal + toast */
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:18px}
+.modal{background:var(--card);border-radius:22px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(23,21,28,.28);overflow:hidden}
+.modal-hd{padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+.modal-t{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.03em}
+.modal-bd{padding:16px 20px;display:flex;flex-direction:column;gap:12px;max-height:56vh;overflow:auto}
+.modal-ft{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#FCFAF9}
+#toast{position:fixed;bottom:calc(var(--navh) + 16px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:88vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@media(min-width:760px){#toast{bottom:22px}}
+
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms !important;animation-duration:.01ms !important}}
+</style>
 </head>
 <body>
-  <main>
-    <div class="eyebrow">Somos Reino · Portal del miembro</div>
-    <h1>Tu iglesia, en un solo lugar.</h1>
-    <p class="lead">Da a los fondos de la iglesia, revisa tu historial, administra tus aportaciones recurrentes y mantén tu información al día—en español o en inglés. Give, review your history, manage recurring gifts, and keep your details current.</p>
-    <div class="choices" id="choices">
-      <a class="choice" href="/giving.html"><b>Portal de aportaciones</b><p>Give, review history, and manage recurring gifts.</p><span>Open member portal →</span></a>
-      <a class="choice" href="/finance.html" id="financeChoice" hidden><b>Finance &amp; reconciliation</b><p>Review deposits, expenses, funds, people, and the audit trail.</p><span>Open leadership portal →</span></a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="mark" viewBox="0 0 3000 3000">
+<path d="M1914.98,332.31v1173.34c0,32.11-26.03,58.14-58.14,58.14h-70.1c-128.63,0-235.16-95.02-253.15-218.75-1.77-12.1-2.68-24.46-2.68-37.08V270.71c-2.49-.07-5.04-.07-7.52-.07-699.8,0-1267.11,567.31-1267.11,1267.11,0,559.27,362.29,1033.91,865.06,1201.98v-1101.4c0-32.11,26.03-58.14,58.2-58.14h70.04c128.7,0,235.16,95.02,253.15,218.75,1.77,12.1,2.68,24.46,2.68,37.08v968.71c5.95.07,11.97.13,17.98.13,699.8,0,1267.11-567.31,1267.11-1267.11,0-563.12-367.33-1040.45-875.52-1205.44ZM1106.29,1790.84c0,12.62-.92,24.98-2.68,37.08-17.98,123.66-124.45,218.75-253.15,218.75h-80.57c-26.29,0-47.67-21.38-47.67-47.74v-861.72c0-26.35,21.38-47.67,47.67-47.67h288.72c26.29,0,47.67,21.32,47.67,47.67v653.63ZM1505.4,1312.27c0,12.62-.92,24.98-2.68,37.08-17.98,123.66-124.45,218.75-253.15,218.75h-80.57c-26.29,0-47.67-21.38-47.67-47.74v-861.72c0-26.35,21.38-47.67,47.67-47.67h288.72c26.29,0,47.67,21.32,47.67,47.67v653.63ZM1914.98,2489.66c0,26.29-21.38,47.67-47.67,47.67h-288.66c-26.35,0-47.74-21.38-47.74-47.67v-653.63c0-12.62.92-24.98,2.68-37.08,17.98-123.73,124.51-218.75,253.15-218.75h80.57c26.29,0,47.67,21.32,47.67,47.67v861.79ZM2324.55,2118.14c0,32.11-26.03,58.14-58.14,58.14h-267.73c-32.11,0-58.2-26.03-58.2-58.14V867.77c0-32.11,26.09-58.14,58.2-58.14h70.04c128.7,0,235.16,95.02,253.15,218.75,1.77,12.1,2.68,24.46,2.68,37.08v1052.68Z"/>
+</symbol>
+</defs></svg>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <svg viewBox="0 0 3000 3000"><use href="#mark"/></svg>
+    <span class="hdr-name">Somos Reino</span>
+    <div class="langsw" role="group" aria-label="Language">
+      <button data-lang="es" aria-pressed="true">ES</button>
+      <button data-lang="en" aria-pressed="false">EN</button>
     </div>
-    <div class="utility">
-      <span id="who"></span>
-      <a href="/settings.html" id="settingsLink" hidden>Manage accounts</a>
-      <button id="signOut" hidden>Sign out</button>
-    </div>
-  </main>
+    <span class="avatar" id="avatar" aria-hidden="true">MO</span>
+  </div>
+</header>
+
+<section class="hero veil" id="hero"></section>
+<main class="wrap veil" id="view"></main>
+<nav class="tabbar veil" id="tabbar" aria-label="Portals"></nav>
+<div id="modalRoot"></div>
+<div id="toast"></div>
 
 <script type="module">
-import { requireSession, signOut, canAccessFinance, canAccessSettings } from "/src/lib/auth.js";
-import { isConfigured } from "/src/lib/supabase.js";
+import { getPortalSession, mountAuthGate, mountForbiddenGate, signOut, canAccessFinance, canAccessSettings } from "/src/lib/auth.js";
+import { loadGivingSnapshot, openBillingPortal, updateMyProfile } from "/src/lib/api.js";
+import { showModeBadge } from "/src/lib/status.js";
+/* ============================================================
+   Somos Reino — member portal home
+   The account lives here, not in the giving portal: profile,
+   household, payment methods, notifications, and sign out. The
+   tabs below carry you to whichever portals your role opens.
+   ============================================================ */
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-/* Signed-out visitors are sent to the login page before the
-   portal links are ever painted. */
-const session = await requireSession();
-if (session) {
-  const live = isConfigured && session.profile;
+/* ---------------- i18n ---------------- */
+const STR = {
+  greeting:{es:"Hola, {n}", en:"Hi, {n}"},
+  heroTitle:{es:"Tu iglesia, en un solo lugar.", en:"Your church, in one place."},
+  heroLead:{es:"Da, revisa tu historial, administra tus aportaciones recurrentes y mantén tu información al día.", en:"Give, review your history, manage recurring gifts, and keep your details current."},
 
-  /* Only offer what this person can actually open. Demo mode has no
-     profile to judge by, so it shows everything for preview. */
-  const showFinance = live ? canAccessFinance(session.profile) : true;
-  const showSettings = live ? canAccessSettings(session.profile) : false;
+  tabAccount:{es:"Cuenta", en:"Account"},
+  tabGiving:{es:"Aportaciones", en:"Giving"},
+  tabFinance:{es:"Finanzas", en:"Finance"},
+  tabSettings:{es:"Ajustes", en:"Settings"},
 
-  document.getElementById("financeChoice").hidden = !showFinance;
-  document.getElementById("settingsLink").hidden = !showSettings;
+  profileSection:{es:"Perfil", en:"Profile"},
+  nameF:{es:"Nombre", en:"Name"},
+  emailF:{es:"Correo", en:"Email"},
+  phoneF:{es:"Teléfono", en:"Phone"},
+  saveChanges:{es:"Guardar cambios", en:"Save changes"},
+  partOfHousehold:{es:"Parte de la familia {h}", en:"Part of the {h} household"},
 
-  /* One card shouldn't sit in a two-column grid. */
-  if (!showFinance) document.getElementById("choices").classList.add("single");
+  paymentSection:{es:"Métodos de pago", en:"Payment methods"},
+  defaultTag:{es:"Predeterminada", en:"Default"},
+  setDefault:{es:"Usar por defecto", en:"Set default"},
+  remove:{es:"Quitar", en:"Remove"},
+  addCard:{es:"＋ Agregar tarjeta", en:"＋ Add a card"},
+  expiry:{es:"Vence", en:"Expires"},
+  noCards:{es:"Todavía no has agregado un método de pago.", en:"You haven't added a payment method yet."},
+  stripeManaged:{es:"Tus tarjetas se administran de forma segura en Stripe.", en:"Your cards are managed securely in Stripe."},
+  manageInStripe:{es:"Administrar en Stripe", en:"Manage in Stripe"},
 
-  if (live) {
-    document.getElementById("who").textContent =
-      `Signed in as ${session.profile.full_name || session.profile.email}`;
-    document.getElementById("signOut").hidden = false;
-    document.getElementById("signOut").addEventListener("click", () => signOut());
-  } else {
-    document.getElementById("who").textContent = "Demo mode — no credentials configured";
+  notifSection:{es:"Notificaciones", en:"Notifications"},
+  emailReceiptsT:{es:"Recibo por correo en cada aportación", en:"Email receipt on every gift"},
+  emailReceiptsD:{es:"Un correo automático cada vez que das", en:"An automatic email every time you give"},
+  statementReminderT:{es:"Recordatorio del comprobante anual", en:"Annual statement reminder"},
+  statementReminderD:{es:"Un aviso en enero para el comprobante de impuestos", en:"A nudge in January for your tax statement"},
+
+  signOut:{es:"Cerrar sesión", en:"Sign out"},
+  notYou:{es:"¿No eres tú, {n}?", en:"Not you, {n}?"},
+
+  add:{es:"Agregar", en:"Add"},
+  cancelBtn:{es:"Cancelar", en:"Cancel"},
+  addCardTitle:{es:"Agregar una tarjeta", en:"Add a card"},
+  cardNumber:{es:"Número de tarjeta", en:"Card number"},
+  cardInvalid:{es:"Escribe un número de tarjeta válido", en:"Enter a valid card number"},
+  cardAdded:{es:"Tarjeta agregada", en:"Card added"},
+  cardRemoved:{es:"Tarjeta eliminada", en:"Card removed"},
+  cardDefault:{es:"Tarjeta predeterminada actualizada", en:"Default card updated"},
+  profileSaved:{es:"Perfil actualizado", en:"Profile updated"},
+  signedOut:{es:"Cerrando sesión…", en:"Signing out…"},
+};
+function t(key, sub){
+  let s = (STR[key]||{})[state.lang] || key;
+  if(sub) for(const k in sub) s = s.replace("{"+k+"}", sub[k]);
+  return s;
+}
+
+/* ---------------- data ---------------- */
+let ME = {
+  name:"Marisol Ortega",
+  household:"Ortega",
+  email:"marisol@gmail.com",
+  phone:"(407) 555-0198",
+};
+
+let cards = [
+  {id:"c1", brand:"VISA", last4:"4412", exp:"08/28", isDefault:true},
+  {id:"c2", brand:"MC", last4:"2290", exp:"03/27", isDefault:false},
+];
+
+let backendMode = "demo";
+
+/* ---------------- state ---------------- */
+const state = {
+  /* The giving portal reads the same key, so the language you pick
+     here is the language you land in there. */
+  lang: localStorage.getItem("sr-lang") || "es",
+  notif: {receipts:true, reminder:true},
+  showFinance: false,
+  showSettings: false,
+  modal: null,
+};
+
+const cardById = id => cards.find(c=>c.id===id);
+const firstName = () => ME.name.split(" ")[0];
+
+/* ---------------- tabs ---------------- */
+const TABS = [
+  {id:"account", label:"tabAccount", href:"/index.html", current:true,
+   ico:"M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 15.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"},
+  {id:"giving", label:"tabGiving", href:"/giving.html",
+   ico:"M9 3.5v11M3.5 9h11"},
+  {id:"finance", label:"tabFinance", href:"/finance.html", gate:()=>state.showFinance,
+   ico:"M2.5 15.5h13M5 13V9M9 13V4M13 13v-6"},
+  {id:"settings", label:"tabSettings", href:"/settings.html", gate:()=>state.showSettings,
+   ico:"M2.5 6.5h4M10.5 6.5h5M2.5 11.5h9M13.5 11.5h2M8.5 4.5v4M11.5 9.5v4"},
+];
+
+function renderTabs(){
+  $("#tabbar").innerHTML = TABS.filter(tab=>!tab.gate || tab.gate()).map(tab=>`
+    <a class="tab" href="${tab.href}"${tab.current?' aria-current="page"':""}>
+      <svg viewBox="0 0 18 18" aria-hidden="true"><path d="${tab.ico}"/></svg>
+      <span>${t(tab.label)}</span>
+    </a>`).join("");
+}
+
+/* ---------------- views ---------------- */
+function renderHero(){
+  $("#hero").innerHTML = `
+    <div class="eyebrow">${t("greeting",{n:esc(firstName())})}</div>
+    <h1>${t("heroTitle")}</h1>
+    <p>${t("heroLead")}</p>`;
+}
+
+function viewAccount(){
+  /* In live mode Stripe owns the cards, so the rows are a read-only
+     mirror and every change goes out to the billing portal. */
+  const stripeManaged = backendMode==="ready";
+  return `
+  <div class="section">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:10px">${t("profileSection")}</h2>
+      <div class="field" style="margin-bottom:9px"><label>${t("nameF")}</label><input class="input" id="acc_name" value="${esc(ME.name)}"></div>
+      <div class="field" style="margin-bottom:9px"><label>${t("emailF")}</label><input class="input" id="acc_email" value="${esc(ME.email)}"></div>
+      <div class="field" style="margin-bottom:12px"><label>${t("phoneF")}</label><input class="input" id="acc_phone" value="${esc(ME.phone)}"></div>
+      <button class="btn btn-dark btn-sm" data-act="saveProfile">${t("saveChanges")}</button>
+      ${ME.household ? `<div style="margin-top:12px;padding-top:12px;border-top:1px solid #F2ECE8;font-size:12.5px;color:var(--text-2)">${t("partOfHousehold",{h:esc(ME.household)})}</div>` : ""}
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:8px">${t("paymentSection")}</h2>
+      ${cards.length ? cards.map(c=>`
+        <div class="paycard">
+          <span class="cardchip">${esc(c.brand)}</span>
+          <span class="paycard-id">
+            <span style="font-size:13.5px;font-weight:600;display:block">•••• ${esc(c.last4)}</span>
+            <span style="font-size:11.5px;color:var(--text-2)">${t("expiry")} ${esc(c.exp)}</span>
+          </span>
+          <span class="paycard-actions">
+            ${c.isDefault?`<span class="tag">${t("defaultTag")}</span>`
+              :`<button class="btn btn-sm btn-ghost" data-act="setDefaultCard" data-cid="${c.id}">${t("setDefault")}</button>`}
+            <button class="btn btn-sm btn-ghost" data-act="removeCard" data-cid="${c.id}" style="color:var(--coral-deep)">${t("remove")}</button>
+          </span>
+        </div>`).join("")
+      : `<div style="padding:6px 0 2px;font-size:13.5px;color:var(--text-2)">${t("noCards")}</div>`}
+      ${stripeManaged ? `<div class="stripe-note"><span class="cardchip">STRIPE</span><span>${t("stripeManaged")}</span></div>` : ""}
+      <button class="btn btn-sm" data-act="addCard" style="margin-top:10px">${stripeManaged ? t("manageInStripe") : t("addCard")}</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:2px">${t("notifSection")}</h2>
+      <div class="notif">
+        <span style="flex:1"><span class="notif-t">${t("emailReceiptsT")}</span><span class="notif-d" style="display:block">${t("emailReceiptsD")}</span></span>
+        <button class="sw-toggle" data-notiftoggle="receipts" aria-pressed="${state.notif.receipts}" aria-label="${t("emailReceiptsT")}"></button>
+      </div>
+      <div class="notif">
+        <span style="flex:1"><span class="notif-t">${t("statementReminderT")}</span><span class="notif-d" style="display:block">${t("statementReminderD")}</span></span>
+        <button class="sw-toggle" data-notiftoggle="reminder" aria-pressed="${state.notif.reminder}" aria-label="${t("statementReminderT")}"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <button class="link" data-act="signOut">${t("notYou",{n:esc(firstName())})} ${t("signOut")}</button>
+  </div>`;
+}
+
+/* ---------------- modal ---------------- */
+function modalHTML(){
+  if(state.modal?.kind!=="addCard") return "";
+  return `<div class="scrim" data-scrim>
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-hd"><div class="modal-t">${t("addCardTitle")}</div></div>
+      <div class="modal-bd">
+        <div class="field"><label>${t("cardNumber")}</label><input class="input" id="mc_num" placeholder="4242 4242 4242 4242" inputmode="numeric"></div>
+        <div class="duo">
+          <div class="field"><label>${t("expiry")}</label><input class="input" id="mc_exp" placeholder="MM/YY"></div>
+          <div class="field"><label>CVC</label><input class="input" id="mc_cvc" placeholder="123" inputmode="numeric"></div>
+        </div>
+      </div>
+      <div class="modal-ft">
+        <button class="btn btn-sm" data-act="closeModal">${t("cancelBtn")}</button>
+        <button class="btn btn-sm btn-primary" data-act="confirmModal">${t("add")}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- toast ---------------- */
+let toastTimer;
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove("on"), 2400);
+}
+
+/* ---------------- render ---------------- */
+function render(){
+  document.documentElement.lang = state.lang;
+  renderHero();
+  renderTabs();
+  $("#view").innerHTML = viewAccount();
+  $("#modalRoot").innerHTML = modalHTML();
+  $("#avatar").textContent = ME.name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.lang===state.lang)));
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click", async e=>{
+  const el = e.target.closest("[data-lang],[data-act],[data-notiftoggle],[data-scrim]");
+  if(!el) return;
+  if(el.hasAttribute("data-scrim") && e.target===el){ state.modal=null; return render(); }
+
+  if(el.dataset.lang){
+    state.lang = el.dataset.lang;
+    localStorage.setItem("sr-lang", state.lang);
+    return render();
+  }
+  if(el.hasAttribute("data-notiftoggle")){
+    const key = el.dataset.notiftoggle;
+    state.notif[key] = !state.notif[key];
+    return render();
   }
 
-  document.querySelector("main").classList.add("ready");
+  const act = el.dataset.act;
+  if(!act) return;
+
+  if(act==="saveProfile"){
+    ME.name = $("#acc_name").value.trim()||ME.name;
+    ME.email = $("#acc_email").value.trim()||ME.email;
+    ME.phone = $("#acc_phone").value.trim()||ME.phone;
+    if(backendMode==="ready"){
+      try{ await updateMyProfile({full_name:ME.name,email:ME.email,phone:ME.phone}); }
+      catch(error){ toast(error.message); return; }
+    }
+    toast(t("profileSaved"));
+    return render();
+  }
+
+  if(act==="addCard"){
+    if(backendMode==="ready"){ try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
+    state.modal={kind:"addCard"}; return render();
+  }
+  if(act==="setDefaultCard"){
+    if(backendMode==="ready"){ try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
+    cards.forEach(c=>c.isDefault = c.id===el.dataset.cid);
+    toast(t("cardDefault"));
+    return render();
+  }
+  if(act==="removeCard"){
+    if(backendMode==="ready"){ try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
+    const wasDefault = cardById(el.dataset.cid)?.isDefault;
+    cards = cards.filter(c=>c.id!==el.dataset.cid);
+    if(wasDefault && cards.length) cards[0].isDefault = true;
+    toast(t("cardRemoved"));
+    return render();
+  }
+
+  if(act==="signOut"){
+    toast(t("signedOut"));
+    if(backendMode==="ready") await signOut();
+    return;
+  }
+
+  if(act==="closeModal"){ state.modal=null; return render(); }
+  if(act==="confirmModal"){
+    const num = ($("#mc_num")?.value||"").replace(/\s/g,"");
+    if(num.length<8){ toast(t("cardInvalid")); return; }
+    cards.push({
+      id:"c"+Date.now(),
+      brand: num.startsWith("4") ? "VISA" : num.startsWith("5") ? "MC" : "CARD",
+      last4: num.slice(-4),
+      exp: $("#mc_exp")?.value || "—",
+      isDefault: cards.length===0,
+    });
+    state.modal=null;
+    toast(t("cardAdded"));
+    return render();
+  }
+});
+
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal){ state.modal=null; render(); } });
+
+/* ---------------- start ---------------- */
+function hydrate(snapshot, profile){
+  ME = {
+    name: profile.full_name || profile.email,
+    household: profile.household_name || "",
+    email: profile.email || "",
+    phone: profile.phone || "",
+  };
+  cards = snapshot.paymentMethods.map(m=>({
+    id:m.id, brand:(m.brand||"CARD").toUpperCase(), last4:m.last4,
+    exp:m.exp_month&&m.exp_year ? `${String(m.exp_month).padStart(2,"0")}/${String(m.exp_year).slice(-2)}` : "—",
+    isDefault:m.is_default,
+  }));
 }
+
+async function startPortal(){
+  try{
+    const session = await getPortalSession();
+    backendMode = session.mode;
+
+    if(session.mode==="signed-out") return mountAuthGate();
+    if(session.mode==="disabled") return mountForbiddenGate("This account has been deactivated. Ask a church administrator to restore access.");
+
+    if(session.mode==="demo"){
+      /* No profile to judge by, so preview the leadership tab. Settings
+         stays hidden — it manages real accounts and there are none. */
+      state.showFinance = true;
+      render();
+      document.body.classList.add("ready");
+      return showModeBadge({mode:"demo",portal:"Member"});
+    }
+
+    state.showFinance = canAccessFinance(session.profile);
+    state.showSettings = canAccessSettings(session.profile);
+    const snapshot = await loadGivingSnapshot(session.user.id);
+    hydrate(snapshot, session.profile);
+    render();
+    document.body.classList.add("ready");
+    showModeBadge({mode:"ready",portal:"Member"});
+  }catch(error){
+    render();
+    document.body.classList.add("ready");
+    showModeBadge({mode:"error",portal:"Member",error:error.message});
+  }
+}
+
+await startPortal();
 </script>
 </body>
 </html>

@@ -43,14 +43,14 @@ button{cursor:pointer;background:none;border:none}
    their own. */
 .langsw button::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%)}
 .langsw button[aria-pressed="true"]{background:var(--ink);color:#fff}
-.avatar{width:32px;height:32px;border-radius:50%;background:var(--coral);color:#3A100D;display:grid;place-items:center;font-weight:700;font-size:12px;flex:0 0 auto;position:relative}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--coral);color:#3A100D;display:grid;place-items:center;font-weight:700;font-size:12px;flex:0 0 auto;position:relative;text-decoration:none}
 .avatar::after{content:"";position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
 
 .wrap{max-width:640px;margin:0 auto;padding:18px 18px 8px}
 
 /* nav */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(23,21,28,.14)}
-.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px 10px;border-radius:12px;color:#8B8394;flex:1;max-width:110px;min-height:44px}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px 10px;border-radius:12px;color:#8B8394;flex:1;max-width:110px;min-height:44px;text-decoration:none}
 .tab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .tab span{font-size:10px;font-weight:600;letter-spacing:.01em}
 .tab[aria-current="true"]{color:#fff}
@@ -226,12 +226,6 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 .kv{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #F2ECE8;font-size:13.5px}
 .kv:last-child{border-bottom:none}
 .kv .k{color:var(--text-2)}
-.paycard{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid #F2ECE8}
-.paycard:last-child{border-bottom:none}
-.notif{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #F2ECE8}
-.notif:last-child{border-bottom:none}
-.notif-t{font-size:13.5px;font-weight:600}
-.notif-d{font-size:11.5px;color:var(--text-2);margin-top:1px}
 
 /* modal + toast */
 .scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:18px}
@@ -263,7 +257,7 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
       <button data-lang="es" aria-pressed="true">ES</button>
       <button data-lang="en" aria-pressed="false">EN</button>
     </div>
-    <button class="avatar" data-nav="account" aria-label="Account">MO</button>
+    <a class="avatar" href="/index.html" aria-label="Account">MO</a>
   </div>
 </header>
 
@@ -274,15 +268,14 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 <div id="toast"></div>
 
 <script type="module">
-import { getPortalSession, mountAuthGate, mountForbiddenGate, signOut } from "/src/lib/auth.js";
-import { loadGivingSnapshot, openBillingPortal, startCheckout, updateMyProfile } from "/src/lib/api.js";
+import { getPortalSession, mountAuthGate, mountForbiddenGate } from "/src/lib/auth.js";
+import { loadGivingSnapshot, openBillingPortal, startCheckout } from "/src/lib/api.js";
 import { showModeBadge } from "/src/lib/status.js";
 /* ============================================================
    Somos Reino — giver portal (give, history, recurring, account)
    Single-file demo. In-memory sample data, bilingual ES/EN.
    ============================================================ */
 const $ = (s,r=document)=>r.querySelector(s);
-const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const money = n => (n<0?"-":"") + "$" + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const money0 = n => "$" + Math.round(n).toLocaleString("en-US");
 
@@ -347,25 +340,7 @@ const STR = {
   editTitle:{es:"Editar aportación recurrente", en:"Edit recurring gift"},
   newAmount:{es:"Nuevo monto", en:"New amount"},
 
-  accountTitle:{es:"Cuenta", en:"Account"},
-  profileSection:{es:"Perfil", en:"Profile"},
-  nameF:{es:"Nombre", en:"Name"},
-  emailF:{es:"Correo", en:"Email"},
-  phoneF:{es:"Teléfono", en:"Phone"},
-  saveChanges:{es:"Guardar cambios", en:"Save changes"},
-  householdSection:{es:"Familia", en:"Household"},
-  partOfHousehold:{es:"Parte de la familia {h}", en:"Part of the {h} household"},
-  paymentSection:{es:"Métodos de pago", en:"Payment methods"},
   defaultTag:{es:"Predeterminada", en:"Default"},
-  setDefault:{es:"Usar por defecto", en:"Set default"},
-  remove:{es:"Quitar", en:"Remove"},
-  notifSection:{es:"Notificaciones", en:"Notifications"},
-  emailReceiptsT:{es:"Recibo por correo en cada aportación", en:"Email receipt on every gift"},
-  emailReceiptsD:{es:"Un correo automático cada vez que das", en:"An automatic email every time you give"},
-  statementReminderT:{es:"Recordatorio del comprobante anual", en:"Annual statement reminder"},
-  statementReminderD:{es:"Un aviso en enero para el comprobante de impuestos", en:"A nudge in January for your tax statement"},
-  signOut:{es:"Cerrar sesión", en:"Sign out"},
-  notYou:{es:"¿No eres tú, {n}?", en:"Not you, {n}?"},
 
   add:{es:"Agregar", en:"Add"},
   cancelBtn:{es:"Cancelar", en:"Cancel"},
@@ -375,14 +350,10 @@ const STR = {
   cardNumber:{es:"Número de tarjeta", en:"Card number"},
   expiry:{es:"Vence", en:"Expires"},
   cardAdded:{es:"Tarjeta agregada", en:"Card added"},
-  cardRemoved:{es:"Tarjeta eliminada", en:"Card removed"},
-  cardDefault:{es:"Tarjeta predeterminada actualizada", en:"Default card updated"},
-  profileSaved:{es:"Perfil actualizado", en:"Profile updated"},
   recPaused:{es:"Aportación pausada", en:"Gift paused"},
   recResumed:{es:"Aportación reanudada", en:"Gift resumed"},
   recUpdated:{es:"Monto actualizado", en:"Amount updated"},
   recCancelled:{es:"Aportación cancelada", en:"Gift cancelled"},
-  signedOut:{es:"Cerrando sesión…", en:"Signing out…"},
 };
 function t(key, sub){
   let s = (STR[key]||{})[state.lang] || key;
@@ -404,12 +375,9 @@ let FUNDS = [
 ];
 const fundById = id => FUNDS.find(f=>f.id===id);
 
-let ME = {
-  name:"Marisol Ortega",
-  household:"Ortega",
-  email:"marisol@gmail.com",
-  phone:"(407) 555-0198",
-};
+/* Only the name is needed here — the rest of the profile is edited
+   on the member portal home. */
+let ME = { name:"Marisol Ortega" };
 
 let cards = [
   {id:"c1", brand:"VISA", last4:"4412", exp:"08/28", isDefault:true},
@@ -457,7 +425,9 @@ let backendMode = "demo";
 
 /* ---------------- state ---------------- */
 const state = {
-  lang:"es",
+  /* Shared with the member portal home, so the language you pick in
+     either place is the one you keep. */
+  lang: localStorage.getItem("sr-lang") || "es",
   view:"give",
   giveFund:"general",
   giveAmount:100,
@@ -697,61 +667,6 @@ function viewRecurring(){
   </div>`;
 }
 
-/* ---------------- view: account ---------------- */
-function viewAccount(){
-  return `
-  <div class="section">
-    <h1>${t("accountTitle")}</h1>
-  </div>
-
-  <div class="section">
-    <div class="card" style="padding:16px">
-      <h2 style="margin-bottom:10px">${t("profileSection")}</h2>
-      <div class="field" style="margin-bottom:9px"><label>${t("nameF")}</label><input class="input" id="acc_name" value="${esc(ME.name)}"></div>
-      <div class="field" style="margin-bottom:9px"><label>${t("emailF")}</label><input class="input" id="acc_email" value="${esc(ME.email)}"></div>
-      <div class="field" style="margin-bottom:12px"><label>${t("phoneF")}</label><input class="input" id="acc_phone" value="${esc(ME.phone)}"></div>
-      <button class="btn btn-dark btn-sm" data-act="saveProfile">${t("saveChanges")}</button>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #F2ECE8;font-size:12.5px;color:var(--text-2)">${t("partOfHousehold",{h:ME.household})}</div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="card" style="padding:16px">
-      <h2 style="margin-bottom:8px">${t("paymentSection")}</h2>
-      ${cards.map(c=>`
-        <div class="paycard">
-          <span class="cardchip">${c.brand}</span>
-          <span style="flex:1">
-            <span style="font-size:13.5px;font-weight:600;display:block">•••• ${c.last4}</span>
-            <span style="font-size:11.5px;color:var(--text-2)">${t("expiry")} ${c.exp}</span>
-          </span>
-          ${c.isDefault?`<span class="tag t-mute">${t("defaultTag")}</span>`
-            :`<button class="btn btn-sm btn-ghost" data-act="setDefaultCard" data-cid="${c.id}">${t("setDefault")}</button>`}
-          <button class="btn btn-sm btn-ghost" data-act="removeCard" data-cid="${c.id}" style="color:var(--coral-deep)">${t("remove")}</button>
-        </div>`).join("")}
-      <button class="btn btn-sm" data-act="addCard" style="margin-top:10px">${t("addCard")}</button>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="card" style="padding:16px">
-      <h2 style="margin-bottom:2px">${t("notifSection")}</h2>
-      <div class="notif">
-        <span style="flex:1"><span class="notif-t">${t("emailReceiptsT")}</span><span class="notif-d" style="display:block">${t("emailReceiptsD")}</span></span>
-        <span class="sw-toggle" data-notiftoggle="receipts" aria-pressed="true"></span>
-      </div>
-      <div class="notif">
-        <span style="flex:1"><span class="notif-t">${t("statementReminderT")}</span><span class="notif-d" style="display:block">${t("statementReminderD")}</span></span>
-        <span class="sw-toggle" data-notiftoggle="reminder" aria-pressed="true"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <button class="link" data-act="signOut">${t("notYou",{n:ME.name.split(" ")[0]})} ${t("signOut")}</button>
-  </div>`;
-}
-
 /* ---------------- modal ---------------- */
 function modalHTML(){
   if(!state.modal) return "";
@@ -797,12 +712,14 @@ function toast(msg){
 }
 
 /* ---------------- render ---------------- */
-const VIEWS = {give:viewGive, history:viewHistory, recurring:viewRecurring, account:viewAccount};
+const VIEWS = {give:viewGive, history:viewHistory, recurring:viewRecurring};
+/* Account is not a view here — it lives on the member portal home,
+   so that tab leaves the page rather than switching one. */
 const NAV = [
   {id:"give", label:"navGive", ico:'M9 3.5v11M3.5 9h11'},
   {id:"history", label:"navHistory", ico:'M9 4.5v5l3.5 2M9 3a6 6 0 1 1-5.2 3'},
   {id:"recurring", label:"navRecurring", ico:'M3 6.5A5.5 5.5 0 0 1 13.7 5M15 5V2M15 5h-3M15 11.5A5.5 5.5 0 0 1 4.3 13M3 13v3M3 13h3'},
-  {id:"account", label:"navAccount", ico:'M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 15.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5'},
+  {id:"account", label:"navAccount", href:"/index.html", ico:'M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 15.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5'},
 ];
 function render(){
   document.documentElement.lang = state.lang;
@@ -810,22 +727,23 @@ function render(){
      screens without the success screen inheriting it. */
   document.body.dataset.giveForm = (state.view === "give" && !state.justGave) ? "1" : "";
   $("#view").innerHTML = VIEWS[state.view]();
-  $("#tabbar").innerHTML = NAV.map(n=>`
-    <button class="tab" data-nav="${n.id}" aria-current="${state.view===n.id}">
-      <svg viewBox="0 0 18 18"><path d="${n.ico}"/></svg>
-      <span>${t(n.label)}</span>
-    </button>`).join("");
+  $("#tabbar").innerHTML = NAV.map(n=>{
+    const inner = `<svg viewBox="0 0 18 18" aria-hidden="true"><path d="${n.ico}"/></svg><span>${t(n.label)}</span>`;
+    return n.href
+      ? `<a class="tab" href="${n.href}">${inner}</a>`
+      : `<button class="tab" data-nav="${n.id}" aria-current="${state.view===n.id}">${inner}</button>`;
+  }).join("");
   document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.lang===state.lang)));
   $("#modalRoot").innerHTML = modalHTML();
 }
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", async e=>{
-  const t_ = e.target.closest("[data-nav],[data-lang],[data-fund],[data-amt],[data-freq],[data-card],[data-act],[data-year],[data-notiftoggle],[data-scrim]");
+  const t_ = e.target.closest("[data-nav],[data-lang],[data-fund],[data-amt],[data-freq],[data-card],[data-act],[data-year],[data-scrim]");
   if(!t_) return;
   if(t_.hasAttribute("data-scrim") && e.target===t_){ state.modal=null; return render(); }
 
-  if(t_.dataset.lang){ state.lang=t_.dataset.lang; return render(); }
+  if(t_.dataset.lang){ state.lang=t_.dataset.lang; localStorage.setItem("sr-lang", state.lang); return render(); }
   if(t_.dataset.nav){ state.view=t_.dataset.nav; state.justGave=null; window.scrollTo({top:0}); return render(); }
   if(t_.dataset.fund){ state.giveFund=t_.dataset.fund; return render(); }
   if(t_.dataset.year){ state.historyYear=Number(t_.dataset.year); return render(); }
@@ -838,12 +756,6 @@ document.addEventListener("click", async e=>{
     if(state.giveCustom){ const el=$("#customAmt"); if(el){ el.focus(); } }
     return;
   }
-  if(t_.hasAttribute("data-notiftoggle")){
-    const on = t_.getAttribute("aria-pressed")==="true";
-    t_.setAttribute("aria-pressed", String(!on));
-    return;
-  }
-
   const act = t_.dataset.act;
   if(!act) return;
 
@@ -882,22 +794,6 @@ document.addEventListener("click", async e=>{
     if(backendMode==="ready") { try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
     state.modal={kind:"addCard"}; return render();
   }
-  if(act==="setDefaultCard"){
-    if(backendMode==="ready") { try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
-    cards.forEach(c=>c.isDefault = c.id===t_.dataset.cid);
-    toast(t("cardDefault"));
-    return render();
-  }
-  if(act==="removeCard"){
-    if(backendMode==="ready") { try{ await openBillingPortal(); }catch(error){ toast(error.message); } return; }
-    const wasDefault = cardById(t_.dataset.cid)?.isDefault;
-    cards = cards.filter(c=>c.id!==t_.dataset.cid);
-    if(wasDefault && cards.length) cards[0].isDefault=true;
-    if(state.giveCard===t_.dataset.cid) state.giveCard = cards[0]?.id || null;
-    toast(t("cardRemoved"));
-    return render();
-  }
-
   if(act==="emailStatement"){ toast(t("statementSent",{y:t_.dataset.year})); return; }
 
   if(act==="toggleRec"){
@@ -916,23 +812,6 @@ document.addEventListener("click", async e=>{
     state.modal={kind:"cancelRec", rid:t_.dataset.rid}; return render();
   }
   if(act==="startRecurring"){ state.view="give"; state.giveFreq="monthly"; state.justGave=null; window.scrollTo({top:0}); return render(); }
-
-  if(act==="saveProfile"){
-    ME.name = $("#acc_name").value.trim()||ME.name;
-    ME.email = $("#acc_email").value.trim()||ME.email;
-    ME.phone = $("#acc_phone").value.trim()||ME.phone;
-    if(backendMode==="ready"){
-      try{ await updateMyProfile({full_name:ME.name,email:ME.email,phone:ME.phone}); }
-      catch(error){ toast(error.message); return; }
-    }
-    toast(t("profileSaved"));
-    return render();
-  }
-  if(act==="signOut"){
-    toast(t("signedOut"));
-    if(backendMode==="ready") await signOut();
-    return;
-  }
 
   if(act==="closeModal"){ state.modal=null; return render(); }
   if(act==="confirmModal"){
@@ -974,12 +853,7 @@ function hydrateGiving(snapshot, profile){
     blurb:{es:f.description_es,en:f.description_en},
     ...(f.campaign_goal_cents ? {campaign:{goal:f.campaign_goal_cents/100,raised:f.current_balance_cents/100}} : {}),
   }));
-  ME = {
-    name:profile.full_name,
-    household:profile.household_name||profile.full_name.split(" ").slice(-1)[0]||"",
-    email:profile.email,
-    phone:profile.phone||"",
-  };
+  ME = { name:profile.full_name };
   cards = snapshot.paymentMethods.map(m=>({
     id:m.id, brand:(m.brand||"CARD").toUpperCase(), last4:m.last4,
     exp:m.exp_month&&m.exp_year ? `${String(m.exp_month).padStart(2,"0")}/${String(m.exp_year).slice(-2)}` : "—",
