@@ -10,7 +10,21 @@ leadership side of the books, behind the same sign-in.
 | `login.html` | Sign in, reset a password, choose a new one |
 | `giving.html` | Members: give, review history, manage recurring gifts (ES/EN) |
 | `finance.html` | Leadership: deposits, expenses, funds, people, reconciliation |
+| `services.html` | Everyone serving: service plans, scheduling, songs, live |
 | `settings.html` | Admins: add, edit, deactivate, and delete accounts |
+
+`services.html` is the one page that still runs entirely on sample data.
+It covers what a church needs to plan a weekend — service types and
+plans, the order of service with running times, team scheduling with
+accept and decline, blockouts, the song library with keys and
+arrangements, media, plan templates, a live service clock, and the
+CCLI, service length, and volunteer load reports. There are no services
+tables in the Supabase schema yet, so it gates on a session like the
+other portals but always reports **demo** in the status badge: that
+badge answers "am I looking at real data", and for this page the honest
+answer is no. Wiring it up means adding those tables plus reads and
+writes in `src/lib/api.js`, then a `hydrate` function the way
+`finance.html` and `giving.html` do it.
 
 ## Running it
 

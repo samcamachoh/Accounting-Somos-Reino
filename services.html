@@ -1,0 +1,2698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Somos Reino — services &amp; scheduling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --coral:#F7746D;
+  --coral-deep:#C8483F;
+  --coral-wash:#FDECEA;
+  --ink:#17151C;
+  --ink-2:#221F29;
+  --ink-3:#332F3C;
+  --paper:#FAF7F5;
+  --card:#FFFFFF;
+  --line:#E9E2DD;
+  --line-2:#D8CFC8;
+  --text:#1E1B22;
+  --text-2:#6A6371;
+  --text-3:#9A9299;
+  --sage:#3F7A63;
+  --sage-wash:#E7F1EC;
+  --amber:#A97613;
+  --amber-wash:#FBF0DC;
+  --blue:#2F6E8F;
+  --blue-wash:#E6F0F5;
+  --plum:#8A4A6B;
+  --r:10px;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --ui:"Schibsted Grotesk",system-ui,sans-serif;
+  --display:"Bricolage Grotesque","Schibsted Grotesk",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--ui);
+  background:var(--paper);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  font-size:14px;
+  line-height:1.45;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+:focus-visible{outline:2px solid var(--coral);outline-offset:2px;border-radius:4px}
+
+/* ---------- shell ---------- */
+.shell{display:flex;min-height:100vh}
+.rail{
+  width:236px;flex:0 0 236px;background:var(--ink);color:#EDE8EA;
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:22px 20px 18px;color:inherit;text-decoration:none}
+.brand:hover .brand-name{color:var(--coral)}
+.nav-extra{margin-top:6px;padding-top:10px;border-top:1px solid #302C38}
+.nav-item[href]{text-decoration:none}
+.brand svg{width:26px;height:26px;display:block}
+.brand-name{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.03em;white-space:nowrap}
+.brand-sub{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#7E7686;margin-top:1px}
+.org{margin:0 12px 14px;padding:9px 11px;border:1px solid #302C38;border-radius:8px;display:flex;align-items:center;gap:9px}
+.org-mark{padding:3px 6px;border-radius:5px;background:var(--coral);display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:9px;letter-spacing:.08em;color:#3A100D;flex:0 0 auto}
+.org-name{font-size:12.5px;font-weight:600;line-height:1.2}
+.org-meta{font-family:var(--mono);font-size:9px;color:#7E7686;letter-spacing:.06em}
+.nav{padding:4px 12px;display:flex;flex-direction:column;gap:1px}
+.nav-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:#5F5869;text-transform:uppercase;padding:14px 9px 6px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;
+  color:#B7B0BD;font-size:13.5px;font-weight:500;width:100%;text-align:left;position:relative;
+  transition:background .13s,color .13s;
+}
+.nav-item:hover{background:#221F29;color:#EDE8EA}
+.nav-item[aria-current="true"]{background:var(--ink-3);color:#fff}
+.nav-item[aria-current="true"]::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;background:var(--coral);border-radius:0 3px 3px 0}
+.nav-ico{width:15px;height:15px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nav-count{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--coral);color:#3A100D;padding:1px 5px;border-radius:20px;font-weight:600}
+.nav-count.quiet{background:#302C38;color:#9A9299}
+.rail-foot{margin-top:auto;padding:14px 12px 16px;border-top:1px solid #262230}
+.me{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:7px;width:100%;text-align:left}
+.me:hover{background:#221F29}
+.avatar{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;flex:0 0 auto;font-family:var(--ui)}
+.avatar.sm{width:22px;height:22px;font-size:9px}
+.avatar.lg{width:40px;height:40px;font-size:14px}
+.me-name{font-size:12.5px;font-weight:600;color:#EDE8EA}
+.me-role{font-family:var(--mono);font-size:9px;color:#7E7686;letter-spacing:.06em;text-transform:uppercase}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:flex-end;gap:16px;padding:24px 32px 18px;
+  border-bottom:1px solid var(--line);background:var(--paper);
+  position:sticky;top:0;z-index:20;
+}
+.crumb{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+h1{font-family:var(--display);font-size:27px;font-weight:800;letter-spacing:-.035em;line-height:1.05;margin-top:3px}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.view{padding:22px 32px 60px;max-width:1320px}
+
+/* ---------- primitives ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:7px;
+  font-size:13px;font-weight:600;border:1px solid var(--line-2);background:var(--card);color:var(--text);
+  transition:background .13s,border-color .13s,transform .08s;
+}
+.btn:hover{background:#F3EEEB;border-color:#C6BCB4}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--coral);border-color:var(--coral);color:#3A100D}
+.btn-primary:hover{background:#F4605A;border-color:#F4605A}
+.btn-dark{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn-dark:hover{background:var(--ink-3);border-color:var(--ink-3)}
+.btn-sm{padding:4px 9px;font-size:12px;border-radius:6px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-ghost:hover{background:#EFE9E5;border-color:transparent}
+.btn-ok{background:var(--sage);border-color:var(--sage);color:#fff}
+.btn-ok:hover{background:#356853;border-color:#356853}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.card-hd{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.card-title{font-size:13.5px;font-weight:700;letter-spacing:-.01em}
+.card-bd{padding:16px}
+.eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+
+.grid{display:grid;gap:14px}
+.split{display:grid;gap:14px;grid-template-columns:1.15fr .85fr;align-items:start}
+.side{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) 300px;align-items:start}
+.side-lg{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) 340px;align-items:start}
+.duo{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+.stack{display:grid;gap:14px;align-content:start}
+.tbl{overflow-x:auto}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+.tag{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500;white-space:nowrap}
+.t-ok{background:var(--sage-wash);color:var(--sage)}
+.t-wait{background:var(--amber-wash);color:var(--amber)}
+.t-hot{background:var(--coral-wash);color:var(--coral-deep)}
+.t-mute{background:#F1ECE9;color:var(--text-2)}
+.t-info{background:var(--blue-wash);color:var(--blue)}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex:0 0 auto}
+
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-3);text-align:left;font-weight:500;padding:9px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid #F2ECE8;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#FCFAF9}
+.ta-r{text-align:right}
+.ta-c{text-align:center}
+
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-2)}
+.input,select.input,textarea.input{border:1px solid var(--line-2);border-radius:7px;padding:7px 10px;background:var(--card);font-size:13.5px;width:100%}
+.input:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
+textarea.input{resize:vertical;line-height:1.5}
+select.input{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' stroke='%236A6371' fill='none' stroke-width='1.5' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.input-sm{padding:4px 8px;font-size:12px;border-radius:6px}
+
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:5px 11px;border-radius:20px;border:1px solid var(--line-2);background:var(--card);font-size:12.5px;font-weight:500;color:var(--text-2)}
+.pill:hover{border-color:#C6BCB4;color:var(--text)}
+.pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.pill .c{font-family:var(--mono);font-size:10.5px;opacity:.65;margin-left:4px}
+
+.empty{padding:36px 20px;text-align:center;color:var(--text-2)}
+.empty strong{display:block;font-size:14px;color:var(--text);margin-bottom:3px;font-weight:600}
+
+/* ---------- stat tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;text-align:left;width:100%;transition:border-color .13s,transform .1s}
+button.tile:hover{border-color:var(--line-2);transform:translateY(-1px)}
+.tile-v{font-family:var(--mono);font-size:23px;font-weight:600;letter-spacing:-.04em;margin:6px 0 2px}
+.tile-note{font-size:11.5px;color:var(--text-2)}
+.tile-hot .tile-v{color:var(--coral-deep)}
+
+/* ---------- order of service (signature) ----------
+   A four-column rhythm — clock, type, what it is, how long — so a
+   volunteer can find their cue by scanning one column. */
+.ord-row{
+  display:grid;grid-template-columns:58px 20px minmax(0,1fr) auto;gap:11px;align-items:center;
+  padding:9px 14px;border-bottom:1px solid #F2ECE8;width:100%;text-align:left;
+}
+.ord-row:last-child{border-bottom:none}
+.ord-row:hover{background:#FCFAF9}
+.ord-row[aria-pressed="true"]{background:var(--coral-wash)}
+.ord-row.head{background:#F5F0EC;border-bottom:1px solid var(--line)}
+.ord-row.head .ord-title{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2);font-weight:500}
+.ord-time{font-family:var(--mono);font-size:11px;color:var(--text-3);letter-spacing:-.02em}
+.ord-kind{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;flex:0 0 auto;font-family:var(--mono);font-size:9px;font-weight:600}
+.k-song{background:var(--coral-wash);color:var(--coral-deep)}
+.k-item{background:#F1ECE9;color:var(--text-2)}
+.k-head{background:transparent;color:var(--text-3)}
+.ord-title{font-size:13.5px;font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ord-sub{font-size:11.5px;color:var(--text-2);display:block;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ord-len{font-family:var(--mono);font-size:12px;color:var(--text-2);text-align:right;white-space:nowrap}
+.keychip{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;padding:1px 5px;border-radius:4px;background:var(--ink);color:#fff;letter-spacing:.02em}
+.ord-tools{display:flex;gap:2px;margin-left:8px}
+.icobtn{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;color:var(--text-3);font-family:var(--mono);font-size:12px;line-height:1}
+.icobtn:hover{background:#EFE9E5;color:var(--text)}
+.lenbar{display:flex;height:7px;border-radius:4px;overflow:hidden;gap:2px;margin-top:9px}
+.lenbar span{transition:flex .3s}
+
+/* ---------- scheduling ---------- */
+.pos{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F2ECE8;flex-wrap:nowrap}
+.pos:last-child{border-bottom:none}
+.pos>span:nth-child(2){min-width:0;flex:1}
+.pos-name{display:block;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pos-role{display:block;font-size:11px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pos-open{font-size:12.5px;color:var(--text-3);font-style:italic}
+.teamhd{display:flex;align-items:center;gap:8px;padding:12px 0 4px;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+.teamhd::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---------- matrix ---------- */
+.mx{border-collapse:separate;border-spacing:0;font-size:12.5px}
+.mx th,.mx td{border-bottom:1px solid #F2ECE8;padding:0}
+.mx th.date{padding:8px 10px;text-align:center;border-left:1px solid #F2ECE8;min-width:112px}
+.mx th.who{padding:8px 14px;position:sticky;left:0;background:var(--card);z-index:2}
+.mx td.who{padding:8px 14px;position:sticky;left:0;background:var(--card);z-index:2;border-right:1px solid var(--line)}
+.mx tbody tr:hover td.who{background:#FCFAF9}
+.cell{width:100%;min-height:46px;padding:6px 8px;text-align:left;border-left:1px solid #F2ECE8;display:block}
+.cell:hover{background:#FCFAF9}
+.cell .p{display:block;font-size:11.5px;font-weight:600;line-height:1.25}
+.cell .s{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.cell.confirmed{background:var(--sage-wash)}
+.cell.confirmed .s{color:var(--sage)}
+.cell.unconfirmed{background:var(--amber-wash)}
+.cell.unconfirmed .s{color:var(--amber)}
+.cell.declined{background:var(--coral-wash)}
+.cell.declined .s{color:var(--coral-deep)}
+.cell.draft{background:#F4F0ED}
+.cell.draft .s{color:var(--text-2)}
+.cell.blocked{background:repeating-linear-gradient(135deg,#F6F1ED 0 6px,#EFE7E1 6px 12px);color:var(--text-3)}
+.cell.blocked .p{font-weight:500;font-style:italic;color:var(--text-3)}
+
+/* ---------- live ---------- */
+.live{background:var(--ink);color:#EDE8EA;border-radius:var(--r);padding:22px 24px}
+.live-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.live-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:20px;background:var(--coral);color:#3A100D;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.live-badge.off{background:#302C38;color:#9A9299}
+.live-grid{display:grid;grid-template-columns:1.4fr .6fr;gap:22px;align-items:center}
+.live-eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#8B8394}
+.live-now{font-family:var(--display);font-size:clamp(26px,4vw,40px);font-weight:800;letter-spacing:-.04em;line-height:1.05;margin:5px 0 6px}
+.live-meta{font-size:13px;color:#B7B0BD}
+.live-clock{font-family:var(--mono);font-size:clamp(34px,6vw,54px);font-weight:600;letter-spacing:-.05em;line-height:1}
+.live-diff{font-family:var(--mono);font-size:13px;margin-top:4px}
+.live-track{height:6px;background:#302C38;border-radius:4px;overflow:hidden;margin-top:16px}
+.live-fill{height:100%;background:var(--coral);border-radius:4px;transition:width .25s linear}
+.live-fill.over{background:var(--amber)}
+.live-ctl{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.live-ctl .btn{background:#302C38;border-color:#3D3847;color:#EDE8EA}
+.live-ctl .btn:hover{background:#3D3847;border-color:#4A4456}
+.live-ctl .btn-primary{background:var(--coral);border-color:var(--coral);color:#3A100D}
+.live-ctl .btn-primary:hover{background:#F4605A;border-color:#F4605A}
+.live-row{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:11px;align-items:center;padding:8px 14px;border-bottom:1px solid #F2ECE8;width:100%;text-align:left}
+.live-row:last-child{border-bottom:none}
+.live-row:hover{background:#FCFAF9}
+.live-row.now{background:var(--coral-wash)}
+.live-row.done{opacity:.55}
+.live-row.now .ord-title{color:var(--coral-deep)}
+
+/* ---------- songs & files ---------- */
+.songrow{display:flex;align-items:center;gap:11px;padding:10px 14px;border-bottom:1px solid #F2ECE8;width:100%;text-align:left}
+.songrow:last-child{border-bottom:none}
+.songrow:hover{background:#FCFAF9}
+.songrow[aria-pressed="true"]{background:var(--coral-wash)}
+.file{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #F2ECE8}
+.file:last-child{border-bottom:none}
+.ftype{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;font-family:var(--mono);font-size:8.5px;font-weight:600;flex:0 0 auto;letter-spacing:.04em}
+.f-pdf{background:var(--coral-wash);color:var(--coral-deep)}
+.f-mp3{background:var(--blue-wash);color:var(--blue)}
+.f-img{background:var(--sage-wash);color:var(--sage)}
+.f-doc{background:var(--amber-wash);color:var(--amber)}
+.seq{display:flex;gap:4px;flex-wrap:wrap}
+.seq span{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;background:#F1ECE9;color:var(--text-2)}
+.seq span.c{background:var(--coral-wash);color:var(--coral-deep)}
+
+/* ---------- misc blocks ---------- */
+.prow{display:flex;align-items:center;gap:11px;padding:10px 14px;border-bottom:1px solid #F2ECE8;width:100%;text-align:left}
+.prow:last-child{border-bottom:none}
+.prow:hover{background:#FCFAF9}
+.prow[aria-pressed="true"]{background:var(--coral-wash)}
+.prow-name{display:block;font-size:13.5px;font-weight:600}
+.prow-sub{display:block;font-size:11.5px;color:var(--text-2)}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #F2ECE8;font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--text-2)}
+.kv .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500}
+.att{display:flex;align-items:center;gap:11px;padding:12px 16px;border-bottom:1px solid #F2ECE8;width:100%;text-align:left}
+.att:last-child{border-bottom:none}
+.att:hover{background:#FCFAF9}
+.att-bar{width:3px;align-self:stretch;border-radius:2px;flex:0 0 auto}
+.att-t{display:block;font-size:13.5px;font-weight:600}
+.att-d{display:block;font-size:11.5px;color:var(--text-2);margin-top:1px}
+.att-go{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.sw-toggle{margin-left:auto;width:36px;height:20px;border-radius:12px;background:#DDD5CF;position:relative;flex:0 0 auto;transition:background .16s}
+.sw-toggle::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .16s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw-toggle[aria-pressed="true"]{background:var(--sage)}
+.sw-toggle[aria-pressed="true"]::after{transform:translateX(16px)}
+.bars{display:flex;align-items:flex-end;gap:5px;height:74px}
+.bars .b{flex:1;background:var(--coral);opacity:.85;border-radius:2px 2px 0 0;min-height:2px}
+.bars .b.pale{background:#E9DFDA}
+
+/* ---------- modal + toast ---------- */
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:20px}
+.modal{background:var(--card);border-radius:14px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(23,21,28,.28);overflow:hidden}
+.modal.wide{max-width:620px}
+.modal-hd{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+.modal-t{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.03em}
+.modal-d{font-size:12.5px;color:var(--text-2);margin-top:3px}
+.modal-bd{padding:18px 20px;display:flex;flex-direction:column;gap:13px;max-height:60vh;overflow:auto}
+.modal-ft{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#FCFAF9}
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:10px 16px;border-radius:9px;font-size:13px;font-weight:500;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:min(520px,calc(100vw - 32px))}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#toast .tick{color:var(--coral);font-family:var(--mono)}
+
+/* ---------- responsive ---------- */
+@media (max-width:1080px){
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .split,.side,.side-lg,.duo{grid-template-columns:minmax(0,1fr)}
+  .live-grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .tiles{grid-template-columns:1fr}
+  .ord-row{grid-template-columns:50px 20px minmax(0,1fr)}
+  .ord-len{grid-column:3;text-align:left}
+}
+@media (max-width:900px){
+  .shell{flex-direction:column}
+  .rail{width:100%;flex:none;height:auto;position:static;flex-direction:row;align-items:center;overflow-x:auto;gap:4px;padding-right:10px}
+  .brand{padding:14px}
+  .brand-sub,.org,.rail-foot,.nav-eyebrow{display:none}
+  .nav{flex-direction:row;padding:0;gap:2px}
+  .nav-extra{margin:0 0 0 6px;padding:0 0 0 8px;border-top:0;border-left:1px solid #302C38;flex:0 0 auto}
+  .nav-extra .nav-item{white-space:nowrap}
+  .nav-item{white-space:nowrap}
+  .nav-item[aria-current="true"]::before{display:none}
+  .topbar{padding:16px 18px 14px}
+  .view{padding:16px 18px 50px}
+  h1{font-size:22px}
+  /* Grid and flex children default to min-width:auto, so a wide table
+     stops its card from shrinking and drags the page sideways. */
+  .grid,.split,.side,.side-lg,.duo,.stack,.card{min-width:0}
+  .tbl{max-width:100%}
+}
+/* Touch sizing. The page is dense on purpose and a mouse works it
+   comfortably, so grow the controls only for fingers. */
+@media (max-width:900px),(pointer:coarse){
+  .nav-item{min-height:44px}
+  .btn{min-height:44px}
+  .btn-sm{min-height:44px;padding:8px 12px}
+  .pill{min-height:44px}
+  .icobtn{width:40px;height:40px}
+  .input,select.input,textarea.input{min-height:44px;font-size:16px} /* 16px stops iOS zooming on focus */
+  .input-sm{min-height:40px;font-size:16px}
+  textarea.input{min-height:88px}
+  .sw-toggle::before{content:"";position:absolute;top:50%;left:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+@media print{
+  .rail,.topbar-actions,.ord-tools,.icobtn{display:none !important}
+  .view{padding:0;max-width:none}
+  .card{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="mark" viewBox="0 0 3000 3000">
+<path d="M1914.98,332.31v1173.34c0,32.11-26.03,58.14-58.14,58.14h-70.1c-128.63,0-235.16-95.02-253.15-218.75-1.77-12.1-2.68-24.46-2.68-37.08V270.71c-2.49-.07-5.04-.07-7.52-.07-699.8,0-1267.11,567.31-1267.11,1267.11,0,559.27,362.29,1033.91,865.06,1201.98v-1101.4c0-32.11,26.03-58.14,58.2-58.14h70.04c128.7,0,235.16,95.02,253.15,218.75,1.77,12.1,2.68,24.46,2.68,37.08v968.71c5.95.07,11.97.13,17.98.13,699.8,0,1267.11-567.31,1267.11-1267.11,0-563.12-367.33-1040.45-875.52-1205.44ZM1106.29,1790.84c0,12.62-.92,24.98-2.68,37.08-17.98,123.66-124.45,218.75-253.15,218.75h-80.57c-26.29,0-47.67-21.38-47.67-47.74v-861.72c0-26.35,21.38-47.67,47.67-47.67h288.72c26.29,0,47.67,21.32,47.67,47.67v653.63ZM1505.4,1312.27c0,12.62-.92,24.98-2.68,37.08-17.98,123.66-124.45,218.75-253.15,218.75h-80.57c-26.29,0-47.67-21.38-47.67-47.74v-861.72c0-26.35,21.38-47.67,47.67-47.67h288.72c26.29,0,47.67,21.32,47.67,47.67v653.63ZM1914.98,2489.66c0,26.29-21.38,47.67-47.67,47.67h-288.66c-26.35,0-47.74-21.38-47.74-47.67v-653.63c0-12.62.92-24.98,2.68-37.08,17.98-123.73,124.51-218.75,253.15-218.75h80.57c26.29,0,47.67,21.32,47.67,47.67v861.79ZM2324.55,2118.14c0,32.11-26.03,58.14-58.14,58.14h-267.73c-32.11,0-58.2-26.03-58.2-58.14V867.77c0-32.11,26.09-58.14,58.2-58.14h70.04c128.7,0,235.16,95.02,253.15,218.75,1.77,12.1,2.68,24.46,2.68,37.08v1052.68Z"/>
+</symbol>
+</defs></svg>
+
+<div class="shell">
+  <aside class="rail">
+    <a class="brand" href="/index.html" title="Back to the portal picker">
+      <svg viewBox="0 0 3000 3000" style="fill:var(--coral)"><use href="#mark"/></svg>
+      <div>
+        <div class="brand-name">Somos Reino</div>
+        <div class="brand-sub">Services</div>
+      </div>
+    </a>
+    <div class="org">
+      <div class="org-mark" id="railDay">SUN</div>
+      <div>
+        <div class="org-name" id="railPlan">Next service</div>
+        <div class="org-meta" id="railWhen">—</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <nav class="nav nav-extra" aria-label="Other portals">
+      <a class="nav-item" href="/index.html">
+        <svg class="nav-ico" viewBox="0 0 18 18"><path d="M3 3h5v5H3zM10 3h5v5h-5zM3 10h5v5H3zM10 10h5v5h-5z"/></svg>
+        <span>All portals</span>
+      </a>
+    </nav>
+    <div class="rail-foot">
+      <button class="me" data-act="me">
+        <span class="avatar" style="background:var(--coral);color:#3A100D" id="meAvatar">SC</span>
+        <span>
+          <span class="me-name" id="meName">Sam Camacho</span><br>
+          <span class="me-role" id="meRole">Services admin</span>
+        </span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <div class="crumb" id="crumb"></div>
+        <h1 id="title"></h1>
+      </div>
+      <div class="topbar-actions" id="topActions"></div>
+    </header>
+    <main class="view" id="view"></main>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script type="module">
+import { getPortalSession, mountAuthGate, mountForbiddenGate } from "/src/lib/auth.js";
+import { showModeBadge } from "/src/lib/status.js";
+/* ============================================================
+   Somos Reino — services & scheduling
+   ------------------------------------------------------------
+   A planning hub for weekend services: service types and plans,
+   the order of service with running times, team scheduling with
+   accept/decline, the song library with keys and arrangements,
+   media, templates, a live service clock, and the reports a
+   church actually files (CCLI usage, who is serving too often).
+
+   Everything here runs on in-memory sample data. There are no
+   services tables in the Supabase schema yet, so the page gates
+   on a session like the other portals but always reports "demo"
+   in the status badge — that badge answers "am I looking at real
+   data", and the honest answer for this page is no.
+   ============================================================ */
+
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const initials = n => String(n).trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+const AV = ["#F7746D","#3F7A63","#A97613","#5B5470","#2F6E8F","#8A4A6B","#4C6B3F"];
+const avColor = n => AV[[...String(n)].reduce((a,c)=>a+c.charCodeAt(0),0)%AV.length];
+
+/* Lengths are seconds everywhere — an order of service is planned in
+   minutes and seconds, and a plan that drifts 40 seconds an item is
+   how a service runs ten minutes long. */
+const mmss = s => `${Math.floor(Math.abs(s)/60)}:${String(Math.round(Math.abs(s)%60)).padStart(2,"0")}`;
+const signed = s => (s<0?"−":"+") + mmss(s);
+const hhmm = mins => {
+  const m = ((Math.round(mins)%1440)+1440)%1440, h = Math.floor(m/60), am = h<12;
+  return `${((h+11)%12)+1}:${String(m%60).padStart(2,"0")} ${am?"AM":"PM"}`;
+};
+/* "5:20" and "5" both mean the same thing to whoever is typing. */
+const parseLen = v => {
+  const t = String(v).trim();
+  if(!t) return 0;
+  const [a,b] = t.split(":");
+  return b === undefined ? Math.round(parseFloat(a||"0")*60) : (parseInt(a||"0",10)*60 + parseInt(b||"0",10));
+};
+const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+/* Dates are plain YYYY-MM-DD. Parsing them at noon keeps a timezone
+   west of UTC from rendering Sunday's plan as Saturday. */
+const asDate = iso => new Date(iso + "T12:00:00");
+const dayName = iso => DAYS[asDate(iso).getDay()];
+const shortDate = iso => `${MONTHS[asDate(iso).getMonth()]} ${asDate(iso).getDate()}`;
+const longDate = iso => `${DAYS[asDate(iso).getDay()]}, ${MONTHS[asDate(iso).getMonth()]} ${asDate(iso).getDate()}`;
+
+/* The sample data is built around a Sunday so the live view has a
+   service to run. */
+const TODAY = "2026-08-16";
+const isPast = iso => iso < TODAY;
+
+/* ---------------- service types ---------------- */
+const TYPES = [
+  {id:"sun", name:"Sunday Morning", when:"Sundays · 10:00 AM", color:"#F7746D"},
+  {id:"esp", name:"Servicio en Español", when:"Sundays · 12:30 PM", color:"#3F7A63"},
+  {id:"mid", name:"Midweek Prayer", when:"Wednesdays · 7:00 PM", color:"#2F6E8F"},
+  {id:"yth", name:"Youth Night", when:"Fridays · 7:00 PM", color:"#8A4A6B"},
+];
+const typeOf = id => TYPES.find(t=>t.id===id) || TYPES[0];
+
+/* ---------------- teams & positions ---------------- */
+const TEAMS = [
+  {id:"worship", name:"Worship", positions:["Worship Leader","Acoustic Guitar","Electric Guitar","Bass","Keys","Drums","Vocals"]},
+  {id:"production", name:"Production", positions:["Audio — FOH","Audio — Monitors","ProPresenter","Lighting","Camera","Stream"]},
+  {id:"host", name:"Host Team", positions:["Welcome Desk","Usher","Greeter","Parking"]},
+  {id:"kids", name:"Kids", positions:["Kids Director","Preschool","Elementary","Check-in"]},
+  {id:"pastoral", name:"Pastoral", positions:["Preaching","Announcements","Communion","Prayer Team"]},
+];
+const teamOf = id => TEAMS.find(t=>t.id===id) || {id,name:id,positions:[]};
+
+/* What each service type asks for. Repeats are real — two vocalists
+   and two cameras are two separate slots to fill. */
+const NEEDS = {
+  sun:[
+    ["worship","Worship Leader"],["worship","Acoustic Guitar"],["worship","Electric Guitar"],["worship","Bass"],
+    ["worship","Keys"],["worship","Drums"],["worship","Vocals"],["worship","Vocals"],
+    ["production","Audio — FOH"],["production","ProPresenter"],["production","Lighting"],["production","Camera"],["production","Camera"],["production","Stream"],
+    ["host","Welcome Desk"],["host","Usher"],["host","Greeter"],["host","Parking"],
+    ["kids","Kids Director"],["kids","Preschool"],["kids","Elementary"],["kids","Check-in"],
+    ["pastoral","Preaching"],["pastoral","Announcements"],
+  ],
+  esp:[
+    ["worship","Worship Leader"],["worship","Acoustic Guitar"],["worship","Keys"],["worship","Drums"],["worship","Vocals"],
+    ["production","Audio — FOH"],["production","ProPresenter"],["production","Camera"],
+    ["host","Welcome Desk"],["host","Usher"],
+    ["kids","Kids Director"],["kids","Elementary"],
+    ["pastoral","Preaching"],
+  ],
+  mid:[
+    ["worship","Acoustic Guitar"],["worship","Vocals"],
+    ["production","Audio — FOH"],["production","ProPresenter"],
+    ["pastoral","Prayer Team"],["pastoral","Preaching"],
+  ],
+  yth:[
+    ["worship","Worship Leader"],["worship","Electric Guitar"],["worship","Bass"],["worship","Drums"],
+    ["production","Audio — FOH"],["production","ProPresenter"],["production","Lighting"],
+    ["host","Greeter"],
+    ["pastoral","Preaching"],
+  ],
+};
+
+/* ---------------- people ----------------
+   Same roster as the finance portal, so a name means one person
+   across the whole product. `can` is what they are trained for;
+   `freq` is how often they have asked to be asked. */
+let people = [
+  {id:"p1", name:"Sam Camacho", role:"Services admin", email:"sam@somosreino.org", freq:"Every other week",
+   can:["ProPresenter","Camera","Stream","Announcements","Lighting"], teams:["production","pastoral"], since:"2019"},
+  {id:"p2", name:"Marisol Ortega", role:"Host lead", email:"marisol@somosreino.org", freq:"Weekly",
+   can:["Welcome Desk","Greeter","Usher","Prayer Team"], teams:["host","pastoral"], since:"2017"},
+  {id:"p3", name:"Daniel Reyes", role:"Pastor", email:"daniel@somosreino.org", freq:"Weekly",
+   can:["Preaching","Communion","Prayer Team","Announcements"], teams:["pastoral"], since:"2015"},
+  {id:"p4", name:"Crystal Camacho", role:"Kids director", email:"crystal@somosreino.org", freq:"Weekly",
+   can:["Kids Director","Elementary","Check-in","Announcements"], teams:["kids","pastoral"], since:"2019"},
+  {id:"p5", name:"Josué Villanueva", role:"Worship leader", email:"josue@somosreino.org", freq:"Every other week",
+   can:["Worship Leader","Acoustic Guitar","Vocals"], teams:["worship"], since:"2018"},
+  {id:"p6", name:"Elias Moreno", role:"Production lead", email:"elias@somosreino.org", freq:"Weekly",
+   can:["Audio — FOH","Audio — Monitors","Lighting","Stream"], teams:["production"], since:"2020"},
+  {id:"p7", name:"Ana Beltrán", role:"Kids lead", email:"ana@somosreino.org", freq:"Every other week",
+   can:["Preschool","Elementary","Check-in","Kids Director"], teams:["kids"], since:"2021"},
+  {id:"p8", name:"Karina Espinal", role:"Youth lead", email:"karina@somosreino.org", freq:"Every other week",
+   can:["Worship Leader","Vocals","Greeter"], teams:["worship","host"], since:"2022"},
+  {id:"p9", name:"Priscila Duarte", role:"Volunteer", email:"priscila@somosreino.org", freq:"Once a month",
+   can:["Greeter","Welcome Desk","Check-in"], teams:["host","kids"], since:"2022"},
+  {id:"p10",name:"Roberto Salgado", role:"Volunteer", email:"roberto@somosreino.org", freq:"Every other week",
+   can:["Parking","Usher"], teams:["host"], since:"2020"},
+  {id:"p11",name:"Tomás Aguilar", role:"Volunteer", email:"tomas@somosreino.org", freq:"Once a month",
+   can:["Parking","Usher","Camera"], teams:["host","production"], since:"2023"},
+  {id:"p12",name:"Noelia Ramírez", role:"Volunteer", email:"noelia@somosreino.org", freq:"Every other week",
+   can:["Vocals","Welcome Desk"], teams:["worship","host"], since:"2024"},
+  {id:"p13",name:"Héctor Peña", role:"Volunteer", email:"hector@somosreino.org", freq:"Weekly",
+   can:["Camera","Stream","ProPresenter"], teams:["production"], since:"2023"},
+  {id:"p14",name:"Gabriela Núñez", role:"Musician", email:"gabriela@somosreino.org", freq:"Every other week",
+   can:["Keys","Vocals","Worship Leader"], teams:["worship"], since:"2021"},
+  {id:"p15",name:"Iván Mendoza", role:"Musician", email:"ivan@somosreino.org", freq:"Weekly",
+   can:["Drums"], teams:["worship"], since:"2020"},
+  {id:"p16",name:"Luis Ferrer", role:"Musician", email:"luis@somosreino.org", freq:"Every other week",
+   can:["Bass","Electric Guitar"], teams:["worship"], since:"2022"},
+];
+const personOf = id => people.find(p=>p.id===id);
+const personName = id => personOf(id)?.name || "—";
+
+/* Dates a volunteer has already told us not to ask about. */
+let blockouts = [
+  {id:"b1", personId:"p5",  from:"2026-08-23", to:"2026-08-30", reason:"Family trip"},
+  {id:"b2", personId:"p13", from:"2026-08-16", to:"2026-08-16", reason:"Out of town"},
+  {id:"b3", personId:"p7",  from:"2026-08-30", to:"2026-09-06", reason:"Work travel"},
+];
+const blockedOn = (personId, iso) => blockouts.find(b=>b.personId===personId && iso>=b.from && iso<=b.to);
+
+/* ---------------- song library ---------------- */
+let songs = [
+  {id:"s1", title:"Cristo Mi Refugio", author:"Somos Reino Worship", ccli:"7104882", key:"G", bpm:72, meter:"4/4",
+   themes:["Adoración","Refugio"], lang:"ES",
+   arrangements:[{name:"Full band", len:320, seq:["Intro","V1","C","V2","C","B","B","C","Out"]},
+                 {name:"Acoustic", len:255, seq:["V1","C","V2","C","Out"]}],
+   files:["Chord chart — G.pdf","Planning track.mp3","Lyrics.pro"]},
+  {id:"s2", title:"Hay Poder", author:"Somos Reino Worship", ccli:"7109431", key:"A", bpm:78, meter:"4/4",
+   themes:["Poder","Cruz"], lang:"ES",
+   arrangements:[{name:"Full band", len:280, seq:["Intro","V1","PC","C","V2","PC","C","Out"]}],
+   files:["Chord chart — A.pdf","Planning track.mp3"]},
+  {id:"s3", title:"Santo Por Siempre", author:"Somos Reino Worship", ccli:"7121004", key:"C", bpm:68, meter:"6/8",
+   themes:["Santidad","Adoración"], lang:"ES",
+   arrangements:[{name:"Full band", len:370, seq:["Intro","V1","C","V2","C","B","B","C","C","Out"]},
+                 {name:"Short", len:240, seq:["V1","C","B","C"]}],
+   files:["Chord chart — C.pdf","Planning track.mp3","Stems.zip"]},
+  {id:"s4", title:"Tu Fidelidad", author:"Somos Reino Worship", ccli:"7135520", key:"F", bpm:64, meter:"4/4",
+   themes:["Fidelidad","Respuesta"], lang:"ES",
+   arrangements:[{name:"Full band", len:300, seq:["Intro","V1","C","V2","C","Out"]}],
+   files:["Chord chart — F.pdf"]},
+  {id:"s5", title:"Firm Foundation of Grace", author:"Somos Reino Worship", ccli:"7142287", key:"B", bpm:76, meter:"4/4",
+   themes:["Grace","Assurance"], lang:"EN",
+   arrangements:[{name:"Full band", len:315, seq:["Intro","V1","C","V2","C","B","C","Out"]}],
+   files:["Chord chart — B.pdf","Planning track.mp3"]},
+  {id:"s6", title:"Come to the Table", author:"Somos Reino Worship", ccli:"7098114", key:"E", bpm:70, meter:"4/4",
+   themes:["Communion","Invitation"], lang:"EN",
+   arrangements:[{name:"Communion", len:340, seq:["Intro","V1","C","V2","C","Out"]}],
+   files:["Chord chart — E.pdf"]},
+  {id:"s7", title:"River of Mercy", author:"Somos Reino Worship", ccli:"7150933", key:"A", bpm:82, meter:"4/4",
+   themes:["Mercy","Joy"], lang:"EN",
+   arrangements:[{name:"Full band", len:290, seq:["Intro","V1","C","V2","C","B","C","Out"]}],
+   files:["Chord chart — A.pdf","Planning track.mp3"]},
+  {id:"s8", title:"Reino Sin Final", author:"Somos Reino Worship", ccli:"7127740", key:"E", bpm:74, meter:"4/4",
+   themes:["Reino","Esperanza"], lang:"ES",
+   arrangements:[{name:"Full band", len:310, seq:["Intro","V1","C","V2","C","B","C","Out"]}],
+   files:["Chord chart — E.pdf","Planning track.mp3"]},
+  {id:"s9", title:"Every Morning New", author:"Somos Reino Worship", ccli:"7118256", key:"D", bpm:66, meter:"4/4",
+   themes:["Mercy","Morning"], lang:"EN",
+   arrangements:[{name:"Acoustic", len:265, seq:["V1","C","V2","C","Out"]}],
+   files:["Chord chart — D.pdf"]},
+  {id:"s10", title:"Nombre Sobre Todo Nombre", author:"Somos Reino Worship", ccli:"7133019", key:"Bb", bpm:80, meter:"4/4",
+   themes:["Nombre","Alabanza"], lang:"ES",
+   arrangements:[{name:"Full band", len:295, seq:["Intro","V1","C","V2","C","B","C","Out"]}],
+   files:["Chord chart — Bb.pdf","Planning track.mp3"]},
+  {id:"s11", title:"Alza Tus Ojos", author:"Somos Reino Worship", ccli:"7144610", key:"D", bpm:71, meter:"4/4",
+   themes:["Esperanza","Consuelo"], lang:"ES",
+   arrangements:[{name:"Full band", len:275, seq:["Intro","V1","C","V2","C","Out"]}],
+   files:["Chord chart — D.pdf"]},
+  {id:"s12", title:"We Will Not Be Shaken", author:"Somos Reino Worship", ccli:"7106628", key:"G", bpm:88, meter:"4/4",
+   themes:["Faith","Youth"], lang:"EN",
+   arrangements:[{name:"Youth band", len:300, seq:["Intro","V1","C","V2","C","B","B","C","Out"]}],
+   files:["Chord chart — G.pdf","Planning track.mp3"]},
+];
+const songOf = id => songs.find(s=>s.id===id);
+const KEYS = ["C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
+
+/* ---------------- plans ----------------
+   `start` is minutes past midnight; item lengths accumulate from
+   there, which is what turns an order of service into a clock. */
+let itemSeq = 0;
+const it = (kind, title, len, o={}) => ({
+  id:"i"+(++itemSeq), kind, title, len, who:"", songId:null, key:"", arr:"", desc:"",
+  notes:{media:"", audio:"", host:""}, ...o,
+});
+const song = (songId, len, o={}) => {
+  const s = songOf(songId);
+  return it("song", s.title, len, {songId, key:o.key||s.key, arr:o.arr||s.arrangements[0].name, ...o});
+};
+
+let plans = [
+  {id:"pl_0816s", type:"sun", date:"2026-08-16", start:600, rehearsal:480, series:"Raíces · Semana 3",
+   status:"confirmed", target:4500,
+   notes:{vision:"Week three lands on Ruth 1 — belonging before believing. Keep the room warm and unhurried; no rush between the message and the response song.",
+          rehearsal:"Band at 8:00, full run at 8:45. Vocals in the room by 8:15 for in-ear check.",
+          kids:"Kids dismissed after the welcome, not after the offering.",
+          announcements:"Two only: baptism sign-ups and the Wednesday prayer night."},
+   files:["Raíces — week 3 slides.key","Stage plot — Aug.png","Welcome script.docx"],
+   items:[
+    it("header","Pre-service",0),
+    it("item","Doors open · walk-in music",600,{who:"p6",notes:{media:"Loop the Raíces still",audio:"House music at −18 LUFS",host:"Greeters at both doors by 9:35"}}),
+    it("item","Countdown video",300,{who:"p1",desc:"5:00 countdown, ends on the downbeat.",notes:{media:"Countdown_Raices_5min.mp4",audio:"Fade house at :30",host:""}}),
+    it("header","Worship",0),
+    song("s1",320,{who:"p5",notes:{media:"Lyrics — verse splits on screen 2",audio:"Acoustic DI, no click on this one",host:""}}),
+    song("s2",280,{who:"p5",key:"A"}),
+    it("item","Welcome & greeting",180,{who:"p4",desc:"Ninety seconds of welcome, then greet across the aisle.",notes:{media:"Hold on the welcome slide",audio:"Handheld 2 live",host:"Ushers open the side doors"}}),
+    song("s3",370,{who:"p14",key:"C",notes:{media:"",audio:"Keys pad under the bridge",host:""}}),
+    it("header","Word",0),
+    it("item","Announcements",210,{who:"p1",desc:"Baptism sign-ups, Wednesday prayer.",notes:{media:"Announcement roll — 2 slides",audio:"",host:""}}),
+    it("item","Offering & giving moment",150,{who:"p2",desc:"Ninety-second giving story, QR on screen.",notes:{media:"QR slide — give.somosreino.org",audio:"",host:"Kids check-out opens"}}),
+    it("item","Message — Ruth 1: belonging",1920,{who:"p3",desc:"Raíces week 3.",notes:{media:"Sermon deck, 14 slides",audio:"Lav 1, backup lav 2 muted",host:""}}),
+    it("header","Response",0),
+    song("s4",300,{who:"p5",key:"F",notes:{media:"Dim lyrics after the second chorus",audio:"",host:"Prayer team forward at the bridge"}}),
+    it("item","Prayer & dismissal",240,{who:"p3",notes:{media:"Next steps slide",audio:"",host:"Doors open, coffee in the lobby"}}),
+   ]},
+
+  {id:"pl_0816e", type:"esp", date:"2026-08-16", start:750, rehearsal:690, series:"Raíces · Semana 3",
+   status:"confirmed", target:4200,
+   notes:{vision:"Misma serie, sala más pequeña. Más tiempo de oración al final.", rehearsal:"Banda a las 11:30.", kids:"", announcements:"Bautismos."},
+   files:["Raíces — semana 3 diapositivas.key"],
+   items:[
+    it("header","Antes del servicio",0),
+    it("item","Música de entrada",480,{who:"p6"}),
+    it("header","Alabanza",0),
+    song("s8",310,{who:"p14",key:"E"}),
+    song("s10",295,{who:"p14",key:"Bb"}),
+    it("item","Bienvenida",180,{who:"p2"}),
+    song("s11",275,{who:"p14",key:"D"}),
+    it("header","Palabra",0),
+    it("item","Ofrenda",150,{who:"p2"}),
+    it("item","Mensaje — Rut 1",1800,{who:"p3"}),
+    it("header","Respuesta",0),
+    song("s4",300,{who:"p14",key:"F"}),
+    it("item","Oración y despedida",300,{who:"p3"}),
+   ]},
+
+  {id:"pl_0819m", type:"mid", date:"2026-08-19", start:1140, rehearsal:1080, series:"Prayer night",
+   status:"planning", target:3600,
+   notes:{vision:"Lights low, one guitar, long stretches of quiet.", rehearsal:"6:00 sound check only.", kids:"", announcements:""},
+   files:[],
+   items:[
+    it("header","Gather",0),
+    song("s9",265,{who:"p8",key:"D"}),
+    it("item","Scripture reading — Psalm 62",300,{who:"p2"}),
+    it("header","Pray",0),
+    it("item","Guided prayer — the city",600,{who:"p3"}),
+    song("s11",275,{who:"p8",key:"D"}),
+    it("item","Open prayer at the front",900,{who:"p3"}),
+    it("item","Close",180,{who:"p3"}),
+   ]},
+
+  {id:"pl_0821y", type:"yth", date:"2026-08-21", start:1140, rehearsal:1050, series:"Summer send-off",
+   status:"planning", target:4200,
+   notes:{vision:"Loud, fast, done in 75 minutes. Games first.", rehearsal:"5:30 band, 6:15 run.", kids:"", announcements:"Fall retreat sign-ups."},
+   files:["Send-off game slides.key"],
+   items:[
+    it("header","Hangout",0),
+    it("item","Games — minute to win it",900,{who:"p8"}),
+    it("header","Worship",0),
+    song("s12",300,{who:"p8",key:"G"}),
+    song("s7",290,{who:"p8",key:"A"}),
+    it("header","Talk",0),
+    it("item","Talk — who you become",1500,{who:"p3"}),
+    it("item","Response & prayer",600,{who:"p8"}),
+    it("item","Fall retreat sign-ups",300,{who:"p8"}),
+   ]},
+
+  {id:"pl_0823s", type:"sun", date:"2026-08-23", start:600, rehearsal:480, series:"Raíces · Semana 4",
+   status:"planning", target:4500,
+   notes:{vision:"Ruth 2 — provision through ordinary work. Communion at the end.", rehearsal:"Band at 8:00.", kids:"Kids stay in for communion.", announcements:"Baptism Sunday next week."},
+   files:[],
+   items:[
+    it("header","Pre-service",0),
+    it("item","Countdown video",300,{who:"p1"}),
+    it("header","Worship",0),
+    song("s5",315,{who:"p14",key:"B"}),
+    song("s7",290,{who:"p14",key:"A"}),
+    it("item","Welcome & greeting",180,{who:"p4"}),
+    it("header","Word",0),
+    it("item","Announcements",180,{who:"p1"}),
+    it("item","Message — Ruth 2: provision",1860,{who:"p3"}),
+    it("header","Table",0),
+    song("s6",340,{who:"p14",key:"E"}),
+    it("item","Communion",480,{who:"p3"}),
+    it("item","Prayer & dismissal",240,{who:"p3"}),
+   ]},
+
+  {id:"pl_0830s", type:"sun", date:"2026-08-30", start:600, rehearsal:480, series:"Baptism Sunday",
+   status:"draft", target:4800,
+   notes:{vision:"Nine baptisms. Build the whole service around the water.", rehearsal:"", kids:"", announcements:""},
+   files:[],
+   items:[
+    it("header","Pre-service",0),
+    it("item","Countdown video",300,{who:""}),
+    it("header","Worship",0),
+    song("s1",320,{who:"",key:"G"}),
+    it("item","Baptisms — first group",900,{who:"p3"}),
+    it("header","Word",0),
+    it("item","Message — buried and raised",1500,{who:"p3"}),
+    it("item","Baptisms — second group",900,{who:"p3"}),
+    it("item","Prayer & dismissal",240,{who:""}),
+   ]},
+
+  {id:"pl_0809s", type:"sun", date:"2026-08-09", start:600, rehearsal:480, series:"Raíces · Semana 2",
+   status:"complete", target:4500, actual:4712,
+   notes:{vision:"", rehearsal:"", kids:"", announcements:""}, files:[],
+   items:[
+    it("header","Worship",0),
+    song("s2",280,{who:"p5",key:"A"}),
+    song("s3",370,{who:"p5",key:"C"}),
+    it("item","Welcome & greeting",180,{who:"p4"}),
+    it("item","Announcements",210,{who:"p1"}),
+    it("item","Message — Ruth 1 intro",1980,{who:"p3"}),
+    song("s4",300,{who:"p5",key:"F"}),
+    it("item","Prayer & dismissal",240,{who:"p3"}),
+   ]},
+
+  {id:"pl_0802s", type:"sun", date:"2026-08-02", start:600, rehearsal:480, series:"Raíces · Semana 1",
+   status:"complete", target:4500, actual:4380,
+   notes:{vision:"", rehearsal:"", kids:"", announcements:""}, files:[],
+   items:[
+    it("header","Worship",0),
+    song("s1",320,{who:"p14",key:"G"}),
+    song("s10",295,{who:"p14",key:"Bb"}),
+    it("item","Welcome & greeting",180,{who:"p2"}),
+    it("item","Announcements",180,{who:"p1"}),
+    it("item","Message — where Raíces begins",1860,{who:"p3"}),
+    song("s5",315,{who:"p14",key:"B"}),
+    it("item","Prayer & dismissal",240,{who:"p3"}),
+   ]},
+];
+const planOf = id => plans.find(p=>p.id===id);
+/* Upcoming first — that is the order everything on this page reads in. */
+const upcoming = () => plans.filter(p=>!isPast(p.date)).sort((a,b)=>a.date.localeCompare(b.date) || a.start-b.start);
+const past = () => plans.filter(p=>isPast(p.date)).sort((a,b)=>b.date.localeCompare(a.date));
+const planLength = p => p.items.reduce((s,i)=>s+i.len,0);
+const planTitle = p => `${typeOf(p.type).name} · ${longDate(p.date)}`;
+
+/* ---------------- scheduling ----------------
+   status: draft (typed in, nobody told), unconfirmed (asked,
+   waiting), confirmed (accepted), declined (said no). */
+let asSeq = 0;
+const as = (plan, team, position, personId, status) => ({id:"a"+(++asSeq), plan, team, position, personId, status, note:""});
+let sched = [
+  /* Sunday Aug 16 — this morning, fully staffed. */
+  as("pl_0816s","worship","Worship Leader","p5","confirmed"),
+  as("pl_0816s","worship","Acoustic Guitar","p5","confirmed"),
+  as("pl_0816s","worship","Keys","p14","confirmed"),
+  as("pl_0816s","worship","Drums","p15","confirmed"),
+  as("pl_0816s","worship","Bass","p16","confirmed"),
+  as("pl_0816s","worship","Vocals","p12","confirmed"),
+  as("pl_0816s","worship","Vocals","p8","confirmed"),
+  as("pl_0816s","production","Audio — FOH","p6","confirmed"),
+  as("pl_0816s","production","ProPresenter","p1","confirmed"),
+  as("pl_0816s","production","Lighting","p6","confirmed"),
+  as("pl_0816s","production","Camera","p11","confirmed"),
+  as("pl_0816s","production","Stream","p1","confirmed"),
+  as("pl_0816s","host","Welcome Desk","p2","confirmed"),
+  as("pl_0816s","host","Usher","p10","confirmed"),
+  as("pl_0816s","host","Greeter","p9","confirmed"),
+  as("pl_0816s","host","Parking","p11","confirmed"),
+  as("pl_0816s","kids","Kids Director","p4","confirmed"),
+  as("pl_0816s","kids","Preschool","p7","confirmed"),
+  as("pl_0816s","kids","Elementary","p7","confirmed"),
+  as("pl_0816s","kids","Check-in","p9","confirmed"),
+  as("pl_0816s","pastoral","Preaching","p3","confirmed"),
+  as("pl_0816s","pastoral","Announcements","p1","confirmed"),
+  /* Español, same day. */
+  as("pl_0816e","worship","Worship Leader","p14","confirmed"),
+  as("pl_0816e","worship","Keys","p14","confirmed"),
+  as("pl_0816e","worship","Drums","p15","confirmed"),
+  as("pl_0816e","worship","Vocals","p12","confirmed"),
+  as("pl_0816e","production","Audio — FOH","p6","confirmed"),
+  as("pl_0816e","production","ProPresenter","p13","unconfirmed"),
+  as("pl_0816e","host","Welcome Desk","p2","confirmed"),
+  as("pl_0816e","kids","Kids Director","p7","confirmed"),
+  as("pl_0816e","pastoral","Preaching","p3","confirmed"),
+  /* Midweek. */
+  as("pl_0819m","worship","Acoustic Guitar","p8","confirmed"),
+  as("pl_0819m","production","Audio — FOH","p6","unconfirmed"),
+  as("pl_0819m","pastoral","Preaching","p3","confirmed"),
+  as("pl_0819m","pastoral","Prayer Team","p2","confirmed"),
+  /* Youth night. */
+  as("pl_0821y","worship","Worship Leader","p8","confirmed"),
+  as("pl_0821y","worship","Drums","p15","unconfirmed"),
+  as("pl_0821y","worship","Bass","p16","unconfirmed"),
+  as("pl_0821y","production","Audio — FOH","p13","unconfirmed"),
+  as("pl_0821y","pastoral","Preaching","p3","confirmed"),
+  /* Next Sunday — the one that still needs work. */
+  as("pl_0823s","worship","Worship Leader","p14","confirmed"),
+  as("pl_0823s","worship","Keys","p14","confirmed"),
+  as("pl_0823s","worship","Drums","p15","unconfirmed"),
+  as("pl_0823s","worship","Bass","p16","declined"),
+  as("pl_0823s","worship","Vocals","p12","unconfirmed"),
+  as("pl_0823s","production","Audio — FOH","p6","confirmed"),
+  as("pl_0823s","production","Camera","p1","unconfirmed"),
+  as("pl_0823s","production","ProPresenter","p13","confirmed"),
+  as("pl_0823s","host","Welcome Desk","p2","confirmed"),
+  as("pl_0823s","host","Parking","p10","unconfirmed"),
+  as("pl_0823s","kids","Kids Director","p4","confirmed"),
+  as("pl_0823s","kids","Elementary","p9","unconfirmed"),
+  as("pl_0823s","pastoral","Preaching","p3","confirmed"),
+  as("pl_0823s","pastoral","Announcements","p4","confirmed"),
+  /* Aug 30 is still being drafted — nobody has been asked yet. */
+  as("pl_0830s","pastoral","Preaching","p3","draft"),
+  as("pl_0830s","production","ProPresenter","p1","unconfirmed"),
+  as("pl_0830s","worship","Worship Leader","p5","draft"),
+  /* Past services, kept so the reports have something to count. */
+  as("pl_0809s","worship","Worship Leader","p5","confirmed"),
+  as("pl_0809s","production","Audio — FOH","p6","confirmed"),
+  as("pl_0809s","production","ProPresenter","p13","confirmed"),
+  as("pl_0809s","pastoral","Preaching","p3","confirmed"),
+  as("pl_0809s","host","Welcome Desk","p2","confirmed"),
+  as("pl_0809s","kids","Kids Director","p4","confirmed"),
+  as("pl_0802s","worship","Worship Leader","p14","confirmed"),
+  as("pl_0802s","production","Audio — FOH","p6","confirmed"),
+  as("pl_0802s","production","Camera","p11","confirmed"),
+  as("pl_0802s","pastoral","Preaching","p3","confirmed"),
+  as("pl_0802s","host","Welcome Desk","p9","confirmed"),
+  as("pl_0802s","kids","Kids Director","p7","confirmed"),
+];
+
+const schedFor = planId => sched.filter(a=>a.plan===planId);
+const myRequests = () => sched.filter(a=>a.personId===ME && a.status==="unconfirmed" && !isPast(planOf(a.plan)?.date || TODAY));
+const mySchedule = () => sched.filter(a=>a.personId===ME && !isPast(planOf(a.plan)?.date || "0000-00-00"))
+  .sort((a,b)=>planOf(a.plan).date.localeCompare(planOf(b.plan).date));
+
+/* Open slots = what the service type asks for, minus what is filled.
+   A decline reopens the slot, which is the whole point of tracking it. */
+function openSlots(planId){
+  const plan = planOf(planId);
+  if(!plan) return [];
+  const filled = new Map();
+  for(const a of schedFor(planId)){
+    if(a.status==="declined") continue;
+    const k = a.team+"|"+a.position;
+    filled.set(k,(filled.get(k)||0)+1);
+  }
+  const out = [];
+  for(const [team,position] of (NEEDS[plan.type]||[])){
+    const k = team+"|"+position;
+    const left = (filled.get(k)||0);
+    if(left>0){ filled.set(k,left-1); continue; }
+    out.push({team,position});
+  }
+  return out;
+}
+const unconfirmedFor = planId => schedFor(planId).filter(a=>a.status==="unconfirmed").length;
+const declinedFor = planId => schedFor(planId).filter(a=>a.status==="declined").length;
+
+/* ---------------- media library ---------------- */
+let media = [
+  {id:"m1", name:"Raíces — week 3 slides.key", kind:"doc", size:"18.4 MB", owner:"p1", added:"2026-08-13", linked:"Sunday Aug 16"},
+  {id:"m2", name:"Countdown_Raices_5min.mp4", kind:"img", size:"96.2 MB", owner:"p13", added:"2026-08-11", linked:"Series artwork"},
+  {id:"m3", name:"Chord chart — G.pdf", kind:"pdf", size:"212 KB", owner:"p5", added:"2026-06-02", linked:"Cristo Mi Refugio"},
+  {id:"m4", name:"Planning track.mp3", kind:"mp3", size:"7.1 MB", owner:"p5", added:"2026-06-02", linked:"Cristo Mi Refugio"},
+  {id:"m5", name:"Stage plot — Aug.png", kind:"img", size:"1.4 MB", owner:"p6", added:"2026-08-01", linked:"Production"},
+  {id:"m6", name:"Welcome script.docx", kind:"doc", size:"46 KB", owner:"p4", added:"2026-08-14", linked:"Host Team"},
+  {id:"m7", name:"Chord chart — C.pdf", kind:"pdf", size:"198 KB", owner:"p14", added:"2026-05-19", linked:"Santo Por Siempre"},
+  {id:"m8", name:"Stems.zip", kind:"doc", size:"148 MB", owner:"p6", added:"2026-05-19", linked:"Santo Por Siempre"},
+  {id:"m9", name:"Send-off game slides.key", kind:"doc", size:"22.7 MB", owner:"p8", added:"2026-08-15", linked:"Youth Aug 21"},
+  {id:"m10",name:"Lyrics.pro", kind:"doc", size:"88 KB", owner:"p1", added:"2026-06-02", linked:"Cristo Mi Refugio"},
+];
+
+/* ---------------- plan templates ---------------- */
+let templates = [
+  {id:"t1", type:"sun", name:"Sunday Morning — standard", uses:31,
+   items:[["header","Pre-service",0],["item","Countdown video",300],["header","Worship",0],["song","Song",320],["song","Song",280],
+          ["item","Welcome & greeting",180],["song","Song",370],["header","Word",0],["item","Announcements",210],
+          ["item","Offering & giving moment",150],["item","Message",1920],["header","Response",0],["song","Song",300],["item","Prayer & dismissal",240]]},
+  {id:"t2", type:"sun", name:"Communion Sunday", uses:11,
+   items:[["header","Pre-service",0],["item","Countdown video",300],["header","Worship",0],["song","Song",315],["song","Song",290],
+          ["item","Welcome & greeting",180],["header","Word",0],["item","Announcements",180],["item","Message",1860],
+          ["header","Table",0],["song","Song",340],["item","Communion",480],["item","Prayer & dismissal",240]]},
+  {id:"t3", type:"esp", name:"Servicio en Español", uses:26,
+   items:[["header","Antes del servicio",0],["item","Música de entrada",480],["header","Alabanza",0],["song","Canción",310],["song","Canción",295],
+          ["item","Bienvenida",180],["song","Canción",275],["header","Palabra",0],["item","Ofrenda",150],["item","Mensaje",1800],
+          ["header","Respuesta",0],["song","Canción",300],["item","Oración y despedida",300]]},
+  {id:"t4", type:"mid", name:"Midweek Prayer", uses:19,
+   items:[["header","Gather",0],["song","Song",265],["item","Scripture reading",300],["header","Pray",0],["item","Guided prayer",600],
+          ["song","Song",275],["item","Open prayer at the front",900],["item","Close",180]]},
+  {id:"t5", type:"yth", name:"Youth Night", uses:14,
+   items:[["header","Hangout",0],["item","Games",900],["header","Worship",0],["song","Song",300],["song","Song",290],
+          ["header","Talk",0],["item","Talk",1500],["item","Response & prayer",600]]},
+];
+
+/* ---------------- state ---------------- */
+/* Who is looking. In live mode this becomes the signed-in profile if
+   their name matches someone on the roster. */
+let ME = "p1";
+
+const state = {
+  view:"dashboard",
+  planId:"pl_0816s",     // plan open in the plan/live views
+  itemId:null,           // item selected inside a plan
+  planFilter:"all",      // service type filter on the plans list
+  planWhen:"upcoming",
+  teamId:"worship",
+  personId:"p5",
+  songId:"s1",
+  songQ:"",
+  songLang:"all",
+  mediaKind:"all",
+  reportTab:"ccli",
+  modal:null,
+};
+
+/* Live service control. `actual` remembers how long each item really
+   took, which is what makes the length report worth reading. */
+const live = {planId:"pl_0816s", idx:0, running:false, startedAt:null, base:0, baseTotal:0, elapsed:0, total:0, actual:{}};
+let liveTimer = null;
+
+/* ---------------- nav ---------------- */
+const NAV = [
+  {g:"Services", items:[
+    {id:"dashboard", label:"Dashboard", ico:"M3 10.5 9 4l6 6.5M4.5 9v6.5h9V9"},
+    {id:"plans", label:"Plans", ico:"M4 3h10v12H4zM6.5 6.5h5M6.5 9.5h5M6.5 12.5h3"},
+    {id:"live", label:"Live", ico:"M9 3v12M5 6v6M13 6v6M2.5 8v2M15.5 8v2"},
+  ]},
+  {g:"Teams", items:[
+    {id:"teams", label:"Teams", ico:"M7 8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM2.5 15c0-2.5 2-4.2 4.5-4.2s4.5 1.7 4.5 4.2M12.5 4.2a2.3 2.3 0 0 1 0 4.4M15.5 15c0-1.9-.9-3.2-2.5-3.8"},
+    {id:"matrix", label:"Matrix", ico:"M3 3h12v12H3zM3 7h12M3 11h12M7 3v12M11 3v12"},
+  ]},
+  {g:"Library", items:[
+    {id:"songs", label:"Songs", ico:"M6.5 13.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM8.5 11.5V3.5l6-1.2v8"},
+    {id:"media", label:"Media", ico:"M3 4h12v10H3zM3 7.5h12M6.5 4v3.5M7.5 11l2-1.5 2 1.5"},
+    {id:"templates", label:"Templates", ico:"M3 3h12v3H3zM3 8h5.5v7H3zM10.5 8H15v7h-4.5z"},
+  ]},
+  {g:"Reports", items:[
+    {id:"reports", label:"Reports", ico:"M3 15V9M7 15V4M11 15v-4M15 15V6"},
+  ]},
+];
+
+const TITLES = {
+  dashboard:{c:"Services / Home", t:()=>`Good morning, ${personName(ME).split(" ")[0]}`},
+  plans:{c:"Services / Plans", t:()=>"Plans"},
+  plan:{c:"Services / Plan", t:()=>planTitle(planOf(state.planId))},
+  live:{c:"Services / Live", t:()=>"Services LIVE"},
+  teams:{c:"Teams / People & positions", t:()=>"Teams"},
+  matrix:{c:"Teams / Scheduling matrix", t:()=>"Matrix"},
+  songs:{c:"Library / Songs", t:()=>"Songs"},
+  media:{c:"Library / Media & files", t:()=>"Media"},
+  templates:{c:"Library / Plan templates", t:()=>"Templates"},
+  reports:{c:"Reports / CCLI, length, and service load", t:()=>"Reports"},
+};
+
+function renderNav(){
+  const counts = {
+    dashboard: myRequests().length,
+    plans: upcoming().filter(p=>openSlots(p.id).length).length,
+    matrix: upcoming().reduce((s,p)=>s+openSlots(p.id).length,0),
+  };
+  $("#nav").innerHTML = NAV.map(g=>`
+    <div class="nav-eyebrow">${g.g}</div>
+    ${g.items.map(i=>`
+      <button class="nav-item" data-nav="${i.id}" aria-current="${state.view===i.id || (i.id==="plans" && state.view==="plan")}">
+        <svg class="nav-ico" viewBox="0 0 18 18"><path d="${i.ico}"/></svg>
+        <span>${i.label}</span>
+        ${counts[i.id] ? `<span class="nav-count${i.id==="dashboard"?"":" quiet"}">${counts[i.id]}</span>` : ""}
+      </button>`).join("")}
+  `).join("");
+
+  const next = upcoming()[0];
+  if(next){
+    $("#railDay").textContent = dayName(next.date).toUpperCase();
+    $("#railPlan").textContent = typeOf(next.type).name;
+    $("#railWhen").textContent = `${shortDate(next.date)} · ${hhmm(next.start)}`;
+  }
+}
+
+/* ---------------- shared blocks ---------------- */
+const statusTag = s => ({
+  confirmed:'<span class="tag t-ok"><span class="dot"></span>Confirmed</span>',
+  unconfirmed:'<span class="tag t-wait"><span class="dot"></span>Waiting</span>',
+  declined:'<span class="tag t-hot"><span class="dot"></span>Declined</span>',
+  draft:'<span class="tag t-mute">Not sent</span>',
+}[s] || "");
+
+const planTag = p => ({
+  confirmed:'<span class="tag t-ok">Ready</span>',
+  planning:'<span class="tag t-wait">Planning</span>',
+  draft:'<span class="tag t-mute">Draft</span>',
+  complete:'<span class="tag t-info">Complete</span>',
+}[p.status] || "");
+
+const avatarFor = (id, cls="") => {
+  const n = personName(id);
+  return `<span class="avatar ${cls}" style="background:${avColor(n)};color:#fff">${esc(initials(n))}</span>`;
+};
+
+/* Where the time goes, at a glance: worship, word, everything else. */
+function lengthBar(plan){
+  const buckets = plan.items.reduce((acc,i)=>{
+    if(i.kind==="song") acc.song += i.len;
+    else if(i.len>=900) acc.word += i.len;
+    else acc.other += i.len;
+    return acc;
+  },{song:0,word:0,other:0});
+  const total = buckets.song+buckets.word+buckets.other || 1;
+  return `<div class="lenbar">
+      <span style="flex:${buckets.song};background:var(--coral)" title="Music ${mmss(buckets.song)}"></span>
+      <span style="flex:${buckets.word};background:var(--ink)" title="Teaching ${mmss(buckets.word)}"></span>
+      <span style="flex:${buckets.other};background:#D8CFC8" title="Everything else ${mmss(buckets.other)}"></span>
+    </div>
+    <div class="row" style="gap:14px;margin-top:8px;font-size:11.5px;color:var(--text-2)">
+      <span><b class="num">${mmss(buckets.song)}</b> music</span>
+      <span><b class="num">${mmss(buckets.word)}</b> teaching</span>
+      <span><b class="num">${mmss(buckets.other)}</b> everything else</span>
+      <span style="margin-left:auto" class="num">${Math.round(total/60)} min total</span>
+    </div>`;
+}
+
+/* ---------------- view: dashboard ---------------- */
+function viewDashboard(){
+  const mine = mySchedule();
+  const requests = myRequests();
+  const next = upcoming()[0];
+  const att = [];
+
+  for(const p of upcoming()){
+    const open = openSlots(p.id).length, dec = declinedFor(p.id);
+    if(dec) att.push({c:"var(--coral)", t:`${dec} declined position${dec===1?"":"s"} on ${typeOf(p.type).name}`, d:`${longDate(p.date)} — the slot is open again`, go:p.id});
+    if(open) att.push({c:"var(--amber)", t:`${open} open position${open===1?"":"s"} on ${typeOf(p.type).name}`, d:`${longDate(p.date)} — ${openSlots(p.id).slice(0,3).map(s=>s.position).join(", ")}${open>3?"…":""}`, go:p.id});
+  }
+  const drafts = upcoming().filter(p=>schedFor(p.id).some(a=>a.status==="draft"));
+  if(drafts.length) att.push({c:"var(--amber)", t:`${drafts.length} plan${drafts.length===1?" has":"s have"} scheduling that was never sent`, d:drafts.map(p=>shortDate(p.date)).join(", ")+" — nobody has been asked yet", go:drafts[0].id});
+  const noSongs = upcoming().filter(p=>!p.items.some(i=>i.kind==="song"));
+  if(noSongs.length) att.push({c:"var(--amber)", t:`${noSongs.length} plan${noSongs.length===1?"":"s"} without any songs`, d:noSongs.map(p=>shortDate(p.date)).join(", "), go:noSongs[0].id});
+
+  return `
+  <div class="grid" style="gap:14px">
+    <div class="tiles">
+      <button class="tile${requests.length?" tile-hot":""}" data-nav="dashboard">
+        <div class="eyebrow">Waiting on you</div>
+        <div class="tile-v">${requests.length}</div>
+        <div class="tile-note">${requests.length?"Scheduling requests to answer":"Nothing to answer — you're clear"}</div>
+      </button>
+      <button class="tile" data-nav="plans">
+        <div class="eyebrow">Plans ahead</div>
+        <div class="tile-v">${upcoming().length}</div>
+        <div class="tile-note">Through ${shortDate(upcoming()[upcoming().length-1]?.date || TODAY)}</div>
+      </button>
+      <button class="tile" data-nav="matrix">
+        <div class="eyebrow">Open positions</div>
+        <div class="tile-v">${upcoming().reduce((s,p)=>s+openSlots(p.id).length,0)}</div>
+        <div class="tile-note">Across every upcoming service</div>
+      </button>
+      <button class="tile" data-nav="live">
+        <div class="eyebrow">${next && next.date===TODAY ? "Starts at" : "Next service"}</div>
+        <div class="tile-v">${next ? hhmm(next.start) : "—"}</div>
+        <div class="tile-note">${next ? `${typeOf(next.type).name} · ${longDate(next.date)}` : "Nothing scheduled"}</div>
+      </button>
+    </div>
+
+    <div class="split">
+      <div class="stack">
+        ${requests.length ? `
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Can you serve?</span><span class="eyebrow" style="margin-left:auto">${requests.length} waiting</span></div>
+          ${requests.map(a=>{
+            const p = planOf(a.plan);
+            return `<div class="prow">
+              <span style="flex:1;min-width:0">
+                <span class="prow-name">${esc(a.position)} · ${esc(typeOf(p.type).name)}</span>
+                <span class="prow-sub">${longDate(p.date)} · service ${hhmm(p.start)} · rehearsal ${hhmm(p.rehearsal)}</span>
+              </span>
+              <span class="row" style="gap:6px">
+                <button class="btn btn-sm btn-ok" data-accept="${a.id}">Accept</button>
+                <button class="btn btn-sm" data-decline="${a.id}">Decline</button>
+              </span>
+            </div>`;
+          }).join("")}
+        </div>` : ""}
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Needs attention</span><span class="eyebrow" style="margin-left:auto">Soonest first</span></div>
+          ${att.length ? att.map(a=>`
+            <button class="att" data-openplan="${a.go}">
+              <span class="att-bar" style="background:${a.c}"></span>
+              <span>
+                <span class="att-t">${esc(a.t)}</span>
+                <span class="att-d">${esc(a.d)}</span>
+              </span>
+              <span class="att-go">Open →</span>
+            </button>`).join("") : `<div class="empty"><strong>Every position is filled</strong>Nothing between here and ${shortDate(upcoming()[upcoming().length-1]?.date||TODAY)} needs a name.</div>`}
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Your schedule</span><span class="eyebrow" style="margin-left:auto">Next ${mine.length}</span></div>
+          ${mine.length ? mine.map(a=>{
+            const p = planOf(a.plan);
+            return `<button class="prow" data-openplan="${a.plan}">
+              <span style="flex:1;min-width:0">
+                <span class="prow-name">${esc(a.position)}</span>
+                <span class="prow-sub">${typeOf(p.type).name} · ${longDate(p.date)} · call ${hhmm(p.rehearsal)}</span>
+              </span>
+              ${statusTag(a.status)}
+            </button>`;
+          }).join("") : `<div class="empty"><strong>You're not scheduled yet</strong>Ask a team lead to put you on a plan.</div>`}
+          <div class="card-bd" style="border-top:1px solid var(--line);padding:12px 16px">
+            <button class="btn btn-sm" data-act="addBlockout">Add a blockout date</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        ${next ? `
+        <div class="card">
+          <div class="card-hd"><span class="card-title">${esc(typeOf(next.type).name)}</span>${planTag(next)}<span class="eyebrow" style="margin-left:auto">${longDate(next.date)}</span></div>
+          <div class="card-bd">
+            <div style="font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.03em">${esc(next.series)}</div>
+            <div class="kv" style="margin-top:10px"><span class="k">Rehearsal</span><span class="v">${hhmm(next.rehearsal)}</span></div>
+            <div class="kv"><span class="k">Service</span><span class="v">${hhmm(next.start)}</span></div>
+            <div class="kv"><span class="k">Planned length</span><span class="v">${mmss(planLength(next))}</span></div>
+            <div class="kv"><span class="k">Scheduled</span><span class="v">${schedFor(next.id).filter(a=>a.status!=="declined").length} / ${(NEEDS[next.type]||[]).length}</span></div>
+            ${lengthBar(next)}
+            <div class="row" style="margin-top:12px">
+              <button class="btn btn-sm" data-openplan="${next.id}">Open the plan</button>
+              <button class="btn btn-sm btn-dark" data-golive="${next.id}">Go live</button>
+            </div>
+          </div>
+        </div>` : ""}
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Your blockouts</span><span class="eyebrow" style="margin-left:auto">Nobody will ask</span></div>
+          <div class="card-bd" style="padding:8px 16px 14px">
+            ${blockouts.filter(b=>b.personId===ME).map(b=>`
+              <div class="kv"><span class="k">${esc(b.reason)}</span><span class="v" style="font-size:11.5px">${shortDate(b.from)}${b.from===b.to?"":" – "+shortDate(b.to)}</span></div>`).join("")
+              || `<div style="font-size:12.5px;color:var(--text-2);padding:8px 0">No blockouts on file. Add one before you travel.</div>`}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Songs this month</span></div>
+          <div class="card-bd" style="padding:8px 16px 14px">
+            ${songUsage().slice(0,5).map(u=>`
+              <div class="kv"><span class="k">${esc(u.title)}</span><span class="v">${u.count}×</span></div>`).join("")}
+            <button class="btn btn-sm btn-ghost" data-nav="reports" style="margin-top:8px">Open the CCLI report</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* Every song scheduled anywhere, counted — the spine of both the CCLI
+   report and "have we sung this three weeks running?". */
+function songUsage(){
+  const counts = new Map();
+  for(const p of plans){
+    for(const i of p.items){
+      if(i.kind!=="song" || !i.songId) continue;
+      const row = counts.get(i.songId) || {songId:i.songId, title:songOf(i.songId)?.title || i.title, count:0, dates:[], keys:new Set()};
+      row.count++;
+      row.dates.push(p.date);
+      row.keys.add(i.key || songOf(i.songId)?.key || "");
+      counts.set(i.songId,row);
+    }
+  }
+  return [...counts.values()].sort((a,b)=>b.count-a.count || a.title.localeCompare(b.title));
+}
+const lastScheduled = songId => {
+  const dates = plans.filter(p=>p.items.some(i=>i.songId===songId)).map(p=>p.date).sort();
+  return dates.length ? dates[dates.length-1] : null;
+};
+
+/* ---------------- view: plans ---------------- */
+function viewPlans(){
+  const list = (state.planWhen==="upcoming" ? upcoming() : past())
+    .filter(p=>state.planFilter==="all" || p.type===state.planFilter);
+
+  return `
+  <div class="grid">
+    <div class="row" style="justify-content:space-between">
+      <div class="pills">
+        <button class="pill" data-planfilter="all" aria-pressed="${state.planFilter==="all"}">All service types<span class="c">${plans.length}</span></button>
+        ${TYPES.map(t=>`<button class="pill" data-planfilter="${t.id}" aria-pressed="${state.planFilter===t.id}">${esc(t.name)}<span class="c">${plans.filter(p=>p.type===t.id).length}</span></button>`).join("")}
+      </div>
+      <div class="pills">
+        <button class="pill" data-planwhen="upcoming" aria-pressed="${state.planWhen==="upcoming"}">Upcoming</button>
+        <button class="pill" data-planwhen="past" aria-pressed="${state.planWhen==="past"}">Past</button>
+      </div>
+    </div>
+
+    ${list.length ? list.map(p=>{
+      const open = openSlots(p.id).length, waiting = unconfirmedFor(p.id), dec = declinedFor(p.id);
+      const need = (NEEDS[p.type]||[]).length;
+      const filled = need - open;
+      return `<div class="card">
+        <div class="card-hd">
+          <span class="ord-kind" style="background:${typeOf(p.type).color};color:#fff">${esc(dayName(p.date)[0])}</span>
+          <span>
+            <span class="card-title">${esc(typeOf(p.type).name)} · ${longDate(p.date)}</span>
+            <span style="display:block;font-size:11.5px;color:var(--text-2)">${esc(p.series)} · service ${hhmm(p.start)} · rehearsal ${hhmm(p.rehearsal)}</span>
+          </span>
+          ${planTag(p)}
+          <span class="row" style="margin-left:auto;gap:6px">
+            <button class="btn btn-sm" data-dupe="${p.id}">Duplicate</button>
+            ${isPast(p.date) ? "" : `<button class="btn btn-sm btn-dark" data-golive="${p.id}">Go live</button>`}
+            <button class="btn btn-sm btn-primary" data-openplan="${p.id}">Open plan</button>
+          </span>
+        </div>
+        <div class="card-bd" style="display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:20px;align-items:start">
+          <div>
+            <div class="row" style="gap:16px;font-size:12.5px">
+              <span><span class="eyebrow">Length</span><br><b class="num" style="font-size:14px">${mmss(planLength(p))}</b> <span style="color:var(--text-2)">of ${mmss(p.target)} planned</span></span>
+              <span><span class="eyebrow">Items</span><br><b class="num" style="font-size:14px">${p.items.filter(i=>i.kind!=="header").length}</b> <span style="color:var(--text-2)">${p.items.filter(i=>i.kind==="song").length} songs</span></span>
+              <span><span class="eyebrow">Team</span><br><b class="num" style="font-size:14px">${filled}/${need}</b> <span style="color:var(--text-2)">positions filled</span></span>
+            </div>
+            ${lengthBar(p)}
+          </div>
+          <div>
+            <div class="eyebrow" style="margin-bottom:6px">Scheduling</div>
+            ${open ? `<div style="font-size:12.5px;margin-bottom:4px"><b>${open}</b> open — ${esc(openSlots(p.id).slice(0,3).map(s=>s.position).join(", "))}${open>3?"…":""}</div>` : `<div style="font-size:12.5px;margin-bottom:4px;color:var(--sage)"><b>Fully staffed</b></div>`}
+            <div class="row" style="gap:6px">
+              ${waiting?`<span class="tag t-wait">${waiting} waiting</span>`:""}
+              ${dec?`<span class="tag t-hot">${dec} declined</span>`:""}
+              ${!waiting && !dec?`<span class="tag t-ok"><span class="dot"></span>All answered</span>`:""}
+            </div>
+            <div class="row" style="gap:-4px;margin-top:10px">
+              ${schedFor(p.id).filter(a=>a.status!=="declined").slice(0,9).map(a=>avatarFor(a.personId,"sm")).join("")}
+              ${schedFor(p.id).length>9?`<span class="eyebrow">+${schedFor(p.id).length-9}</span>`:""}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join("") : `<div class="card"><div class="empty"><strong>No plans here</strong>Create one from a template to get started.</div></div>`}
+  </div>`;
+}
+
+/* ---------------- view: plan (signature) ----------------
+   The order of service on the left with a running clock, the person
+   for every position on the right. Selecting an item opens the notes
+   each position reads on Sunday. */
+function viewPlan(){
+  const p = planOf(state.planId);
+  if(!p) return `<div class="card"><div class="empty"><strong>That plan is gone</strong>Pick another from the plans list.</div></div>`;
+
+  let clock = p.start*60;
+  const rows = p.items.map(i=>{
+    const at = clock;
+    clock += i.len;
+    if(i.kind==="header"){
+      return `<div class="ord-row head">
+        <span class="ord-time"></span><span class="ord-kind k-head">§</span>
+        <span><span class="ord-title">${esc(i.title)}</span></span>
+        <span class="ord-len"></span>
+      </div>`;
+    }
+    const s = i.songId ? songOf(i.songId) : null;
+    const sub = [
+      i.who ? personName(i.who) : "",
+      s ? `${esc(i.arr||"")} · ${s.bpm} bpm · ${esc(s.meter)}` : esc(i.desc||""),
+      [i.notes.media,i.notes.audio,i.notes.host].filter(Boolean).length ? `${[i.notes.media,i.notes.audio,i.notes.host].filter(Boolean).length} note(s)` : "",
+    ].filter(Boolean).join(" · ");
+    return `<button class="ord-row" data-item="${i.id}" aria-pressed="${state.itemId===i.id}">
+      <span class="ord-time">${hhmm(at/60)}</span>
+      <span class="ord-kind ${i.kind==="song"?"k-song":"k-item"}">${i.kind==="song"?"♪":"•"}</span>
+      <span style="min-width:0">
+        <span class="ord-title">${esc(i.title)} ${i.key?`<span class="keychip">${esc(i.key)}</span>`:""}</span>
+        <span class="ord-sub">${sub||"—"}</span>
+      </span>
+      <span class="row" style="flex-wrap:nowrap">
+        <span class="ord-len">${mmss(i.len)}</span>
+        <span class="ord-tools">
+          <span class="icobtn" role="button" tabindex="0" data-move="up" data-mid="${i.id}" title="Move up">↑</span>
+          <span class="icobtn" role="button" tabindex="0" data-move="down" data-mid="${i.id}" title="Move down">↓</span>
+          <span class="icobtn" role="button" tabindex="0" data-delitem="${i.id}" title="Remove">×</span>
+        </span>
+      </span>
+    </button>`;
+  }).join("");
+
+  const sel = p.items.find(i=>i.id===state.itemId);
+  const over = planLength(p) - p.target;
+
+  /* Positions the service type asks for, in team order, each one either
+     a name with a status or an open slot to fill. */
+  const teamBlocks = TEAMS.map(t=>{
+    const need = (NEEDS[p.type]||[]).filter(([team])=>team===t.id);
+    if(!need.length) return "";
+    const assigned = schedFor(p.id).filter(a=>a.team===t.id);
+    const used = new Set();
+    const rowsHtml = need.map(([,position])=>{
+      const a = assigned.find(x=>x.position===position && !used.has(x.id) && x.status!=="declined");
+      if(a) used.add(a.id);
+      if(a){
+        return `<div class="pos">
+          ${avatarFor(a.personId,"sm")}
+          <span style="min-width:0">
+            <span class="pos-name">${esc(personName(a.personId))}</span>
+            <span class="pos-role">${esc(position)}</span>
+          </span>
+          <span class="row" style="margin-left:auto;gap:6px">
+            ${statusTag(a.status)}
+            <span class="icobtn" role="button" tabindex="0" data-unassign="${a.id}" title="Remove from this plan">×</span>
+          </span>
+        </div>`;
+      }
+      return `<div class="pos">
+        <span class="avatar sm" style="background:#F1ECE9;color:var(--text-3)">?</span>
+        <span><span class="pos-open">${esc(position)}</span></span>
+        <button class="btn btn-sm" style="margin-left:auto" data-fill="${t.id}|${position}">Schedule</button>
+      </div>`;
+    }).join("");
+    const declined = assigned.filter(a=>a.status==="declined");
+    return `<div class="teamhd">${esc(t.name)}</div>${rowsHtml}
+      ${declined.map(a=>`<div class="pos" style="opacity:.7">
+        ${avatarFor(a.personId,"sm")}
+        <span><span class="pos-name" style="text-decoration:line-through">${esc(personName(a.personId))}</span><span class="pos-role">${esc(a.position)}${a.note?` — ${esc(a.note)}`:""}</span></span>
+        <span style="margin-left:auto">${statusTag("declined")}</span>
+      </div>`).join("")}`;
+  }).join("");
+
+  return `
+  <div class="grid">
+    <div class="card">
+      <div class="card-hd">
+        <span class="ord-kind" style="background:${typeOf(p.type).color};color:#fff">${esc(dayName(p.date)[0])}</span>
+        <span>
+          <span class="card-title">${esc(p.series)}</span>
+          <span style="display:block;font-size:11.5px;color:var(--text-2)">Rehearsal ${hhmm(p.rehearsal)} · service ${hhmm(p.start)} · ${p.items.filter(i=>i.kind!=="header").length} items</span>
+        </span>
+        ${planTag(p)}
+        <span class="row" style="margin-left:auto;gap:14px">
+          <span style="text-align:right">
+            <span class="eyebrow">Planned length</span>
+            <span style="display:block" class="num" style="font-size:15px;font-weight:600">${mmss(planLength(p))}</span>
+          </span>
+          <span style="text-align:right">
+            <span class="eyebrow">Against target</span>
+            <span style="display:block;font-weight:600;color:${over>0?"var(--coral-deep)":"var(--sage)"}" class="num">${signed(over)}</span>
+          </span>
+        </span>
+      </div>
+      <div class="card-bd" style="padding:12px 16px">${lengthBar(p)}</div>
+    </div>
+
+    <div class="side-lg">
+      <div class="stack">
+        <div class="card">
+          <div class="card-hd">
+            <span class="card-title">Order of service</span>
+            <span class="row" style="margin-left:auto;gap:6px">
+              <button class="btn btn-sm" data-act="addHeader">Add header</button>
+              <button class="btn btn-sm" data-act="addItem">Add item</button>
+              <button class="btn btn-sm btn-primary" data-act="addSong">Add song</button>
+            </span>
+          </div>
+          ${rows || `<div class="empty"><strong>Nothing planned yet</strong>Start from a template or add the first item.</div>`}
+        </div>
+
+        ${sel ? `
+        <div class="card">
+          <div class="card-hd">
+            <span class="card-title">${esc(sel.title)}</span>
+            ${sel.key?`<span class="keychip">${esc(sel.key)}</span>`:""}
+            <span class="eyebrow" style="margin-left:auto">Item detail</span>
+          </div>
+          <div class="card-bd" style="display:grid;gap:13px">
+            <div class="duo">
+              <div class="field"><label>Length (m:ss)</label><input class="input input-sm" data-len="${sel.id}" value="${mmss(sel.len)}"></div>
+              <div class="field"><label>Who leads it</label>
+                <select class="input input-sm" data-who="${sel.id}">
+                  <option value="">— unassigned —</option>
+                  ${people.map(pp=>`<option value="${pp.id}" ${sel.who===pp.id?"selected":""}>${esc(pp.name)}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+            ${sel.songId ? `
+            <div class="duo">
+              <div class="field"><label>Key</label><select class="input input-sm" data-key="${sel.id}">${KEYS.map(k=>`<option ${sel.key===k?"selected":""}>${k}</option>`).join("")}</select></div>
+              <div class="field"><label>Arrangement</label><select class="input input-sm" data-arr="${sel.id}">${(songOf(sel.songId)?.arrangements||[]).map(ar=>`<option ${sel.arr===ar.name?"selected":""}>${esc(ar.name)}</option>`).join("")}</select></div>
+            </div>
+            <div>
+              <div class="eyebrow" style="margin-bottom:5px">Sequence</div>
+              <div class="seq">${((songOf(sel.songId)?.arrangements||[]).find(ar=>ar.name===sel.arr)?.seq||[]).map(x=>`<span class="${x==="C"?"c":""}">${esc(x)}</span>`).join("")}</div>
+            </div>` : `
+            <div class="field"><label>Description</label><textarea class="input" rows="2" data-desc="${sel.id}" placeholder="What happens here">${esc(sel.desc)}</textarea></div>`}
+            <div class="eyebrow">Notes by position — these are what each team reads on Sunday</div>
+            <div class="field"><label>Media / ProPresenter</label><textarea class="input" rows="2" data-note="media" data-nid="${sel.id}">${esc(sel.notes.media)}</textarea></div>
+            <div class="field"><label>Audio</label><textarea class="input" rows="2" data-note="audio" data-nid="${sel.id}">${esc(sel.notes.audio)}</textarea></div>
+            <div class="field"><label>Host team</label><textarea class="input" rows="2" data-note="host" data-nid="${sel.id}">${esc(sel.notes.host)}</textarea></div>
+          </div>
+        </div>` : `
+        <div class="card"><div class="empty"><strong>Pick an item</strong>Select a line above to set its length, key, and the notes each position reads.</div></div>`}
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <div class="card-hd">
+            <span class="card-title">Team</span>
+            <span class="eyebrow" style="margin-left:auto">${schedFor(p.id).filter(a=>a.status!=="declined").length}/${(NEEDS[p.type]||[]).length} filled</span>
+          </div>
+          <div class="card-bd" style="padding:4px 16px 14px">${teamBlocks}</div>
+          <div class="card-bd" style="border-top:1px solid var(--line);padding:12px 16px;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-primary" data-act="sendRequests">Send requests</button>
+            <button class="btn btn-sm" data-act="emailTeam">Email the team</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Plan notes</span></div>
+          <div class="card-bd" style="display:grid;gap:11px">
+            ${[["vision","Vision for the day"],["rehearsal","Rehearsal"],["kids","Kids"],["announcements","Announcements"]].map(([k,label])=>`
+              <div class="field"><label>${label}</label><textarea class="input" rows="2" data-plannote="${k}">${esc(p.notes[k]||"")}</textarea></div>`).join("")}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Files</span><button class="btn btn-sm btn-ghost" style="margin-left:auto" data-act="attach">Attach</button></div>
+          <div class="card-bd" style="padding:6px 16px 12px">
+            ${p.files.length ? p.files.map(f=>`
+              <div class="file">
+                <span class="ftype ${fileClass(f)}">${esc(fileExt(f))}</span>
+                <span style="min-width:0"><span class="prow-name" style="font-size:12.5px">${esc(f)}</span></span>
+                <button class="btn btn-sm btn-ghost" style="margin-left:auto" data-act="download" data-name="${esc(f)}">Download</button>
+              </div>`).join("") : `<div style="font-size:12.5px;color:var(--text-2);padding:10px 0">Nothing attached yet.</div>`}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+const fileExt = name => (name.split(".").pop()||"file").toUpperCase().slice(0,4);
+const fileClass = name => {
+  const e = (name.split(".").pop()||"").toLowerCase();
+  if(e==="pdf") return "f-pdf";
+  if(["mp3","wav","m4a"].includes(e)) return "f-mp3";
+  if(["png","jpg","jpeg","mp4","mov"].includes(e)) return "f-img";
+  return "f-doc";
+};
+
+/* ---------------- view: live ----------------
+   Services LIVE: one item at a time, a clock that counts the item
+   rather than the service, and the difference from plan in a colour
+   you can read from the back of the room. */
+const playable = plan => plan.items.filter(i=>i.kind!=="header");
+
+function viewLive(){
+  const p = planOf(live.planId) || upcoming()[0];
+  if(!p) return `<div class="card"><div class="empty"><strong>No plan to run</strong>Create a plan first.</div></div>`;
+  live.planId = p.id;
+
+  const items = playable(p);
+  const cur = items[live.idx];
+  const next = items[live.idx+1];
+  const planned = cur ? cur.len : 0;
+  const diff = live.elapsed - planned;
+  const pct = planned ? Math.min(100,(live.elapsed/planned)*100) : 0;
+  const runTotal = items.reduce((s,i)=>s+i.len,0);
+
+  let clock = p.start*60;
+  const list = items.map((i,idx)=>{
+    const at = clock; clock += i.len;
+    const actual = live.actual[i.id];
+    return `<button class="live-row ${idx===live.idx?"now":idx<live.idx?"done":""}" data-liveto="${idx}">
+      <span class="ord-time">${hhmm(at/60)}</span>
+      <span style="min-width:0">
+        <span class="ord-title">${esc(i.title)} ${i.key?`<span class="keychip">${esc(i.key)}</span>`:""}</span>
+        <span class="ord-sub">${i.who?esc(personName(i.who)):"—"}${actual!==undefined?` · ran ${mmss(actual)} (${signed(actual-i.len)})`:""}</span>
+      </span>
+      <span class="ord-len">${mmss(i.len)}</span>
+    </button>`;
+  }).join("");
+
+  return `
+  <div class="grid">
+    <div class="live">
+      <div class="live-top">
+        <span class="live-badge${live.running?"":" off"}"><span class="dot"></span>${live.running?"On air":"Standing by"}</span>
+        <span class="live-eyebrow">${esc(typeOf(p.type).name)} · ${longDate(p.date)} · service ${hhmm(p.start)}</span>
+        <span class="live-eyebrow" style="margin-left:auto">Item ${Math.min(live.idx+1,items.length)} of ${items.length}</span>
+      </div>
+      <div class="live-grid">
+        <div>
+          <div class="live-eyebrow">On now</div>
+          <div class="live-now">${cur?esc(cur.title):"Service complete"}${cur&&cur.key?` <span class="keychip" style="font-size:14px;vertical-align:middle">${esc(cur.key)}</span>`:""}</div>
+          <div class="live-meta">${cur ? `${cur.who?esc(personName(cur.who)):"Unassigned"} · planned length ${mmss(cur.len)}${cur.arr?` · ${esc(cur.arr)}`:""}` : "Every item has been run."}</div>
+          <div class="live-meta" style="margin-top:8px;color:#8B8394">Up next — ${next?esc(next.title):"nothing, that's the end"}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="live-eyebrow">This item</div>
+          <div class="live-clock" id="liveElapsed">${mmss(live.elapsed)}</div>
+          <div class="live-diff" id="liveDiff" style="color:${diff>0?"#E8A33D":"#8B8394"}">${diff>0?`over by ${mmss(diff)}`:`${mmss(Math.max(0,planned-live.elapsed))} left`}</div>
+          <div class="live-eyebrow" style="margin-top:10px">Service total <span class="num" id="liveTotal" style="color:#EDE8EA">${mmss(live.total)}</span> / ${mmss(runTotal)}</div>
+        </div>
+      </div>
+      <div class="live-track"><div class="live-fill${diff>0?" over":""}" id="liveFill" style="width:${pct}%"></div></div>
+      <div class="live-ctl">
+        <button class="btn btn-primary" data-live="${live.running?"pause":"start"}">${live.running?"Pause":"Start"}</button>
+        <button class="btn" data-live="prev">← Previous</button>
+        <button class="btn" data-live="next">Next item →</button>
+        <button class="btn" data-live="reset">Reset</button>
+        <button class="btn" data-act="message" style="margin-left:auto">Message the team</button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Running order</span><span class="eyebrow" style="margin-left:auto">Tap a line to jump</span></div>
+        ${list}
+      </div>
+      <div class="stack">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Running this service</span></div>
+          <div class="card-bd" style="padding:6px 16px 12px">
+            ${["production","pastoral","worship"].flatMap(t=>schedFor(p.id).filter(a=>a.team===t && a.status!=="declined")).slice(0,8).map(a=>`
+              <div class="file" style="border-bottom:1px solid #F2ECE8">
+                ${avatarFor(a.personId,"sm")}
+                <span style="min-width:0"><span class="prow-name" style="font-size:12.5px">${esc(personName(a.personId))}</span><span class="prow-sub">${esc(a.position)}</span></span>
+              </div>`).join("")}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Which plan</span></div>
+          <div class="card-bd">
+            <select class="input input-sm" data-liveplan>
+              ${plans.filter(x=>!isPast(x.date)).map(x=>`<option value="${x.id}" ${x.id===live.planId?"selected":""}>${esc(typeOf(x.type).name)} · ${longDate(x.date)}</option>`).join("")}
+            </select>
+            <div style="font-size:11.5px;color:var(--text-2);margin-top:9px">Switching plans resets the clock. Actual times are kept per plan for the length report.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: teams ---------------- */
+function viewTeams(){
+  const team = teamOf(state.teamId);
+  const members = people.filter(p=>p.teams.includes(team.id));
+  const person = personOf(state.personId) || members[0] || people[0];
+  const theirSchedule = sched.filter(a=>a.personId===person.id).sort((a,b)=>planOf(a.plan).date.localeCompare(planOf(b.plan).date));
+
+  return `
+  <div class="grid">
+    <div class="pills">
+      ${TEAMS.map(t=>`<button class="pill" data-team="${t.id}" aria-pressed="${state.teamId===t.id}">${esc(t.name)}<span class="c">${people.filter(p=>p.teams.includes(t.id)).length}</span></button>`).join("")}
+    </div>
+
+    <div class="side-lg">
+      <div class="stack">
+        <div class="card">
+          <div class="card-hd">
+            <span class="card-title">${esc(team.name)} · people</span>
+            <span class="eyebrow" style="margin-left:auto">${members.length} on the team</span>
+          </div>
+          ${members.map(m=>{
+            const upcomingCount = sched.filter(a=>a.personId===m.id && !isPast(planOf(a.plan).date)).length;
+            return `<button class="prow" data-person="${m.id}" aria-pressed="${person.id===m.id}">
+              ${avatarFor(m.id)}
+              <span style="min-width:0">
+                <span class="prow-name">${esc(m.name)}</span>
+                <span class="prow-sub">${esc(m.can.filter(c=>team.positions.includes(c)).join(", ")||"No positions yet")}</span>
+              </span>
+              <span class="chips">
+                <span class="tag t-mute">${esc(m.freq)}</span>
+                ${upcomingCount?`<span class="tag t-info">${upcomingCount} upcoming</span>`:""}
+              </span>
+            </button>`;
+          }).join("") || `<div class="empty"><strong>Nobody on this team yet</strong>Add someone to start scheduling.</div>`}
+          <div class="card-bd" style="border-top:1px solid var(--line);padding:12px 16px">
+            <button class="btn btn-sm btn-primary" data-act="addPerson">Add someone to ${esc(team.name)}</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Positions on ${esc(team.name)}</span><button class="btn btn-sm btn-ghost" style="margin-left:auto" data-act="addPosition">Add position</button></div>
+          <div class="tbl"><table>
+            <thead><tr><th>Position</th><th>Trained</th><th>Needed per Sunday</th><th class="ta-r">Open in the next 4 weeks</th></tr></thead>
+            <tbody>
+              ${team.positions.map(pos=>{
+                const trained = people.filter(pp=>pp.can.includes(pos));
+                const perService = (NEEDS.sun||[]).filter(([t,q])=>t===team.id && q===pos).length;
+                const openCount = upcoming().reduce((s,pl)=>s+openSlots(pl.id).filter(o=>o.team===team.id && o.position===pos).length,0);
+                return `<tr>
+                  <td><b>${esc(pos)}</b></td>
+                  <td><span class="row" style="gap:2px">${trained.slice(0,5).map(t=>avatarFor(t.id,"sm")).join("")}${trained.length>5?`<span class="eyebrow">+${trained.length-5}</span>`:""}${trained.length?"":'<span class="pos-open">Nobody trained</span>'}</span></td>
+                  <td class="num">${perService||"—"}</td>
+                  <td class="ta-r">${openCount?`<span class="tag t-wait">${openCount} open</span>`:`<span class="tag t-ok">Covered</span>`}</td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">${esc(person.name)}</span><span class="eyebrow" style="margin-left:auto">Since ${esc(person.since)}</span></div>
+          <div class="card-bd">
+            <div class="row" style="gap:11px;margin-bottom:12px">
+              ${avatarFor(person.id,"lg")}
+              <span>
+                <span class="prow-name">${esc(person.role)}</span>
+                <span class="prow-sub">${esc(person.email)}</span>
+              </span>
+            </div>
+            <div class="field" style="margin-bottom:10px">
+              <label>How often they want to be asked</label>
+              <select class="input input-sm" data-freq="${person.id}">
+                ${["Weekly","Every other week","Once a month","As needed"].map(f=>`<option ${person.freq===f?"selected":""}>${f}</option>`).join("")}
+              </select>
+            </div>
+            <div class="eyebrow" style="margin-bottom:6px">Positions they can serve</div>
+            <div class="pills">
+              ${[...new Set(TEAMS.flatMap(t=>t.positions))].filter(pos=>person.can.includes(pos)).map(pos=>`<span class="pill" style="cursor:default">${esc(pos)}</span>`).join("")}
+            </div>
+            <button class="btn btn-sm" style="margin-top:11px" data-act="trainPerson">Add a position</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Blockouts</span><button class="btn btn-sm btn-ghost" style="margin-left:auto" data-act="addBlockoutFor">Add</button></div>
+          <div class="card-bd" style="padding:6px 16px 12px">
+            ${blockouts.filter(b=>b.personId===person.id).map(b=>`
+              <div class="kv"><span class="k">${esc(b.reason)}</span><span class="v" style="font-size:11.5px">${shortDate(b.from)}${b.from===b.to?"":" – "+shortDate(b.to)}</span></div>`).join("")
+              || `<div style="font-size:12.5px;color:var(--text-2);padding:8px 0">None on file.</div>`}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Their schedule</span></div>
+          <div class="card-bd" style="padding:6px 16px 12px">
+            ${theirSchedule.slice(0,8).map(a=>{
+              const pl = planOf(a.plan);
+              return `<div class="kv"><span class="k">${shortDate(pl.date)} · ${esc(a.position)}</span><span>${statusTag(a.status)}</span></div>`;
+            }).join("") || `<div style="font-size:12.5px;color:var(--text-2);padding:8px 0">Never scheduled.</div>`}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: matrix ----------------
+   Everyone down the side, the next services across the top. The whole
+   point is seeing who is on three weeks running before you ask them
+   for a fourth. */
+function viewMatrix(){
+  const cols = upcoming().slice(0,6);
+  const rows = people.filter(p=>state.teamId==="all" || p.teams.includes(state.teamId));
+
+  return `
+  <div class="grid">
+    <div class="row" style="justify-content:space-between">
+      <div class="pills">
+        <button class="pill" data-team="all" aria-pressed="${state.teamId==="all"}">Everyone<span class="c">${people.length}</span></button>
+        ${TEAMS.map(t=>`<button class="pill" data-team="${t.id}" aria-pressed="${state.teamId===t.id}">${esc(t.name)}<span class="c">${people.filter(p=>p.teams.includes(t.id)).length}</span></button>`).join("")}
+      </div>
+      <div class="row" style="gap:10px;font-size:11.5px;color:var(--text-2)">
+        <span class="row" style="gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--sage-wash);border:1px solid #BFDCCE"></span>Confirmed</span>
+        <span class="row" style="gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--amber-wash);border:1px solid #E8D5A8"></span>Waiting</span>
+        <span class="row" style="gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--coral-wash);border:1px solid #F3C9C5"></span>Declined</span>
+        <span class="row" style="gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:repeating-linear-gradient(135deg,#F6F1ED 0 3px,#EFE7E1 3px 6px)"></span>Blocked out</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tbl"><table class="mx">
+        <thead>
+          <tr>
+            <th class="who">Person</th>
+            ${cols.map(c=>`<th class="date">
+              <div style="font-weight:600;color:var(--text);font-family:var(--ui);font-size:12px;letter-spacing:0;text-transform:none">${dayName(c.date)} ${shortDate(c.date)}</div>
+              <div style="margin-top:2px">${esc(typeOf(c.type).name)}</div>
+              <div style="margin-top:3px">${openSlots(c.id).length?`<span class="tag t-wait">${openSlots(c.id).length} open</span>`:`<span class="tag t-ok">Full</span>`}</div>
+            </th>`).join("")}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(pp=>`
+            <tr>
+              <td class="who">
+                <span class="row" style="gap:9px;flex-wrap:nowrap">
+                  ${avatarFor(pp.id,"sm")}
+                  <span style="min-width:0"><span class="prow-name" style="font-size:12.5px">${esc(pp.name)}</span><span class="prow-sub">${esc(pp.freq)}</span></span>
+                </span>
+              </td>
+              ${cols.map(c=>{
+                const mine = sched.filter(a=>a.plan===c.id && a.personId===pp.id);
+                const block = blockedOn(pp.id, c.date);
+                if(!mine.length && block){
+                  return `<td><span class="cell blocked"><span class="p">Blocked</span><span class="s">${esc(block.reason)}</span></span></td>`;
+                }
+                if(!mine.length){
+                  return `<td><button class="cell" data-schedule="${c.id}|${pp.id}" title="Schedule ${esc(pp.name)}"><span class="p" style="color:var(--text-3)">+</span></button></td>`;
+                }
+                /* Scheduled anyway on a date they blocked out — worth
+                   saying out loud rather than hiding behind the tag. */
+                return `<td>${mine.map(a=>`
+                  <button class="cell ${a.status}" data-cycle="${a.id}" title="Click to change status">
+                    <span class="p">${esc(a.position)}</span>
+                    <span class="s">${a.status==="unconfirmed"?"waiting":a.status}</span>
+                    ${block?`<span class="s" style="color:var(--coral-deep)">conflict · ${esc(block.reason)}</span>`:""}
+                  </button>`).join("")}</td>`;
+              }).join("")}
+            </tr>`).join("")}
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Still open</span><span class="eyebrow" style="margin-left:auto">Fill these before Sunday</span></div>
+      <div class="card-bd" style="display:grid;gap:10px">
+        ${cols.filter(c=>openSlots(c.id).length).map(c=>`
+          <div>
+            <div class="eyebrow" style="margin-bottom:5px">${longDate(c.date)} · ${esc(typeOf(c.type).name)}</div>
+            <div class="pills">
+              ${openSlots(c.id).map(o=>`<button class="pill" data-fillon="${c.id}|${o.team}|${o.position}">${esc(o.position)} <span class="c">+</span></button>`).join("")}
+            </div>
+          </div>`).join("") || `<div style="font-size:12.5px;color:var(--text-2)">Nothing open. Every position on the next ${cols.length} services has a name.</div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: songs ---------------- */
+function viewSongs(){
+  const q = state.songQ.trim().toLowerCase();
+  const list = songs.filter(s=>
+    (state.songLang==="all" || s.lang===state.songLang) &&
+    (!q || s.title.toLowerCase().includes(q) || s.author.toLowerCase().includes(q) || s.themes.join(" ").toLowerCase().includes(q))
+  );
+  const s = songOf(state.songId) || list[0] || songs[0];
+  const usage = songUsage().find(u=>u.songId===s?.id);
+  const history = plans.filter(p=>p.items.some(i=>i.songId===s?.id)).sort((a,b)=>b.date.localeCompare(a.date));
+
+  return `
+  <div class="grid">
+    <div class="row" style="justify-content:space-between">
+      <div class="row" style="gap:8px">
+        <input class="input input-sm" style="width:240px" placeholder="Search songs, authors, themes" data-songq value="${esc(state.songQ)}">
+        <div class="pills">
+          ${[["all","All"],["ES","Español"],["EN","English"]].map(([k,l])=>`<button class="pill" data-songlang="${k}" aria-pressed="${state.songLang===k}">${l}</button>`).join("")}
+        </div>
+      </div>
+      <span class="eyebrow">${list.length} of ${songs.length} songs</span>
+    </div>
+
+    <div class="side-lg">
+      <div class="card">
+        <div class="tbl"><table>
+          <thead><tr><th>Song</th><th>Key</th><th>BPM</th><th>Themes</th><th class="ta-r">Used</th><th class="ta-r">Last</th></tr></thead>
+          <tbody>
+            ${list.map(x=>{
+              const u = songUsage().find(y=>y.songId===x.id);
+              const last = lastScheduled(x.id);
+              return `<tr style="cursor:pointer;${state.songId===x.id?"background:var(--coral-wash)":""}" data-song="${x.id}">
+                <td><b>${esc(x.title)}</b><div style="font-size:11.5px;color:var(--text-2)">${esc(x.author)} · CCLI ${esc(x.ccli)}</div></td>
+                <td><span class="keychip">${esc(x.key)}</span></td>
+                <td class="num">${x.bpm}</td>
+                <td style="font-size:11.5px;color:var(--text-2)">${esc(x.themes.join(", "))}</td>
+                <td class="ta-r num">${u?u.count:0}</td>
+                <td class="ta-r" style="font-size:11.5px;color:var(--text-2)">${last?shortDate(last):"—"}</td>
+              </tr>`;
+            }).join("") || `<tr><td colspan="6"><div class="empty"><strong>No songs match</strong>Try a different search.</div></td></tr>`}
+          </tbody>
+        </table></div>
+      </div>
+
+      ${s ? `
+      <div class="stack">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">${esc(s.title)}</span><span class="keychip" style="margin-left:auto">${esc(s.key)}</span></div>
+          <div class="card-bd">
+            <div class="kv"><span class="k">Author</span><span class="v" style="font-family:var(--ui)">${esc(s.author)}</span></div>
+            <div class="kv"><span class="k">CCLI number</span><span class="v">${esc(s.ccli)}</span></div>
+            <div class="kv"><span class="k">Tempo / meter</span><span class="v">${s.bpm} bpm · ${esc(s.meter)}</span></div>
+            <div class="kv"><span class="k">Scheduled</span><span class="v">${usage?usage.count:0}×</span></div>
+            <div class="kv"><span class="k">Last used</span><span class="v" style="font-size:12px">${lastScheduled(s.id)?longDate(lastScheduled(s.id)):"—"}</span></div>
+            <div class="row" style="margin-top:12px;gap:6px">
+              <button class="btn btn-sm btn-primary" data-act="songToPlan" data-sid="${s.id}">Add to a plan</button>
+              <button class="btn btn-sm" data-act="newArrangement">New arrangement</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Arrangements</span></div>
+          <div class="card-bd" style="display:grid;gap:12px">
+            ${s.arrangements.map(ar=>`
+              <div>
+                <div class="row"><b style="font-size:13px">${esc(ar.name)}</b><span class="num" style="margin-left:auto;font-size:12px;color:var(--text-2)">${mmss(ar.len)}</span></div>
+                <div class="seq" style="margin-top:6px">${ar.seq.map(x=>`<span class="${x==="C"?"c":""}">${esc(x)}</span>`).join("")}</div>
+              </div>`).join("")}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Files</span></div>
+          <div class="card-bd" style="padding:6px 16px 12px">
+            ${s.files.map(f=>`
+              <div class="file">
+                <span class="ftype ${fileClass(f)}">${esc(fileExt(f))}</span>
+                <span style="min-width:0"><span class="prow-name" style="font-size:12.5px">${esc(f)}</span></span>
+                <button class="btn btn-sm btn-ghost" style="margin-left:auto" data-act="download" data-name="${esc(f)}">Get</button>
+              </div>`).join("")}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Where it has been sung</span></div>
+          <div class="card-bd" style="padding:6px 16px 12px">
+            ${history.map(p=>{
+              const i = p.items.find(x=>x.songId===s.id);
+              return `<div class="kv"><span class="k">${shortDate(p.date)} · ${esc(typeOf(p.type).name)}</span><span class="v">${esc(i.key||s.key)}</span></div>`;
+            }).join("") || `<div style="font-size:12.5px;color:var(--text-2);padding:8px 0">Not scheduled yet.</div>`}
+          </div>
+        </div>
+      </div>` : ""}
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: media ---------------- */
+function viewMedia(){
+  const list = media.filter(m=>state.mediaKind==="all" || m.kind===state.mediaKind);
+  return `
+  <div class="grid">
+    <div class="row" style="justify-content:space-between">
+      <div class="pills">
+        ${[["all","Everything"],["pdf","Charts & PDFs"],["mp3","Audio"],["img","Video & images"],["doc","Documents"]].map(([k,l])=>`
+          <button class="pill" data-mediakind="${k}" aria-pressed="${state.mediaKind===k}">${l}<span class="c">${k==="all"?media.length:media.filter(m=>m.kind===k).length}</span></button>`).join("")}
+      </div>
+      <span class="eyebrow">${list.length} files</span>
+    </div>
+    <div class="card">
+      <div class="tbl"><table>
+        <thead><tr><th>File</th><th>Attached to</th><th>Added by</th><th>Added</th><th class="ta-r">Size</th><th></th></tr></thead>
+        <tbody>
+          ${list.map(m=>`
+            <tr>
+              <td>
+                <span class="row" style="gap:10px;flex-wrap:nowrap">
+                  <span class="ftype ${fileClass(m.name)}">${esc(fileExt(m.name))}</span>
+                  <b style="font-size:13px">${esc(m.name)}</b>
+                </span>
+              </td>
+              <td style="font-size:12.5px;color:var(--text-2)">${esc(m.linked)}</td>
+              <td><span class="row" style="gap:7px;flex-wrap:nowrap">${avatarFor(m.owner,"sm")}<span style="font-size:12.5px">${esc(personName(m.owner))}</span></span></td>
+              <td class="num" style="font-size:12px;color:var(--text-2)">${shortDate(m.added)}</td>
+              <td class="ta-r num" style="font-size:12px">${esc(m.size)}</td>
+              <td class="ta-r"><button class="btn btn-sm btn-ghost" data-act="download" data-name="${esc(m.name)}">Download</button></td>
+            </tr>`).join("") || `<tr><td colspan="6"><div class="empty"><strong>No files of that kind</strong>Upload one to get started.</div></td></tr>`}
+        </tbody>
+      </table></div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: templates ---------------- */
+function viewTemplates(){
+  return `
+  <div class="grid">
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Plan templates</span><span class="eyebrow" style="margin-left:auto">A template is the shape of a service, not its content</span></div>
+      <div class="card-bd" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
+        ${templates.map(t=>{
+          const len = t.items.reduce((s,[,,l])=>s+l,0);
+          return `<div class="card" style="border-color:var(--line-2)">
+            <div class="card-hd" style="padding:12px 14px">
+              <span class="ord-kind" style="background:${typeOf(t.type).color};color:#fff">T</span>
+              <span>
+                <span class="card-title">${esc(t.name)}</span>
+                <span style="display:block;font-size:11.5px;color:var(--text-2)">${esc(typeOf(t.type).name)} · used ${t.uses}×</span>
+              </span>
+            </div>
+            <div class="card-bd" style="padding:12px 14px">
+              <div class="row" style="gap:14px;font-size:12.5px;margin-bottom:9px">
+                <span><span class="eyebrow">Items</span><br><b class="num">${t.items.filter(([k])=>k!=="header").length}</b></span>
+                <span><span class="eyebrow">Songs</span><br><b class="num">${t.items.filter(([k])=>k==="song").length}</b></span>
+                <span><span class="eyebrow">Length</span><br><b class="num">${mmss(len)}</b></span>
+              </div>
+              <div style="font-size:11.5px;color:var(--text-2);line-height:1.6;max-height:96px;overflow:hidden">
+                ${t.items.map(([k,title])=>k==="header"?`<b style="color:var(--text)">${esc(title)}</b>`:esc(title)).join(" · ")}
+              </div>
+              <div class="row" style="margin-top:11px;gap:6px">
+                <button class="btn btn-sm btn-primary" data-usetemplate="${t.id}">Create a plan</button>
+                <button class="btn btn-sm btn-ghost" data-act="editTemplate">Edit</button>
+              </div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- view: reports ---------------- */
+function viewReports(){
+  const tabs = [["ccli","CCLI usage"],["length","Service length"],["load","Volunteer load"]];
+  const usage = songUsage();
+
+  const ccli = `
+    <div class="card">
+      <div class="card-hd"><span class="card-title">CCLI song usage</span><span class="eyebrow" style="margin-left:auto">Every song scheduled across ${plans.length} plans</span></div>
+      <div class="tbl"><table>
+        <thead><tr><th>Song</th><th>CCLI</th><th>Author</th><th>Keys used</th><th class="ta-r">Times</th><th class="ta-r">Dates</th></tr></thead>
+        <tbody>
+          ${usage.map(u=>{
+            const s = songOf(u.songId);
+            return `<tr>
+              <td><b>${esc(u.title)}</b></td>
+              <td class="num">${esc(s?.ccli||"—")}</td>
+              <td style="font-size:12.5px;color:var(--text-2)">${esc(s?.author||"—")}</td>
+              <td>${[...u.keys].filter(Boolean).map(k=>`<span class="keychip" style="margin-right:3px">${esc(k)}</span>`).join("")}</td>
+              <td class="ta-r num">${u.count}</td>
+              <td class="ta-r" style="font-size:11.5px;color:var(--text-2)">${u.dates.sort().map(shortDate).join(", ")}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table></div>
+      <div class="card-bd" style="border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" data-act="submitCcli">Submit to CCLI SongSelect</button>
+        <button class="btn btn-sm" data-act="export">Export CSV</button>
+      </div>
+    </div>`;
+
+  const done = plans.filter(p=>isPast(p.date) || p.actual).sort((a,b)=>b.date.localeCompare(a.date));
+  const maxLen = Math.max(...plans.map(p=>Math.max(planLength(p), p.actual||0)), 1);
+  const length = `
+    <div class="split">
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Planned against actual</span><span class="eyebrow" style="margin-left:auto">Minutes</span></div>
+        <div class="tbl"><table>
+          <thead><tr><th>Service</th><th>Planned</th><th>Actual</th><th class="ta-r">Difference</th></tr></thead>
+          <tbody>
+            ${done.map(p=>{
+              const planned = planLength(p), actual = p.actual || planned, d = actual-planned;
+              return `<tr>
+                <td><b>${esc(typeOf(p.type).name)}</b><div style="font-size:11.5px;color:var(--text-2)">${longDate(p.date)} · ${esc(p.series)}</div></td>
+                <td class="num">${mmss(planned)}</td>
+                <td class="num">${mmss(actual)}</td>
+                <td class="ta-r num" style="color:${d>0?"var(--coral-deep)":"var(--sage)"}">${signed(d)}</td>
+              </tr>`;
+            }).join("") || `<tr><td colspan="4"><div class="empty"><strong>No completed services yet</strong>Run one from the live view and the actuals land here.</div></td></tr>`}
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title">How long services run</span></div>
+        <div class="card-bd">
+          <div class="bars">
+            ${plans.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(p=>{
+              const v = p.actual || planLength(p);
+              return `<div class="b${p.actual?"":" pale"}" style="height:${(v/maxLen)*100}%" title="${longDate(p.date)} — ${mmss(v)}"></div>`;
+            }).join("")}
+          </div>
+          <div class="row" style="justify-content:space-between;margin-top:8px">
+            <span class="eyebrow">${shortDate(plans.slice().sort((a,b)=>a.date.localeCompare(b.date))[0].date)}</span>
+            <span class="eyebrow">${shortDate(plans.slice().sort((a,b)=>b.date.localeCompare(a.date))[0].date)}</span>
+          </div>
+          <div class="kv" style="margin-top:12px"><span class="k">Average planned</span><span class="v">${mmss(plans.reduce((s,p)=>s+planLength(p),0)/plans.length)}</span></div>
+          <div class="kv"><span class="k">Longest item across plans</span><span class="v">${mmss(Math.max(...plans.flatMap(p=>p.items.map(i=>i.len))))}</span></div>
+          <div class="kv"><span class="k">Music as a share of Sunday</span><span class="v">${Math.round(
+            plans.filter(p=>p.type==="sun").reduce((s,p)=>s+p.items.filter(i=>i.kind==="song").reduce((t,i)=>t+i.len,0),0) /
+            Math.max(1,plans.filter(p=>p.type==="sun").reduce((s,p)=>s+planLength(p),0)) * 100)}%</span></div>
+        </div>
+      </div>
+    </div>`;
+
+  const loadRows = people.map(p=>{
+    const all = sched.filter(a=>a.personId===p.id);
+    const served = all.filter(a=>a.status==="confirmed" && isPast(planOf(a.plan).date)).length;
+    const ahead = all.filter(a=>!isPast(planOf(a.plan).date) && a.status!=="declined").length;
+    const declined = all.filter(a=>a.status==="declined").length;
+    const lastDate = all.filter(a=>isPast(planOf(a.plan).date)).map(a=>planOf(a.plan).date).sort().pop();
+    return {p, served, ahead, declined, lastDate};
+  }).sort((a,b)=>(b.served+b.ahead)-(a.served+a.ahead));
+
+  const load = `
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Volunteer load</span><span class="eyebrow" style="margin-left:auto">Who is carrying too much, and who was forgotten</span></div>
+      <div class="tbl"><table>
+        <thead><tr><th>Person</th><th>Asked for</th><th>Served (past)</th><th>Upcoming</th><th>Declines</th><th class="ta-r">Last served</th></tr></thead>
+        <tbody>
+          ${loadRows.map(r=>`
+            <tr>
+              <td><span class="row" style="gap:9px;flex-wrap:nowrap">${avatarFor(r.p.id,"sm")}<span><b style="font-size:13px">${esc(r.p.name)}</b><div style="font-size:11.5px;color:var(--text-2)">${esc(r.p.role)}</div></span></span></td>
+              <td style="font-size:12.5px;color:var(--text-2)">${esc(r.p.freq)}</td>
+              <td class="num">${r.served}</td>
+              <td>${r.ahead>2?`<span class="tag t-hot">${r.ahead} ahead</span>`:`<span class="num">${r.ahead}</span>`}</td>
+              <td class="num">${r.declined||"—"}</td>
+              <td class="ta-r" style="font-size:12px;color:var(--text-2)">${r.lastDate?shortDate(r.lastDate):"Never"}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table></div>
+      <div class="card-bd" style="border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm" data-act="export">Export roster CSV</button>
+        <button class="btn btn-sm" data-act="thankYou">Send a thank-you to everyone who served</button>
+      </div>
+    </div>`;
+
+  return `
+  <div class="grid">
+    <div class="pills">
+      ${tabs.map(([k,l])=>`<button class="pill" data-reporttab="${k}" aria-pressed="${state.reportTab===k}">${l}</button>`).join("")}
+    </div>
+    ${state.reportTab==="ccli"?ccli:state.reportTab==="length"?length:load}
+  </div>`;
+}
+
+/* ---------------- top bar actions ---------------- */
+function topActions(){
+  const map = {
+    dashboard:`<button class="btn btn-sm" data-act="addBlockout">Add a blockout</button><button class="btn btn-sm btn-primary" data-act="newPlan">New plan</button>`,
+    plans:`<button class="btn btn-sm" data-act="export">Export</button><button class="btn btn-sm btn-primary" data-act="newPlan">New plan</button>`,
+    plan:`<button class="btn btn-sm" data-act="print">Print order</button><button class="btn btn-sm" data-golive="${state.planId}">Go live</button><button class="btn btn-sm btn-primary" data-act="sendRequests">Send requests</button>`,
+    live:`<button class="btn btn-sm" data-openplan="${live.planId}">Back to the plan</button><button class="btn btn-sm btn-primary" data-act="message">Message the team</button>`,
+    teams:`<button class="btn btn-sm" data-act="export">Export roster</button><button class="btn btn-sm btn-primary" data-act="addPerson">Add someone</button>`,
+    matrix:`<button class="btn btn-sm" data-act="export">Export matrix</button><button class="btn btn-sm btn-primary" data-act="sendAll">Send every open request</button>`,
+    songs:`<button class="btn btn-sm" data-act="importSong">Import from SongSelect</button><button class="btn btn-sm btn-primary" data-act="newSong">Add a song</button>`,
+    media:`<button class="btn btn-sm btn-primary" data-act="upload">Upload files</button>`,
+    templates:`<button class="btn btn-sm btn-primary" data-act="newTemplate">New template</button>`,
+    reports:`<button class="btn btn-sm btn-primary" data-act="export">Export this report</button>`,
+  };
+  return map[state.view] || "";
+}
+
+/* ---------------- modals ---------------- */
+function modalHTML(){
+  if(!state.modal) return "";
+  const m = state.modal;
+  const planOptions = plans.filter(p=>!isPast(p.date)).map(p=>`<option value="${p.id}" ${p.id===state.planId?"selected":""}>${esc(typeOf(p.type).name)} · ${longDate(p.date)}</option>`).join("");
+
+  const bodies = {
+    addSong:{
+      t:"Add a song to the plan", d:"It drops in at the end of the order — drag it where it belongs with the arrows.",
+      body:`
+        <div class="field"><label>Song</label><select class="input" id="as_song">${songs.map(s=>`<option value="${s.id}">${esc(s.title)} — ${esc(s.author)}</option>`).join("")}</select></div>
+        <div class="duo">
+          <div class="field"><label>Key</label><select class="input" id="as_key">${KEYS.map(k=>`<option ${k==="G"?"selected":""}>${k}</option>`).join("")}</select></div>
+          <div class="field"><label>Length</label><input class="input" id="as_len" value="5:00"></div>
+        </div>
+        <div class="field"><label>Who leads it</label><select class="input" id="as_who"><option value="">— unassigned —</option>${people.filter(p=>p.can.includes("Worship Leader")||p.can.includes("Vocals")).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select></div>`,
+      ok:"Add to the order"
+    },
+    addItem:{
+      t:"Add an item", d:"Anything that is not a song — a video, an offering, a baptism, a message.",
+      body:`
+        <div class="field"><label>What is it</label><input class="input" id="ai_title" placeholder="Baptism testimonies"></div>
+        <div class="duo">
+          <div class="field"><label>Length (m:ss)</label><input class="input" id="ai_len" value="3:00"></div>
+          <div class="field"><label>Who leads it</label><select class="input" id="ai_who"><option value="">— unassigned —</option>${people.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select></div>
+        </div>
+        <div class="field"><label>Description</label><textarea class="input" id="ai_desc" rows="2" placeholder="What happens here"></textarea></div>`,
+      ok:"Add it"
+    },
+    addHeader:{
+      t:"Add a header", d:"Headers group the order into sections. They take no time.",
+      body:`<div class="field"><label>Section name</label><input class="input" id="ah_title" placeholder="Response"></div>`,
+      ok:"Add the header"
+    },
+    newPlan:{
+      t:"Create a plan", d:"Pick the service type and a template, and the order fills itself in.",
+      body:`
+        <div class="duo">
+          <div class="field"><label>Service type</label><select class="input" id="np_type">${TYPES.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("")}</select></div>
+          <div class="field"><label>Date</label><input class="input" id="np_date" type="date" value="2026-09-06"></div>
+        </div>
+        <div class="duo">
+          <div class="field"><label>Service starts</label><input class="input" id="np_start" type="time" value="10:00"></div>
+          <div class="field"><label>Rehearsal</label><input class="input" id="np_reh" type="time" value="08:00"></div>
+        </div>
+        <div class="field"><label>Series or title</label><input class="input" id="np_series" placeholder="Raíces · Semana 5"></div>
+        <div class="field"><label>Start from</label><select class="input" id="np_tpl"><option value="">— empty plan —</option>${templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("")}</select></div>`,
+      ok:"Create the plan"
+    },
+    schedule:{
+      t:`Schedule ${esc(m.position||"a position")}`, d:m.planId?`${typeOf(planOf(m.planId).type).name} · ${longDate(planOf(m.planId).date)}`:"",
+      body:(()=>{
+        /* Every body is built before one is picked, so this runs even
+           when another modal is open and there is no plan in hand. */
+        const plan = planOf(m.planId);
+        if(!plan) return "";
+        const eligible = people.filter(p=>!m.position || p.can.includes(m.position));
+        const pool = eligible.length ? eligible : people;
+        return `
+        <div class="field"><label>Who</label>
+          <select class="input" id="sc_person">
+            ${pool.map(p=>{
+              const b = blockedOn(p.id, plan.date);
+              const already = sched.filter(a=>a.plan===plan.id && a.personId===p.id).length;
+              return `<option value="${p.id}">${esc(p.name)}${b?" — blocked out":""}${already?` — already on ${already} position${already===1?"":"s"}`:""}</option>`;
+            }).join("")}
+          </select>
+        </div>
+        ${eligible.length ? "" : `<div style="background:var(--amber-wash);border:1px solid #E8D5A8;border-radius:8px;padding:11px 12px;font-size:12px;color:var(--amber)">Nobody on the roster is trained for ${esc(m.position||"this position")} yet, so everyone is listed.</div>`}
+        <div class="field"><label>Send it now, or leave it as a draft</label>
+          <select class="input" id="sc_status">
+            <option value="unconfirmed">Send the request now</option>
+            <option value="draft">Pencil them in, ask later</option>
+            <option value="confirmed">They already said yes</option>
+          </select>
+        </div>`;
+      })(),
+      ok:"Schedule them"
+    },
+    decline:{
+      t:"Decline this request", d:m.label||"",
+      body:`
+        <div class="field"><label>Anything the team should know</label><textarea class="input" id="dc_note" rows="2" placeholder="Out of town that weekend"></textarea></div>
+        <div style="background:#FBF7F4;border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-size:12px;color:var(--text-2)">The position reopens immediately and shows up on the matrix so someone else can be asked.</div>`,
+      ok:"Decline"
+    },
+    blockout:{
+      t:"Add a blockout", d:"Nobody will be able to schedule this person on these dates.",
+      body:`
+        <div class="field"><label>Who</label><select class="input" id="bo_person">${people.map(p=>`<option value="${p.id}" ${p.id===(m.personId||ME)?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
+        <div class="duo">
+          <div class="field"><label>From</label><input class="input" id="bo_from" type="date" value="2026-09-06"></div>
+          <div class="field"><label>To</label><input class="input" id="bo_to" type="date" value="2026-09-13"></div>
+        </div>
+        <div class="field"><label>Reason</label><input class="input" id="bo_reason" placeholder="Family trip"></div>`,
+      ok:"Save the blockout"
+    },
+    addPerson:{
+      t:`Add someone to ${esc(teamOf(state.teamId).name)}`, d:"They get an email inviting them to the team and their first request.",
+      body:`
+        <div class="field"><label>Full name</label><input class="input" id="ap_name" placeholder="Gabriela Núñez"></div>
+        <div class="field"><label>Email</label><input class="input" id="ap_email" type="email" placeholder="name@somosreino.org"></div>
+        <div class="field"><label>Position they can serve</label><select class="input" id="ap_pos">${teamOf(state.teamId).positions.map(p=>`<option>${esc(p)}</option>`).join("")}</select></div>
+        <div class="field"><label>How often to ask</label><select class="input" id="ap_freq">${["Weekly","Every other week","Once a month","As needed"].map(f=>`<option ${f==="Every other week"?"selected":""}>${f}</option>`).join("")}</select></div>`,
+      ok:"Add and invite"
+    },
+    trainPerson:{
+      t:"Add a position", d:`${esc(personName(state.personId))} will start showing up as eligible for it.`,
+      body:`<div class="field"><label>Position</label><select class="input" id="tp_pos">${[...new Set(TEAMS.flatMap(t=>t.positions))].filter(p=>!(personOf(state.personId)?.can||[]).includes(p)).map(p=>`<option>${esc(p)}</option>`).join("")}</select></div>`,
+      ok:"Add it"
+    },
+    songToPlan:{
+      t:"Add to a plan", d:m.songTitle||"",
+      body:`
+        <div class="field"><label>Plan</label><select class="input" id="sp_plan">${planOptions}</select></div>
+        <div class="duo">
+          <div class="field"><label>Key</label><select class="input" id="sp_key">${KEYS.map(k=>`<option ${k===(songOf(m.songId)?.key)?"selected":""}>${k}</option>`).join("")}</select></div>
+          <div class="field"><label>Length</label><input class="input" id="sp_len" value="${mmss(songOf(m.songId)?.arrangements[0].len || 300)}"></div>
+        </div>`,
+      ok:"Add to the plan"
+    },
+    newSong:{
+      t:"Add a song", d:"Only the title is required — the rest can be filled in later.",
+      body:`
+        <div class="field"><label>Title</label><input class="input" id="ns_title" placeholder="Nueva canción"></div>
+        <div class="duo">
+          <div class="field"><label>Author</label><input class="input" id="ns_author" value="Somos Reino Worship"></div>
+          <div class="field"><label>CCLI number</label><input class="input" id="ns_ccli" placeholder="7000000"></div>
+        </div>
+        <div class="duo">
+          <div class="field"><label>Default key</label><select class="input" id="ns_key">${KEYS.map(k=>`<option ${k==="G"?"selected":""}>${k}</option>`).join("")}</select></div>
+          <div class="field"><label>Tempo</label><input class="input" id="ns_bpm" value="72" inputmode="numeric"></div>
+        </div>
+        <div class="field"><label>Language</label><select class="input" id="ns_lang"><option value="ES">Español</option><option value="EN">English</option></select></div>`,
+      ok:"Add the song"
+    },
+    message:{
+      t:"Message the team", d:"Goes to everyone scheduled on this plan by text and email.",
+      body:`
+        <div class="field"><label>Message</label><textarea class="input" id="ms_body" rows="3" placeholder="Doors at 9:30 — we're starting the run at 8:45 sharp."></textarea></div>
+        <div style="background:#FBF7F4;border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-size:12px;color:var(--text-2)">${schedFor(live.planId||state.planId).filter(a=>a.status!=="declined").length} people will get this.</div>`,
+      ok:"Send it"
+    },
+    upload:{
+      t:"Upload files", d:"Charts, planning tracks, slides, stage plots — anything the team needs on Sunday.",
+      body:`
+        <div class="field"><label>Attach to</label><select class="input" id="up_link"><option>Sunday Aug 16</option><option>Series artwork</option><option>Production</option><option>Host Team</option></select></div>
+        <div class="field"><label>Files</label><div style="border:1px dashed var(--line-2);border-radius:8px;padding:18px;text-align:center;font-size:12.5px;color:var(--text-2)">Drop files here<br><span style="font-size:11px">PDF, MP3, MP4, Keynote, ProPresenter</span></div></div>`,
+      ok:"Upload"
+    },
+    generic:{ t:m.title||"Coming up next", d:m.desc||"", body:`<div style="font-size:13px;color:var(--text-2)">${esc(m.body||"")}</div>`, ok:"Got it" },
+  };
+
+  const cfg = bodies[m.kind] || bodies.generic;
+  return `<div class="scrim" data-scrim>
+    <div class="modal" role="dialog" aria-modal="true" aria-label="${esc(cfg.t)}">
+      <div class="modal-hd"><div class="modal-t">${cfg.t}</div>${cfg.d?`<div class="modal-d">${esc(cfg.d)}</div>`:""}</div>
+      <div class="modal-bd">${cfg.body}</div>
+      <div class="modal-ft">
+        <button class="btn btn-sm" data-act="closeModal">Cancel</button>
+        <button class="btn btn-sm btn-primary" data-act="confirmModal">${cfg.ok}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- toast ---------------- */
+let toastTimer;
+function toast(msg){
+  const el = $("#toast");
+  el.innerHTML = `<span class="tick">✓</span> ${esc(msg)}`;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove("on"), 2600);
+}
+
+/* ---------------- render ---------------- */
+const VIEWS = {dashboard:viewDashboard, plans:viewPlans, plan:viewPlan, live:viewLive, teams:viewTeams,
+               matrix:viewMatrix, songs:viewSongs, media:viewMedia, templates:viewTemplates, reports:viewReports};
+
+function render(){
+  renderNav();
+  const t = TITLES[state.view];
+  $("#crumb").textContent = t.c;
+  $("#title").textContent = t.t();
+  $("#topActions").innerHTML = topActions();
+  $("#view").innerHTML = VIEWS[state.view]();
+  $("#modalRoot").innerHTML = modalHTML();
+  ensureLiveTimer();
+}
+
+/* ---------------- live clock ----------------
+   The clock runs on wall time, not on ticks, so a backgrounded tab
+   comes back with the right number instead of a slow one. */
+function absorb(){
+  if(live.running && live.startedAt){
+    const s = (Date.now()-live.startedAt)/1000;
+    live.base += s; live.baseTotal += s; live.startedAt = Date.now();
+  }
+  live.elapsed = live.base; live.total = live.baseTotal;
+}
+function paintLive(){
+  const el = $("#liveElapsed");
+  if(!el) return;
+  const p = planOf(live.planId);
+  const cur = playable(p)[live.idx];
+  const planned = cur ? cur.len : 0;
+  const diff = live.elapsed - planned;
+  el.textContent = mmss(live.elapsed);
+  $("#liveTotal").textContent = mmss(live.total);
+  const d = $("#liveDiff");
+  d.textContent = diff>0 ? `over by ${mmss(diff)}` : `${mmss(Math.max(0,planned-live.elapsed))} left`;
+  d.style.color = diff>0 ? "#E8A33D" : "#8B8394";
+  const f = $("#liveFill");
+  f.style.width = (planned ? Math.min(100,(live.elapsed/planned)*100) : 0) + "%";
+  f.classList.toggle("over", diff>0);
+}
+function liveTick(){
+  if(!live.running) return;
+  const s = (Date.now()-live.startedAt)/1000;
+  live.elapsed = live.base + s;
+  live.total = live.baseTotal + s;
+  paintLive();
+}
+/* Only tick while the live view is on screen and actually running. */
+function ensureLiveTimer(){
+  const wanted = state.view==="live" && live.running;
+  if(wanted && !liveTimer) liveTimer = setInterval(liveTick, 250);
+  if(!wanted && liveTimer){ clearInterval(liveTimer); liveTimer = null; }
+}
+function liveGo(idx){
+  const p = planOf(live.planId);
+  const items = playable(p);
+  absorb();
+  const cur = items[live.idx];
+  if(cur && live.elapsed>0.5) live.actual[cur.id] = Math.round(live.elapsed);
+  live.idx = Math.max(0, Math.min(idx, items.length));
+  live.base = 0; live.elapsed = 0;
+  /* Running past the last item ends the service and files the actual
+     length, which is what the length report reads. */
+  if(live.idx>=items.length){
+    live.running = false; live.startedAt = null;
+    p.actual = Math.round(live.total);
+    p.status = "complete";
+    toast(`Service complete — ${mmss(live.total)} against ${mmss(planLength(p))} planned`);
+  }
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click", e=>{
+  const t = e.target.closest(`[data-nav],[data-openplan],[data-golive],[data-item],[data-move],[data-delitem],[data-fill],
+    [data-unassign],[data-accept],[data-decline],[data-act],[data-planfilter],[data-planwhen],[data-team],[data-person],
+    [data-song],[data-songlang],[data-mediakind],[data-reporttab],[data-usetemplate],[data-dupe],[data-live],[data-liveto],
+    [data-cycle],[data-schedule],[data-fillon],[data-scrim]`.replace(/\s+/g,""));
+  if(!t) return;
+
+  if(t.hasAttribute("data-scrim")){ if(e.target===t){ state.modal=null; render(); } return; }
+
+  const d = t.dataset;
+
+  /* ---- navigation ---- */
+  if(d.nav){ state.view=d.nav; window.scrollTo({top:0}); return render(); }
+  if(d.openplan){ state.planId=d.openplan; state.itemId=null; state.view="plan"; window.scrollTo({top:0}); return render(); }
+  if(d.golive){
+    if(live.planId!==d.golive){ Object.assign(live,{planId:d.golive, idx:0, running:false, startedAt:null, base:0, baseTotal:0, elapsed:0, total:0, actual:{}}); }
+    state.view="live"; window.scrollTo({top:0}); return render();
+  }
+
+  /* ---- filters and selections ---- */
+  if(d.planfilter){ state.planFilter=d.planfilter; return render(); }
+  if(d.planwhen){ state.planWhen=d.planwhen; return render(); }
+  if(d.team){ state.teamId=d.team; const first=people.find(p=>p.teams.includes(d.team)); if(first) state.personId=first.id; return render(); }
+  if(d.person){ state.personId=d.person; return render(); }
+  if(d.song){ state.songId=d.song; return render(); }
+  if(d.songlang){ state.songLang=d.songlang; return render(); }
+  if(d.mediakind){ state.mediaKind=d.mediakind; return render(); }
+  if(d.reporttab){ state.reportTab=d.reporttab; return render(); }
+  if(d.item){ state.itemId = state.itemId===d.item ? null : d.item; return render(); }
+
+  /* ---- editing the order ---- */
+  if(d.move){
+    const p = planOf(state.planId);
+    const i = p.items.findIndex(x=>x.id===d.mid);
+    const j = d.move==="up" ? i-1 : i+1;
+    if(i<0 || j<0 || j>=p.items.length) return;
+    [p.items[i], p.items[j]] = [p.items[j], p.items[i]];
+    return render();
+  }
+  if(d.delitem){
+    const p = planOf(state.planId);
+    const item = p.items.find(x=>x.id===d.delitem);
+    p.items = p.items.filter(x=>x.id!==d.delitem);
+    if(state.itemId===d.delitem) state.itemId=null;
+    toast(`Removed ${item?item.title:"the item"} from the order`);
+    return render();
+  }
+
+  /* ---- scheduling ---- */
+  if(d.fill){
+    const [team,position] = d.fill.split("|");
+    state.modal = {kind:"schedule", planId:state.planId, team, position};
+    return render();
+  }
+  if(d.fillon){
+    const [planId,team,position] = d.fillon.split("|");
+    state.modal = {kind:"schedule", planId, team, position};
+    return render();
+  }
+  if(d.schedule){
+    const [planId,personId] = d.schedule.split("|");
+    const open = openSlots(planId)[0];
+    state.modal = {kind:"schedule", planId, team:open?.team, position:open?.position, personId};
+    return render();
+  }
+  if(d.unassign){
+    const a = sched.find(x=>x.id===d.unassign);
+    sched = sched.filter(x=>x.id!==d.unassign);
+    if(a) toast(`${personName(a.personId)} taken off ${a.position}`);
+    return render();
+  }
+  if(d.cycle){
+    /* Click a matrix cell to walk a request forward without opening
+       anything: waiting → confirmed → declined → waiting. */
+    const a = sched.find(x=>x.id===d.cycle);
+    if(!a) return;
+    const order = {draft:"unconfirmed", unconfirmed:"confirmed", confirmed:"declined", declined:"unconfirmed"};
+    a.status = order[a.status] || "unconfirmed";
+    toast(`${personName(a.personId)} · ${a.position} — ${a.status==="unconfirmed"?"request sent":a.status}`);
+    return render();
+  }
+  if(d.accept){
+    const a = sched.find(x=>x.id===d.accept);
+    if(a){ a.status="confirmed"; toast(`You're confirmed for ${a.position} on ${shortDate(planOf(a.plan).date)}`); }
+    return render();
+  }
+  if(d.decline){
+    const a = sched.find(x=>x.id===d.decline);
+    if(a) state.modal={kind:"decline", assignmentId:a.id, label:`${a.position} · ${longDate(planOf(a.plan).date)}`};
+    return render();
+  }
+
+  /* ---- plans ---- */
+  if(d.dupe){
+    const src = planOf(d.dupe);
+    const copy = structuredClone({...src, notes:{...src.notes}});
+    copy.id = "pl_"+Date.now();
+    copy.date = nextWeek(src.date);
+    copy.status = "draft";
+    copy.actual = undefined;
+    copy.items = copy.items.map(i=>({...i, id:"i"+(++itemSeq)}));
+    plans.push(copy);
+    state.planId = copy.id; state.itemId=null; state.view="plan";
+    toast(`Duplicated to ${longDate(copy.date)} — the team did not come with it`);
+    return render();
+  }
+  if(d.usetemplate){
+    state.modal = {kind:"newPlan", templateId:d.usetemplate};
+    return render();
+  }
+
+  /* ---- live controls ---- */
+  if(d.live){
+    if(d.live==="start"){ live.running=true; live.startedAt=Date.now(); }
+    else if(d.live==="pause"){ absorb(); live.running=false; live.startedAt=null; }
+    else if(d.live==="next"){ liveGo(live.idx+1); }
+    else if(d.live==="prev"){ liveGo(live.idx-1); }
+    else if(d.live==="reset"){ Object.assign(live,{idx:0,running:false,startedAt:null,base:0,baseTotal:0,elapsed:0,total:0,actual:{}}); toast("Clock reset"); }
+    return render();
+  }
+  if(d.liveto){ liveGo(parseInt(d.liveto,10)); return render(); }
+
+  /* ---- everything reachable by data-act ---- */
+  const act = d.act;
+  if(act==="closeModal"){ state.modal=null; return render(); }
+  if(act==="addSong"){ state.modal={kind:"addSong"}; return render(); }
+  if(act==="addItem"){ state.modal={kind:"addItem"}; return render(); }
+  if(act==="addHeader"){ state.modal={kind:"addHeader"}; return render(); }
+  if(act==="newPlan"){ state.modal={kind:"newPlan"}; return render(); }
+  if(act==="addBlockout"){ state.modal={kind:"blockout", personId:ME}; return render(); }
+  if(act==="addBlockoutFor"){ state.modal={kind:"blockout", personId:state.personId}; return render(); }
+  if(act==="addPerson"){ state.modal={kind:"addPerson"}; return render(); }
+  if(act==="trainPerson"){ state.modal={kind:"trainPerson"}; return render(); }
+  if(act==="newSong"){ state.modal={kind:"newSong"}; return render(); }
+  if(act==="upload"){ state.modal={kind:"upload"}; return render(); }
+  if(act==="message"){ state.modal={kind:"message"}; return render(); }
+  if(act==="songToPlan"){ state.modal={kind:"songToPlan", songId:d.sid, songTitle:songOf(d.sid)?.title}; return render(); }
+
+  if(act==="sendRequests" || act==="sendAll"){
+    const scope = act==="sendAll" ? sched.filter(a=>!isPast(planOf(a.plan).date)) : schedFor(state.planId);
+    const drafts = scope.filter(a=>a.status==="draft");
+    drafts.forEach(a=>{ a.status="unconfirmed"; });
+    toast(drafts.length ? `${drafts.length} request${drafts.length===1?"":"s"} sent by text and email` : "Everyone has already been asked");
+    return render();
+  }
+  if(act==="print"){ window.print(); return; }
+
+  if(act==="confirmModal"){
+    const kind = state.modal?.kind;
+    const plan = planOf(state.planId);
+
+    if(kind==="addSong"){
+      const s = songOf($("#as_song").value);
+      const item = it("song", s.title, parseLen($("#as_len").value) || 300,
+        {songId:s.id, key:$("#as_key").value, arr:s.arrangements[0].name, who:$("#as_who").value});
+      plan.items.push(item);
+      state.itemId = item.id;
+      toast(`${s.title} added in ${item.key}`);
+    } else if(kind==="addItem"){
+      const title = $("#ai_title").value.trim();
+      if(!title){ toast("Give the item a name"); return; }
+      const item = it("item", title, parseLen($("#ai_len").value), {who:$("#ai_who").value, desc:$("#ai_desc").value.trim()});
+      plan.items.push(item);
+      state.itemId = item.id;
+      toast(`${title} added to the order`);
+    } else if(kind==="addHeader"){
+      const title = $("#ah_title").value.trim() || "Section";
+      plan.items.push(it("header", title, 0));
+      toast(`${title} added`);
+    } else if(kind==="newPlan"){
+      const type = $("#np_type").value;
+      const date = $("#np_date").value || "2026-09-06";
+      const [sh,sm] = ($("#np_start").value||"10:00").split(":").map(Number);
+      const [rh,rm] = ($("#np_reh").value||"08:00").split(":").map(Number);
+      const tpl = templates.find(x=>x.id===$("#np_tpl").value);
+      const created = {
+        id:"pl_"+Date.now(), type, date, start:sh*60+sm, rehearsal:rh*60+rm,
+        series:$("#np_series").value.trim() || "Untitled plan", status:"draft", target:4500,
+        notes:{vision:"",rehearsal:"",kids:"",announcements:""}, files:[],
+        items:(tpl?tpl.items:[]).map(([kind,title,len])=>it(kind==="song"?"song":kind, title, len)),
+      };
+      plans.push(created);
+      if(tpl) tpl.uses++;
+      state.planId = created.id; state.itemId=null; state.view="plan";
+      toast(`${typeOf(type).name} created for ${longDate(date)}`);
+    } else if(kind==="schedule"){
+      const m = state.modal;
+      const personId = $("#sc_person").value;
+      const status = $("#sc_status").value;
+      const target = planOf(m.planId);
+      const block = blockedOn(personId, target.date);
+      sched.push({id:"a"+(++asSeq), plan:m.planId, team:m.team||"worship", position:m.position||"Volunteer", personId, status, note:""});
+      toast(block
+        ? `${personName(personId)} scheduled — heads up, they blocked out ${shortDate(block.from)} (${block.reason})`
+        : status==="draft" ? `${personName(personId)} penciled in for ${m.position}` : `Request sent to ${personName(personId)} for ${m.position}`);
+    } else if(kind==="decline"){
+      const a = sched.find(x=>x.id===state.modal.assignmentId);
+      if(a){
+        a.status="declined";
+        a.note=$("#dc_note").value.trim();
+        toast(`Declined — ${a.position} on ${shortDate(planOf(a.plan).date)} is open again`);
+      }
+    } else if(kind==="blockout"){
+      const personId=$("#bo_person").value, from=$("#bo_from").value, to=$("#bo_to").value||$("#bo_from").value;
+      if(!from){ toast("Pick a start date"); return; }
+      blockouts.push({id:"b"+Date.now(), personId, from, to, reason:$("#bo_reason").value.trim()||"Unavailable"});
+      toast(`${personName(personId)} blocked out ${shortDate(from)}${from===to?"":" – "+shortDate(to)}`);
+    } else if(kind==="addPerson"){
+      const name=$("#ap_name").value.trim(), email=$("#ap_email").value.trim();
+      if(!name || !email){ toast("A name and an email are needed"); return; }
+      const created={id:"p"+Date.now(), name, role:"Volunteer", email, freq:$("#ap_freq").value,
+        can:[$("#ap_pos").value], teams:[state.teamId], since:String(new Date().getFullYear())};
+      people.push(created);
+      state.personId=created.id;
+      toast(`${name} added to ${teamOf(state.teamId).name} — invitation sent`);
+    } else if(kind==="trainPerson"){
+      const person=personOf(state.personId);
+      const pos=$("#tp_pos")?.value;
+      if(person && pos && !person.can.includes(pos)){
+        person.can.push(pos);
+        const team=TEAMS.find(t=>t.positions.includes(pos));
+        if(team && !person.teams.includes(team.id)) person.teams.push(team.id);
+        toast(`${person.name} can now be scheduled for ${pos}`);
+      }
+    } else if(kind==="songToPlan"){
+      const s=songOf(state.modal.songId);
+      const target=planOf($("#sp_plan").value);
+      target.items.push(it("song", s.title, parseLen($("#sp_len").value)||300,
+        {songId:s.id, key:$("#sp_key").value, arr:s.arrangements[0].name}));
+      toast(`${s.title} added to ${longDate(target.date)}`);
+    } else if(kind==="newSong"){
+      const title=$("#ns_title").value.trim();
+      if(!title){ toast("The song needs a title"); return; }
+      const created={id:"s"+Date.now(), title, author:$("#ns_author").value.trim()||"Unknown",
+        ccli:$("#ns_ccli").value.trim()||"—", key:$("#ns_key").value, bpm:parseInt($("#ns_bpm").value,10)||72,
+        meter:"4/4", themes:[], lang:$("#ns_lang").value,
+        arrangements:[{name:"Full band", len:300, seq:["Intro","V1","C","V2","C","Out"]}], files:[]};
+      songs.push(created);
+      state.songId=created.id; state.view="songs";
+      toast(`${title} added to the library`);
+    } else if(kind==="message"){
+      const body=$("#ms_body").value.trim();
+      const count=schedFor(live.planId||state.planId).filter(a=>a.status!=="declined").length;
+      toast(body ? `Sent to ${count} people` : "Nothing to send — the message was empty");
+    } else if(kind==="upload"){
+      media.unshift({id:"m"+Date.now(), name:"Uploaded file.pdf", kind:"pdf", size:"1.2 MB",
+        owner:ME, added:TODAY, linked:$("#up_link").value});
+      toast("Uploaded and attached");
+    } else {
+      toast("Done");
+    }
+    state.modal=null;
+    return render();
+  }
+
+  /* Things a full build owns — said plainly rather than pretended. */
+  const blurbs = {
+    export:"CSV on its way to your downloads",
+    download:`Downloading ${d.name||"the file"}`,
+    emailTeam:"Opening the email composer for everyone on this plan",
+    submitCcli:"Usage report queued for CCLI SongSelect",
+    thankYou:"Thank-you notes queued for everyone who served",
+    importSong:"SongSelect import opens in the full build",
+    newArrangement:"Arrangement editor opens in the full build",
+    newTemplate:"Template builder opens in the full build",
+    editTemplate:"Template editor opens in the full build",
+    addPosition:"Position editor opens in the full build",
+    attach:"File picker opens in the full build",
+    me:"Your profile opens in the full build",
+  };
+  if(blurbs[act]) toast(blurbs[act]);
+});
+
+/* Typing in the song search re-renders, so the caret has to be put back. */
+document.addEventListener("input", e=>{
+  const t = e.target;
+  if(t.hasAttribute("data-songq")){
+    state.songQ = t.value;
+    const pos = t.selectionStart;
+    render();
+    const el = $("[data-songq]");
+    if(el){ el.focus(); el.setSelectionRange(pos,pos); }
+  }
+});
+
+document.addEventListener("change", e=>{
+  const t = e.target, d = t.dataset;
+  const plan = planOf(state.planId);
+  const item = id => plan?.items.find(i=>i.id===id);
+
+  if(d.len){ const i=item(d.len); if(i){ i.len=parseLen(t.value); toast(`${i.title} is now ${mmss(i.len)}`); } return render(); }
+  if(d.who){ const i=item(d.who); if(i){ i.who=t.value; } return render(); }
+  if(d.key){ const i=item(d.key); if(i){ i.key=t.value; toast(`${i.title} in ${t.value}`); } return render(); }
+  if(d.arr){
+    const i=item(d.arr);
+    if(i){
+      i.arr=t.value;
+      const ar=(songOf(i.songId)?.arrangements||[]).find(a=>a.name===t.value);
+      if(ar) i.len=ar.len;
+      toast(`${i.title} — ${t.value}`);
+    }
+    return render();
+  }
+  if(d.desc){ const i=item(d.desc); if(i) i.desc=t.value; return; }
+  if(d.note){ const i=item(d.nid); if(i){ i.notes[d.note]=t.value; toast("Note saved for the team"); } return render(); }
+  if(d.plannote){ if(plan){ plan.notes[d.plannote]=t.value; toast("Plan note saved"); } return; }
+  if(d.freq){ const p=personOf(d.freq); if(p){ p.freq=t.value; toast(`${p.name} — ${t.value}`); } return render(); }
+  if(t.hasAttribute("data-liveplan")){
+    Object.assign(live,{planId:t.value, idx:0, running:false, startedAt:null, base:0, baseTotal:0, elapsed:0, total:0, actual:{}});
+    return render();
+  }
+});
+
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape" && state.modal){ state.modal=null; return render(); }
+  /* Space and arrows run the service from the back of the room, but
+     only when the live view is up and nothing is being typed into. */
+  if(state.view!=="live" || state.modal) return;
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  if(e.key===" "){ e.preventDefault(); if(live.running){ absorb(); live.running=false; live.startedAt=null; } else { live.running=true; live.startedAt=Date.now(); } return render(); }
+  if(e.key==="ArrowRight"){ e.preventDefault(); liveGo(live.idx+1); return render(); }
+  if(e.key==="ArrowLeft"){ e.preventDefault(); liveGo(live.idx-1); return render(); }
+});
+
+/* The duplicate button offers the same weekday a week later. */
+function nextWeek(iso){
+  const d = asDate(iso);
+  d.setDate(d.getDate()+7);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+/* ---------------- boot ----------------
+   The gate matches the giving portal: any active account may look at
+   the schedule, because volunteers need to. The badge stays on "demo"
+   in every mode — the schedule below it is sample data either way. */
+function adoptProfile(profile){
+  const name = profile.full_name || profile.email;
+  const match = people.find(p=>p.email?.toLowerCase()===String(profile.email||"").toLowerCase())
+    || people.find(p=>p.name.toLowerCase()===String(name||"").toLowerCase());
+  if(match){ ME = match.id; }
+  else {
+    people.unshift({id:"me_"+profile.id, name, role:"Signed in", email:profile.email||"",
+      freq:"As needed", can:[], teams:[], since:String(new Date().getFullYear())});
+    ME = people[0].id;
+  }
+  $("#meName").textContent = name;
+  $("#meAvatar").textContent = initials(name);
+  $("#meRole").textContent = personOf(ME)?.role || "Volunteer";
+  state.personId = ME;
+}
+
+async function startPortal(){
+  render();
+  try{
+    const session = await getPortalSession();
+    if(session.mode==="signed-out") return mountAuthGate();
+    if(session.mode==="disabled") return mountForbiddenGate("This account has been deactivated. Ask a church administrator to restore access.");
+    if(session.mode==="forbidden") return mountForbiddenGate();
+    if(session.profile){ adoptProfile(session.profile); render(); }
+    showModeBadge({mode:"demo", portal:"Services"});
+  }catch(error){
+    showModeBadge({mode:"error", portal:"Services", error:error.message});
+  }
+}
+
+await startPortal();
+</script>
+</body>
+</html>

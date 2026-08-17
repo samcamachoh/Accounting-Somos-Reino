@@ -192,6 +192,7 @@ const STR = {
 
   tabAccount:{es:"Cuenta", en:"Account"},
   tabGiving:{es:"Aportaciones", en:"Giving"},
+  tabServices:{es:"Servicios", en:"Services"},
   tabFinance:{es:"Finanzas", en:"Finance"},
   tabSettings:{es:"Ajustes", en:"Settings"},
 
@@ -273,6 +274,9 @@ const TABS = [
    ico:"M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 15.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"},
   {id:"giving", label:"tabGiving", href:"/giving.html",
    ico:"M9 3.5v11M3.5 9h11"},
+  /* Ungated: volunteers need their own schedule, not just leadership. */
+  {id:"services", label:"tabServices", href:"/services.html",
+   ico:"M3.5 3.5h11v11h-11zM3.5 7h11M6.5 10h5M6.5 12h3"},
   {id:"finance", label:"tabFinance", href:"/finance.html", gate:()=>state.showFinance,
    ico:"M2.5 15.5h13M5 13V9M9 13V4M13 13v-6"},
   {id:"settings", label:"tabSettings", href:"/settings.html", gate:()=>state.showSettings,
