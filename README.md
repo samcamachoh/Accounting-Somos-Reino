@@ -6,7 +6,7 @@ leadership side of the books, behind the same sign-in.
 
 | Page | Who it's for |
 |---|---|
-| `index.html` | Home — the member portal entry, plus leadership routes when the role allows |
+| `index.html` | Members: your account — profile, payment methods, notifications — and the tabs to every portal your role opens |
 | `login.html` | Sign in, reset a password, choose a new one |
 | `giving.html` | Members: give, review history, manage recurring gifts (ES/EN) |
 | `finance.html` | Leadership: deposits, expenses, funds, people, reconciliation |
