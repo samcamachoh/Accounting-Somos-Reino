@@ -258,7 +258,7 @@ function viewAccount(){
     </div>
   </div>
 
-  <div class="section">
+  <div class="section" id="pay">
     <div class="card" style="padding:16px">
       <h2 style="margin-bottom:8px">${t("paymentSection")}</h2>
       ${cards.length ? cards.map(c=>`
@@ -418,6 +418,24 @@ document.addEventListener("click", async e=>{
 document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal){ state.modal=null; render(); } });
 
 /* ---------------- start ---------------- */
+/* The giving portal sends people here to add a card. Honour that the
+   same way the button does — the Stripe billing portal in live mode,
+   the card form in demo — and clear the parameter so a refresh or a
+   shared link does not reopen it. */
+async function handleAddCardLink(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get("add")!=="card") return;
+  history.replaceState(null, "", window.location.pathname + "#pay");
+  document.getElementById("pay")?.scrollIntoView({block:"start"});
+  if(backendMode==="ready"){
+    try{ await openBillingPortal(); }catch(error){ toast(error.message); }
+    return;
+  }
+  state.modal = {kind:"addCard"};
+  render();
+}
+
+
 function hydrate(snapshot, profile){
   ME = {
     name: profile.full_name || profile.email,
@@ -454,7 +472,8 @@ async function startPortal(){
       mountNav(session);
       render();
       document.body.classList.add("ready");
-      return showModeBadge({mode:"demo",portal:"Member"});
+      showModeBadge({mode:"demo",portal:"Member"});
+      return handleAddCardLink();
     }
 
     mountNav(session);
@@ -463,6 +482,7 @@ async function startPortal(){
     render();
     document.body.classList.add("ready");
     showModeBadge({mode:"ready",portal:"Member"});
+    await handleAddCardLink();
   }catch(error){
     render();
     document.body.classList.add("ready");

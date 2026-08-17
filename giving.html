@@ -122,21 +122,6 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 .section{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
 .empty{padding:26px 16px;text-align:center;color:var(--text-2);font-size:13.5px}
 
-/* give: fund cards */
-.fundlist{display:flex;flex-direction:column;gap:8px}
-.fundcard{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;border:1.5px solid var(--line);border-radius:var(--r-sm);background:var(--card);text-align:left;width:100%;transition:border-color .12s,box-shadow .12s}
-.fundcard[aria-pressed="true"]{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
-.fund-dot{width:11px;height:11px;border-radius:4px;margin-top:3px;flex:0 0 auto}
-.fund-name{font-size:14.5px;font-weight:700}
-.fund-blurb{font-size:12px;color:var(--text-2);margin-top:2px;line-height:1.4}
-.fund-radio{margin-left:auto;width:19px;height:19px;border-radius:50%;border:2px solid var(--line-2);flex:0 0 auto;display:grid;place-items:center;margin-top:2px}
-.fundcard[aria-pressed="true"] .fund-radio{border-color:var(--coral)}
-.fundcard[aria-pressed="true"] .fund-radio::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--coral)}
-.campaign{margin-top:9px}
-.campaign-bar{height:6px;background:#F1ECE9;border-radius:4px;overflow:hidden}
-.campaign-fill{height:100%;background:var(--sage);border-radius:4px}
-.campaign-label{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--text-2)}
-
 /* give: amount */
 .amt-display{text-align:center;padding:22px 10px 6px}
 .amt-display .cur{font-family:var(--display);font-size:22px;font-weight:700;vertical-align:top;position:relative;top:10px;color:var(--text-3)}
@@ -151,47 +136,18 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 .seg{display:flex;background:#F1ECE9;border-radius:999px;padding:3px;gap:2px}
 .seg button{flex:1;padding:12px 8px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--text-2);min-height:44px}
 .seg button[aria-pressed="true"]{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(23,21,28,.12)}
-.paymethod-row{display:flex;align-items:center;gap:11px;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r-sm);width:100%;text-align:left}
-.paymethod-row[aria-pressed="true"]{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
-.cardchip{width:34px;height:24px;border-radius:5px;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--mono);font-size:9px;font-weight:700;flex:0 0 auto}
-.feerow{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-sm)}
-.feerow-t{font-size:13.5px;font-weight:600}
-.feerow-d{font-size:11.5px;color:var(--text-2);margin-top:1px}
-/* Sticky bars overlay whatever precedes their resting place, so the
-   button and its caption were sitting on top of the amount chips. A fade
-   to the page colour lets that content dissolve behind the bar instead
-   of colliding with it. */
-.cta-bar{position:sticky;bottom:calc(var(--navh) + 14px + env(safe-area-inset-bottom));margin-top:6px;padding:34px 0 4px;background:linear-gradient(180deg,rgba(251,248,246,0) 0%,rgba(251,248,246,.86) 34%,var(--paper) 54%)}
-/* Stays sticky on desktop too. Making it static here put the give button
-   below the fold on every laptop, while mobile kept it in reach; column
-   height varies with content, so stickiness is what actually guarantees
-   it is always visible. */
-@media(min-width:760px){.cta-bar{bottom:20px;margin-top:18px}}
-/* Wide screens: the giving flow ran to ~1230px in a 640px column, so the
-   give button sat below the fold on a laptop while mobile kept it stuck
-   to the viewport. Put the fund picker alongside the amount, frequency,
-   payment and total stack so the whole decision fits on one screen.
-   Scoped to the give form — the success screen and the other views stay
-   a single column. */
-@media(min-width:1000px){
-  body[data-give-form="1"] .hdr-in{max-width:1000px}
-  body[data-give-form="1"] #view{
-    max-width:1000px;
-    display:grid;
-    grid-template-columns:minmax(0,380px) minmax(0,1fr);
-    column-gap:34px;
-    align-items:start;
-  }
-  /* Every child, not just .section — the CTA bar is a sibling of the
-     sections and would otherwise be auto-placed into the empty column. */
-  body[data-give-form="1"] #view > *{grid-column:2}
-  /* Span every row, otherwise the tall fund list defines row 1 and the
-     rest of the right-hand column gets pushed down past a dead gap.
-     A generous span keeps it correct if a section is ever added. */
-  body[data-give-form="1"] #view > .section:first-child{grid-column:1;grid-row:1 / span 20;position:sticky;top:20px}
+/* give: dropdowns. The arrow is drawn here because a bare <select> takes
+   the platform's, which looks nothing like the rest of the form. */
+.select{
+  appearance:none;width:100%;min-height:48px;padding:12px 40px 12px 14px;
+  border:1.5px solid var(--line-2);border-radius:var(--r-sm);background:var(--card);
+  font-size:15px;font-weight:600;color:var(--text);cursor:pointer;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%236C6570' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:12px;
 }
-.totalline{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 10px;font-size:12.5px;color:var(--text-2)}
-.totalline b{font-family:var(--mono);color:var(--text);font-size:13px}
+.select:focus{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-wash)}
+.cta{margin-top:4px}
+.cta-note{text-align:center;font-size:11.5px;color:var(--text-3);margin-top:9px}
 
 .success{background:var(--sage-wash);border:1px solid #BFDDCF;border-radius:var(--r);padding:20px 18px;text-align:center}
 .success .mark{width:40px;height:40px;border-radius:50%;background:var(--sage);color:#fff;display:grid;place-items:center;margin:0 auto 10px;font-size:18px}
@@ -300,24 +256,20 @@ const STR = {
   navRecurring:{es:"Recurrente", en:"Recurring"},
 
   greeting:{es:"Hola, {n}", en:"Hi, {n}"},
-  ytdLabel:{es:"Dado en 2026", en:"Given in 2026"},
-  chooseFund:{es:"¿A qué fondo?", en:"Which fund?"},
+  giveTitle:{es:"Dar", en:"Give"},
+  chooseFund:{es:"Fondo", en:"Fund"},
   chooseAmount:{es:"¿Cuánto?", en:"How much?"},
   custom:{es:"Otro", en:"Custom"},
   frequency:{es:"Frecuencia", en:"Frequency"},
   freqOnce:{es:"Una vez", en:"One time"},
-  freqWeekly:{es:"Semanal", en:"Weekly"},
+  freqRecurring:{es:"Recurrente (mensual)", en:"Recurring (monthly)"},
   freqMonthly:{es:"Mensual", en:"Monthly"},
+  freqWeekly:{es:"Semanal", en:"Weekly"},
   paymentMethod:{es:"Método de pago", en:"Payment method"},
-  addCard:{es:"＋ Agregar tarjeta", en:"＋ Add a card"},
-  coverFeeT:{es:"Cubrir el costo de procesamiento", en:"Cover the processing fee"},
-  coverFeeD:{es:"Agrega {f} para que el 100% llegue al fondo", en:"Adds {f} so 100% reaches the fund"},
-  totalToday:{es:"Total de hoy", en:"Total today"},
-  giveOnce:{es:"Dar {a} ahora", en:"Give {a} now"},
-  giveMonthly:{es:"Empezar {a} al mes", en:"Start {a} monthly"},
-  giveWeekly:{es:"Empezar {a} semanal", en:"Start {a} weekly"},
-  needCard:{es:"Agrega un método de pago primero", en:"Add a payment method first"},
-  needAmount:{es:"Elige un monto mayor a cero", en:"Choose an amount above zero"},
+  addPaymentMethod:{es:"＋ Agregar método de pago…", en:"＋ Add payment method…"},
+  stripeCheckout:{es:"Pago seguro con Stripe", en:"Secure checkout with Stripe"},
+  submitGift:{es:"Enviar mi aportación", en:"Submit your gift"},
+  needCard:{es:"Agrega un método de pago para poder dar.", en:"Add a payment method before you can give."},
   secured:{es:"Protegido por Stripe · recibirás un recibo por correo", en:"Secured by Stripe · you'll get an email receipt"},
 
   successTitleOnce:{es:"¡Gracias, {n}!", en:"Thank you, {n}!"},
@@ -354,14 +306,9 @@ const STR = {
 
   defaultTag:{es:"Predeterminada", en:"Default"},
 
-  add:{es:"Agregar", en:"Add"},
   cancelBtn:{es:"Cancelar", en:"Cancel"},
   save:{es:"Guardar", en:"Save"},
   close:{es:"Cerrar", en:"Close"},
-  addCardTitle:{es:"Agregar una tarjeta", en:"Add a card"},
-  cardNumber:{es:"Número de tarjeta", en:"Card number"},
-  expiry:{es:"Vence", en:"Expires"},
-  cardAdded:{es:"Tarjeta agregada", en:"Card added"},
   recPaused:{es:"Aportación pausada", en:"Gift paused"},
   recResumed:{es:"Aportación reanudada", en:"Gift resumed"},
   recUpdated:{es:"Monto actualizado", en:"Amount updated"},
@@ -378,14 +325,14 @@ const MONTHS = {
 };
 
 /* ---------------- data ---------------- */
+/* Two funds, because those are the two things people give to. In live
+   mode this is replaced by whatever funds the church has defined. The
+   colour is still used by the history rows. */
 let FUNDS = [
-  {id:"general", color:"#F7746D", wash:"#FDECEA", name:{es:"Fondo General",en:"General Fund"}, blurb:{es:"Sostiene el ministerio semanal, el personal y la operación de la iglesia.",en:"Supports weekly ministry, staff, and church operations."}},
-  {id:"building", color:"#3F7A63", wash:"#E7F1EC", name:{es:"Techo Nuevo",en:"New Roof"}, blurb:{es:"Campaña para reemplazar el techo del santuario.",en:"Campaign to replace the sanctuary roof."}, campaign:{goal:150000, raised:63900}},
-  {id:"missions", color:"#2F6E8F", wash:"#E6EFF3", name:{es:"Misiones",en:"Missions"}, blurb:{es:"Envía a nuestra gente y apoyo a Honduras y más allá.",en:"Sends our people and support to Honduras and beyond."}},
-  {id:"benev", color:"#A97613", wash:"#FBF0DC", name:{es:"Benevolencia",en:"Benevolence"}, blurb:{es:"Ayuda directa para familias en crisis.",en:"Direct help for families in crisis."}},
-  {id:"youth", color:"#8A4A6B", wash:"#F3E7ED", name:{es:"Jóvenes",en:"Youth"}, blurb:{es:"Campamentos, retiros y reuniones semanales de jóvenes.",en:"Camps, retreats, and weekly youth gatherings."}},
+  {id:"offering", color:"#F7746D", name:{es:"Ofrenda", en:"Offering"}},
+  {id:"tithe",    color:"#3F7A63", name:{es:"Diezmo",  en:"Tithe"}},
 ];
-const fundById = id => FUNDS.find(f=>f.id===id);
+const fundById = id => FUNDS.find(f=>f.id===id) || FUNDS[0];
 
 /* Only the name is needed here — the rest of the profile is edited
    on the member portal home. */
@@ -397,39 +344,39 @@ let cards = [
 ];
 
 let gifts = [
-  {id:"g1", date:"2026-01-12", fund:"building", amount:1000, method:"card", cardId:"c1", recurringId:null},
-  {id:"g2", date:"2026-01-27", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
-  {id:"g3", date:"2026-02-14", fund:"youth", amount:40, method:"card", cardId:"c1", recurringId:null},
-  {id:"g4", date:"2026-02-24", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
-  {id:"g5", date:"2026-03-15", fund:"building", amount:250, method:"card", cardId:"c1", recurringId:null},
-  {id:"g6", date:"2026-03-29", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
-  {id:"g7", date:"2026-04-26", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
-  {id:"g8", date:"2026-05-10", fund:"missions", amount:100, method:"card", cardId:"c1", recurringId:null},
-  {id:"g9", date:"2026-05-31", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
-  {id:"g10", date:"2026-06-28", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
-  {id:"g11", date:"2026-07-06", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
-  {id:"g12", date:"2026-07-13", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
-  {id:"g13", date:"2026-07-20", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
-  {id:"g14", date:"2026-07-27", fund:"general", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
-  {id:"g15", date:"2026-07-27", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
-  {id:"g16", date:"2026-08-03", fund:"youth", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+  {id:"g1", date:"2026-01-12", fund:"offering", amount:1000, method:"card", cardId:"c1", recurringId:null},
+  {id:"g2", date:"2026-01-27", fund:"tithe", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g3", date:"2026-02-14", fund:"offering", amount:40, method:"card", cardId:"c1", recurringId:null},
+  {id:"g4", date:"2026-02-24", fund:"tithe", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g5", date:"2026-03-15", fund:"offering", amount:250, method:"card", cardId:"c1", recurringId:null},
+  {id:"g6", date:"2026-03-29", fund:"tithe", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g7", date:"2026-04-26", fund:"tithe", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g8", date:"2026-05-10", fund:"offering", amount:100, method:"card", cardId:"c1", recurringId:null},
+  {id:"g9", date:"2026-05-31", fund:"tithe", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g10", date:"2026-06-28", fund:"tithe", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g11", date:"2026-07-06", fund:"offering", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+  {id:"g12", date:"2026-07-13", fund:"offering", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+  {id:"g13", date:"2026-07-20", fund:"offering", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+  {id:"g14", date:"2026-07-27", fund:"tithe", amount:450, method:"card", cardId:"c1", recurringId:"r1"},
+  {id:"g15", date:"2026-07-27", fund:"offering", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
+  {id:"g16", date:"2026-08-03", fund:"offering", amount:20, method:"card", cardId:"c1", recurringId:"r2"},
 
-  {id:"h1", date:"2025-03-08", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
-  {id:"h2", date:"2025-04-12", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
-  {id:"h3", date:"2025-05-10", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
-  {id:"h4", date:"2025-06-14", fund:"building", amount:300, method:"card", cardId:"c1", recurringId:null},
-  {id:"h5", date:"2025-06-21", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
-  {id:"h6", date:"2025-08-09", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
-  {id:"h7", date:"2025-09-13", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
-  {id:"h8", date:"2025-10-11", fund:"missions", amount:150, method:"card", cardId:"c1", recurringId:null},
-  {id:"h9", date:"2025-10-18", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
-  {id:"h10", date:"2025-12-06", fund:"general", amount:400, method:"card", cardId:"c1", recurringId:null},
-  {id:"h11", date:"2025-12-20", fund:"benev", amount:500, method:"card", cardId:"c1", recurringId:null},
+  {id:"h1", date:"2025-03-08", fund:"tithe", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h2", date:"2025-04-12", fund:"tithe", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h3", date:"2025-05-10", fund:"tithe", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h4", date:"2025-06-14", fund:"offering", amount:300, method:"card", cardId:"c1", recurringId:null},
+  {id:"h5", date:"2025-06-21", fund:"tithe", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h6", date:"2025-08-09", fund:"tithe", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h7", date:"2025-09-13", fund:"tithe", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h8", date:"2025-10-11", fund:"offering", amount:150, method:"card", cardId:"c1", recurringId:null},
+  {id:"h9", date:"2025-10-18", fund:"tithe", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h10", date:"2025-12-06", fund:"tithe", amount:400, method:"card", cardId:"c1", recurringId:null},
+  {id:"h11", date:"2025-12-20", fund:"offering", amount:500, method:"card", cardId:"c1", recurringId:null},
 ];
 
 let recurring = [
-  {id:"r1", fund:"general", amount:450, freq:"monthly", next:"2026-08-27", cardId:"c1", status:"active"},
-  {id:"r2", fund:"youth", amount:20, freq:"weekly", next:"2026-08-10", cardId:"c1", status:"active"},
+  {id:"r1", fund:"tithe", amount:450, freq:"monthly", next:"2026-08-27", cardId:"c1", status:"active"},
+  {id:"r2", fund:"offering", amount:20, freq:"weekly", next:"2026-08-10", cardId:"c1", status:"active"},
 ];
 
 const TODAY = new Date();
@@ -445,18 +392,16 @@ const state = {
      either place is the one you keep. */
   lang: localStorage.getItem("sr-lang") || "es",
   view:"give",
-  giveFund:"general",
+  giveFund:"offering",
   giveAmount:100,
   giveCustom:false,
   giveFreq:"once",
   giveCard: cards.find(c=>c.isDefault)?.id || null,
-  coverFee:false,
   justGave:null,
   historyYear:2026,
   modal:null,
 };
 const CHIPS = [25,50,100,250,500];
-const feeFor = amt => Math.round((amt*0.029+0.30)*100)/100;
 
 /* ---------------- derived ---------------- */
 const years = () => [...new Set(gifts.map(g=>g.date.slice(0,4)))].map(Number).sort((a,b)=>b-a);
@@ -501,35 +446,17 @@ function viewGive(){
     </div>`;
   }
 
-  const fund = fundById(state.giveFund);
   const amt = state.giveAmount||0;
-  const fee = state.coverFee ? feeFor(amt) : 0;
-  const total = amt+fee;
-  const canGive = amt>0 && (backendMode==="ready" || state.giveCard);
-  const ctaLabel = state.giveFreq==="once" ? t("giveOnce",{a:money0(amt)})
-    : state.giveFreq==="monthly" ? t("giveMonthly",{a:money0(amt)})
-    : t("giveWeekly",{a:money0(amt)});
+  /* In live mode Stripe Checkout collects the payment method, so the
+     dropdown is a saved-card picker only when we are the ones charging. */
+  const stripeCheckout = backendMode==="ready";
+  const canGive = amt>0 && (stripeCheckout || Boolean(state.giveCard));
 
   return `
   <div class="section">
     <div>
       <div class="eyebrow">${t("greeting",{n:ME.name.split(" ")[0]})}</div>
-      <h1>${t("chooseFund")}</h1>
-    </div>
-    <div class="fundlist">
-      ${FUNDS.map(f=>`
-        <button class="fundcard" data-fund="${f.id}" aria-pressed="${state.giveFund===f.id}">
-          <span class="fund-dot" style="background:${f.color}"></span>
-          <span style="flex:1;min-width:0">
-            <span class="fund-name">${f.name[state.lang]}</span>
-            <span class="fund-blurb">${f.blurb[state.lang]}</span>
-            ${f.campaign?`<span class="campaign">
-              <span class="campaign-bar"><span class="campaign-fill" style="width:${Math.min(100,f.campaign.raised/f.campaign.goal*100)}%"></span></span>
-              <span class="campaign-label"><span>${money0(f.campaign.raised)}</span><span>${money0(f.campaign.goal)}</span></span>
-            </span>`:""}
-          </span>
-          <span class="fund-radio"></span>
-        </button>`).join("")}
+      <h1>${t("giveTitle")}</h1>
     </div>
   </div>
 
@@ -538,7 +465,7 @@ function viewGive(){
     <div class="card">
       <div class="amt-display">
         ${state.giveCustom
-          ? `<span class="cur">$</span><input id="customAmt" inputmode="decimal" value="${amt||""}" placeholder="0">`
+          ? `<span class="cur">$</span><input id="customAmt" inputmode="decimal" value="${amt||""}" placeholder="0" aria-label="${t("chooseAmount")}">`
           : `<span class="cur">$</span><span class="num">${amt}</span>`}
       </div>
       <div style="padding:0 16px 16px">
@@ -554,42 +481,35 @@ function viewGive(){
     <h2>${t("frequency")}</h2>
     <div class="seg">
       <button data-freq="once" aria-pressed="${state.giveFreq==="once"}">${t("freqOnce")}</button>
-      <button data-freq="weekly" aria-pressed="${state.giveFreq==="weekly"}">${t("freqWeekly")}</button>
-      <button data-freq="monthly" aria-pressed="${state.giveFreq==="monthly"}">${t("freqMonthly")}</button>
+      <button data-freq="monthly" aria-pressed="${state.giveFreq==="monthly"}">${t("freqRecurring")}</button>
     </div>
+  </div>
+
+  <div class="section">
+    <h2>${t("chooseFund")}</h2>
+    <select class="select" id="fundSelect" aria-label="${t("chooseFund")}">
+      ${FUNDS.map(f=>`<option value="${f.id}"${state.giveFund===f.id?" selected":""}>${f.name[state.lang]}</option>`).join("")}
+    </select>
   </div>
 
   <div class="section">
     <h2>${t("paymentMethod")}</h2>
-    <div class="fundlist">
-      ${backendMode==="ready" ? `
-        <div class="paymethod-row" style="border-color:var(--sage)">
-          <span class="cardchip">STRIPE</span>
-          <span><b style="font-size:13.5px">${state.lang==="es"?"Pago seguro":"Secure checkout"}</b><small style="display:block;color:var(--text-2)">${state.lang==="es"?"Elige tarjeta, Apple Pay o método disponible en el próximo paso":"Choose card, Apple Pay, or another available method in the next step"}</small></span>
-        </div>` : cards.map(c=>`
-        <button class="paymethod-row" data-card="${c.id}" aria-pressed="${state.giveCard===c.id}">
-          <span class="cardchip">${c.brand}</span>
-          <span style="font-size:13.5px;font-weight:600">•••• ${c.last4}</span>
-          ${c.isDefault?`<span class="tag t-mute" style="margin-left:auto">${t("defaultTag")}</span>`:""}
-        </button>`).join("")}
-      ${backendMode==="ready"?"":`<button class="btn" data-act="addCard" style="align-self:flex-start">${t("addCard")}</button>`}
-    </div>
+    ${stripeCheckout ? `
+      <select class="select" id="cardSelect" aria-label="${t("paymentMethod")}">
+        <option value="stripe" selected>${t("stripeCheckout")}</option>
+        <option value="add">${t("addPaymentMethod")}</option>
+      </select>`
+    : `
+      <select class="select" id="cardSelect" aria-label="${t("paymentMethod")}">
+        ${cards.map(c=>`<option value="${c.id}"${state.giveCard===c.id?" selected":""}>${c.brand} •••• ${c.last4}${c.isDefault?` · ${t("defaultTag")}`:""}</option>`).join("")}
+        <option value="add">${t("addPaymentMethod")}</option>
+      </select>`}
+    ${!stripeCheckout && !cards.length ? `<div class="cta-note" style="text-align:left">${t("needCard")}</div>` : ""}
   </div>
 
-  <div class="section">
-    <button class="feerow" data-act="toggleFee" style="text-align:left;width:100%">
-      <span style="flex:1">
-        <span class="feerow-t" style="display:block">${t("coverFeeT")}</span>
-        <span class="feerow-d" style="display:block">${t("coverFeeD",{f:money(feeFor(amt||0))})}</span>
-      </span>
-      <span class="sw-toggle" aria-pressed="${state.coverFee}"></span>
-    </button>
-  </div>
-
-  <div class="cta-bar">
-    ${state.coverFee&&amt>0?`<div class="totalline"><span>${t("totalToday")}</span><b class="num">${money(total)}</b></div>`:""}
-    <button class="btn btn-primary btn-block" data-act="submitGive" ${canGive?"":"disabled"}>${ctaLabel}</button>
-    <div style="text-align:center;font-size:11px;color:var(--text-3);margin-top:9px">${!canGive&&backendMode!=="ready"&&!state.giveCard?t("needCard"):t("secured")}</div>
+  <div class="section cta">
+    <button class="btn btn-primary btn-block" data-act="submitGive" ${canGive?"":"disabled"}>${t("submitGift")}</button>
+    <div class="cta-note">${t("secured")}</div>
   </div>`;
 }
 
@@ -688,16 +608,7 @@ function modalHTML(){
   if(!state.modal) return "";
   const m = state.modal;
   let title="", desc="", body="", ok=t("save");
-  if(m.kind==="addCard"){
-    title=t("addCardTitle");
-    body=`
-      <div class="field"><label>${t("cardNumber")}</label><input class="input" id="mc_num" placeholder="4242 4242 4242 4242" inputmode="numeric"></div>
-      <div class="duo">
-        <div class="field"><label>${t("expiry")}</label><input class="input" id="mc_exp" placeholder="MM/YY"></div>
-        <div class="field"><label>CVC</label><input class="input" id="mc_cvc" placeholder="123" inputmode="numeric"></div>
-      </div>`;
-    ok=t("add");
-  } else if(m.kind==="editRec"){
+  if(m.kind==="editRec"){
     const r = recurring.find(x=>x.id===m.rid);
     title=t("editTitle"); desc=fundName(r.fund);
     body=`<div class="field"><label>${t("newAmount")}</label><input class="input" id="me_amt" value="${r.amount}" inputmode="decimal"></div>`;
@@ -754,15 +665,15 @@ function render(){
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", async e=>{
-  const t_ = e.target.closest("[data-nav],[data-lang],[data-fund],[data-amt],[data-freq],[data-card],[data-act],[data-year],[data-scrim]");
+  const t_ = e.target.closest("[data-nav],[data-lang],[data-amt],[data-freq],[data-act],[data-year],[data-scrim]");
   if(!t_) return;
   if(t_.hasAttribute("data-scrim") && e.target===t_){ state.modal=null; return render(); }
 
   if(t_.dataset.lang){ state.lang=t_.dataset.lang; localStorage.setItem("sr-lang", state.lang); return render(); }
   if(t_.dataset.nav){ state.view=t_.dataset.nav; state.justGave=null; window.scrollTo({top:0}); return render(); }
-  if(t_.dataset.fund){ state.giveFund=t_.dataset.fund; return render(); }
+
   if(t_.dataset.year){ state.historyYear=Number(t_.dataset.year); return render(); }
-  if(t_.dataset.card){ state.giveCard=t_.dataset.card; return render(); }
+
   if(t_.dataset.freq){ state.giveFreq=t_.dataset.freq; return render(); }
   if(t_.dataset.amt){
     if(t_.dataset.amt==="custom"){ state.giveCustom=true; }
@@ -773,8 +684,6 @@ document.addEventListener("click", async e=>{
   }
   const act = t_.dataset.act;
   if(!act) return;
-
-  if(act==="toggleFee"){ state.coverFee=!state.coverFee; return render(); }
 
   if(act==="submitGive"){
     if(backendMode!=="ready" && !state.giveCard) return;
@@ -787,7 +696,7 @@ document.addEventListener("click", async e=>{
           fundId: fundById(state.giveFund).dbId,
           amountCents: Math.round(amt*100),
           frequency: state.giveFreq,
-          coverFee: state.coverFee,
+          coverFee: false,
         });
       }catch(error){ toast(error.message); }
       return;
@@ -831,16 +740,7 @@ document.addEventListener("click", async e=>{
   if(act==="closeModal"){ state.modal=null; return render(); }
   if(act==="confirmModal"){
     const kind = state.modal?.kind;
-    if(kind==="addCard"){
-      const num = $("#mc_num")?.value.replace(/\s/g,"")||"";
-      if(num.length<8){ toast(t("needAmount")); return; }
-      const last4 = num.slice(-4);
-      const brand = num.startsWith("4") ? "VISA" : num.startsWith("5") ? "MC" : "CARD";
-      const id = "c"+Date.now();
-      cards.push({id, brand, last4, exp:$("#mc_exp")?.value||"—", isDefault:cards.length===0});
-      state.giveCard = state.giveCard || id;
-      toast(t("cardAdded"));
-    } else if(kind==="editRec"){
+    if(kind==="editRec"){
       const r = recurring.find(x=>x.id===state.modal.rid);
       const v = parseFloat($("#me_amt")?.value||"0");
       if(v>0){ r.amount=v; toast(t("recUpdated")); }
@@ -858,6 +758,20 @@ document.addEventListener("input", e=>{
     const v = parseFloat(e.target.value.replace(/[^\d.]/g,""))||0;
     state.giveAmount = v;
   }
+});
+
+document.addEventListener("change", e=>{
+  if(e.target.id==="fundSelect"){ state.giveFund = e.target.value; return; }
+  if(e.target.id!=="cardSelect") return;
+  /* "Add payment method…" is a destination, not a choice: payment
+     methods are kept on the account page, so send them there with the
+     card form already open and put the dropdown back where it was. */
+  if(e.target.value==="add"){
+    e.target.value = state.giveCard || "stripe";
+    window.location.assign("/index.html?add=card#pay");
+    return;
+  }
+  state.giveCard = e.target.value;
 });
 document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal){ state.modal=null; render(); } });
 
