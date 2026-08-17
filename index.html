@@ -18,20 +18,19 @@
   --mono:"IBM Plex Mono",ui-monospace,monospace;
   --ui:"Schibsted Grotesk",system-ui,sans-serif;
   --display:"Bricolage Grotesque","Schibsted Grotesk",sans-serif;
-  --navh:64px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{font-family:var(--ui);background:var(--paper);color:var(--text);-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45;padding-bottom:calc(var(--navh) + 22px + env(safe-area-inset-bottom))}
+body{font-family:var(--ui);background:var(--paper);color:var(--text);-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45;padding-bottom:40px}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:none}
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--coral);outline-offset:2px;border-radius:6px}
 
 /* Nothing below the header is painted until the session check has
-   decided which tabs this person may see. A signed-out visitor is
-   redirected before the portal links ever flash by, and a member never
-   sees the leadership tab appear and then vanish. */
+   decided which portals this person may see. A signed-out visitor is
+   redirected before the sidebar is ever built, and a member never sees
+   the leadership entry appear and then vanish. */
 body:not(.ready) .veil{visibility:hidden}
 
 /* header */
@@ -47,11 +46,6 @@ body:not(.ready) .veil{visibility:hidden}
 .avatar{width:32px;height:32px;border-radius:50%;background:var(--coral);color:#3A100D;display:grid;place-items:center;font-weight:700;font-size:12px;flex:0 0 auto}
 
 .wrap{max-width:640px;margin:0 auto;padding:0 18px}
-/* body carries padding-bottom for the fixed tab bar, but html,body are
-   height:100%, so that padding never extends the scroll area and Sign out
-   ends up under the bar. Reserve the space on the in-flow container
-   instead. Only below 760px, where the bar is actually fixed. */
-@media(max-width:759px){.wrap{padding-bottom:calc(var(--navh) + 24px + env(safe-area-inset-bottom))}}
 
 /* hero */
 .hero{max-width:640px;margin:0 auto;padding:26px 18px 20px}
@@ -59,29 +53,6 @@ body:not(.ready) .veil{visibility:hidden}
 .hero h1{font-family:var(--display);font-size:clamp(28px,6vw,40px);font-weight:800;letter-spacing:-.04em;line-height:1.04}
 .hero p{color:var(--text-2);font-size:15.5px;line-height:1.5;margin-top:10px;max-width:34em}
 
-/* tabs — one per portal, plus settings and this page */
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(23,21,28,.14)}
-.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px 10px;border-radius:12px;color:#8B8394;flex:1;max-width:110px;min-height:44px}
-.tab svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.tab span{font-size:10px;font-weight:600;letter-spacing:.01em}
-.tab[aria-current="page"]{color:#fff}
-.tab[aria-current="page"] svg{stroke:var(--coral)}
-@media(min-width:760px){
-  /* The bar sits after the panel in the DOM, which is what the fixed
-     mobile bar wants. Once it goes static, order it under the hero so
-     the tabs read as navigation rather than a footer. */
-  body{padding-bottom:40px;display:flex;flex-direction:column}
-  .hdr{order:1} .hero{order:2} #tabbar{order:3} #view{order:4} #modalRoot{order:5}
-  /* A flex item with auto side margins is not stretched, so these would
-     collapse to fit-content and the account rows would be squeezed into
-     a ~360px column. Give them the width back; max-width still caps it
-     and the auto margins still centre it. */
-  .hdr-in,.hero,#view{width:100%}
-  .tabbar{position:static;background:var(--card);border:1px solid var(--line);border-radius:999px;max-width:520px;margin:0 auto 22px;padding:5px;box-shadow:none}
-  .tab{flex-direction:row;border-radius:999px;padding:8px 14px;max-width:none}
-  .tab[aria-current="page"]{background:var(--ink)}
-  .tab span{font-size:12.5px}
-}
 
 /* primitives */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
@@ -133,15 +104,14 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 .stripe-note{display:flex;align-items:center;gap:11px;padding:12px 0 2px;font-size:12.5px;color:var(--text-2)}
 
 /* modal + toast */
-.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:18px}
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:70;padding:18px}
 .modal{background:var(--card);border-radius:22px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(23,21,28,.28);overflow:hidden}
 .modal-hd{padding:18px 20px 12px;border-bottom:1px solid var(--line)}
 .modal-t{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.03em}
 .modal-bd{padding:16px 20px;display:flex;flex-direction:column;gap:12px;max-height:56vh;overflow:auto}
 .modal-ft{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#FCFAF9}
-#toast{position:fixed;bottom:calc(var(--navh) + 16px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:88vw;text-align:center}
+#toast{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:88vw;text-align:center}
 #toast.on{opacity:1;transform:translate(-50%,0)}
-@media(min-width:760px){#toast{bottom:22px}}
 
 @media(prefers-reduced-motion:reduce){*{transition-duration:.01ms !important;animation-duration:.01ms !important}}
 </style>
@@ -155,8 +125,8 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 
 <header class="hdr">
   <div class="hdr-in">
-    <svg viewBox="0 0 3000 3000"><use href="#mark"/></svg>
-    <span class="hdr-name">Somos Reino</span>
+    <svg class="sr-wordmark" viewBox="0 0 3000 3000"><use href="#mark"/></svg>
+    <span class="hdr-name sr-wordmark">Somos Reino</span>
     <div class="langsw" role="group" aria-label="Language">
       <button data-lang="es" aria-pressed="true">ES</button>
       <button data-lang="en" aria-pressed="false">EN</button>
@@ -167,14 +137,14 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 
 <section class="hero veil" id="hero"></section>
 <main class="wrap veil" id="view"></main>
-<nav class="tabbar veil" id="tabbar" aria-label="Portals"></nav>
 <div id="modalRoot"></div>
 <div id="toast"></div>
 
 <script type="module">
-import { getPortalSession, mountAuthGate, mountForbiddenGate, signOut, canAccessFinance, canAccessSettings } from "/src/lib/auth.js";
+import { getPortalSession, mountAuthGate, mountForbiddenGate, signOut } from "/src/lib/auth.js";
 import { loadGivingSnapshot, openBillingPortal, updateMyProfile } from "/src/lib/api.js";
 import { showModeBadge } from "/src/lib/status.js";
+import { mountPortalNav } from "/src/lib/portal-nav.js";
 /* ============================================================
    Somos Reino — member portal home
    The account lives here, not in the giving portal: profile,
@@ -189,11 +159,6 @@ const STR = {
   greeting:{es:"Hola, {n}", en:"Hi, {n}"},
   heroTitle:{es:"Tu iglesia, en un solo lugar.", en:"Your church, in one place."},
   heroLead:{es:"Da, revisa tu historial, administra tus aportaciones recurrentes y mantén tu información al día.", en:"Give, review your history, manage recurring gifts, and keep your details current."},
-
-  tabAccount:{es:"Cuenta", en:"Account"},
-  tabGiving:{es:"Aportaciones", en:"Giving"},
-  tabFinance:{es:"Finanzas", en:"Finance"},
-  tabSettings:{es:"Ajustes", en:"Settings"},
 
   profileSection:{es:"Perfil", en:"Profile"},
   nameF:{es:"Nombre", en:"Name"},
@@ -259,33 +224,15 @@ const state = {
      here is the language you land in there. */
   lang: localStorage.getItem("sr-lang") || "es",
   notif: {receipts:true, reminder:true},
-  showFinance: false,
-  showSettings: false,
   modal: null,
 };
 
+/* Set once the session is known — the sidebar cannot be built before
+   then, because which portals it lists depends on the role. */
+let nav = null;
+
 const cardById = id => cards.find(c=>c.id===id);
 const firstName = () => ME.name.split(" ")[0];
-
-/* ---------------- tabs ---------------- */
-const TABS = [
-  {id:"account", label:"tabAccount", href:"/index.html", current:true,
-   ico:"M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 15.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"},
-  {id:"giving", label:"tabGiving", href:"/giving.html",
-   ico:"M9 3.5v11M3.5 9h11"},
-  {id:"finance", label:"tabFinance", href:"/finance.html", gate:()=>state.showFinance,
-   ico:"M2.5 15.5h13M5 13V9M9 13V4M13 13v-6"},
-  {id:"settings", label:"tabSettings", href:"/settings.html", gate:()=>state.showSettings,
-   ico:"M2.5 6.5h4M10.5 6.5h5M2.5 11.5h9M13.5 11.5h2M8.5 4.5v4M11.5 9.5v4"},
-];
-
-function renderTabs(){
-  $("#tabbar").innerHTML = TABS.filter(tab=>!tab.gate || tab.gate()).map(tab=>`
-    <a class="tab" href="${tab.href}"${tab.current?' aria-current="page"':""}>
-      <svg viewBox="0 0 18 18" aria-hidden="true"><path d="${tab.ico}"/></svg>
-      <span>${t(tab.label)}</span>
-    </a>`).join("");
-}
 
 /* ---------------- views ---------------- */
 function renderHero(){
@@ -387,7 +334,7 @@ function toast(msg){
 function render(){
   document.documentElement.lang = state.lang;
   renderHero();
-  renderTabs();
+  nav?.setLang(state.lang);
   $("#view").innerHTML = viewAccount();
   $("#modalRoot").innerHTML = modalHTML();
   $("#avatar").textContent = ME.name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -485,6 +432,16 @@ function hydrate(snapshot, profile){
   }));
 }
 
+function mountNav(session){
+  nav = mountPortalNav({
+    current:"account",
+    mode:session.mode,
+    profile:session.profile,
+    lang:state.lang,
+    burgerInto:".hdr-in",
+  });
+}
+
 async function startPortal(){
   try{
     const session = await getPortalSession();
@@ -494,16 +451,13 @@ async function startPortal(){
     if(session.mode==="disabled") return mountForbiddenGate("This account has been deactivated. Ask a church administrator to restore access.");
 
     if(session.mode==="demo"){
-      /* No profile to judge by, so preview the leadership tab. Settings
-         stays hidden — it manages real accounts and there are none. */
-      state.showFinance = true;
+      mountNav(session);
       render();
       document.body.classList.add("ready");
       return showModeBadge({mode:"demo",portal:"Member"});
     }
 
-    state.showFinance = canAccessFinance(session.profile);
-    state.showSettings = canAccessSettings(session.profile);
+    mountNav(session);
     const snapshot = await loadGivingSnapshot(session.user.id);
     hydrate(snapshot, session.profile);
     render();

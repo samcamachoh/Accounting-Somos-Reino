@@ -53,6 +53,10 @@ In live mode every page calls `requireSession()` before rendering, and
 signed-out visitors are redirected to `login.html` with a `next` parameter
 so they land where they were headed.
 
+The sidebar in `src/lib/portal-nav.js` is built from those same two
+predicates, so it lists exactly the portals the person can open — a link
+appears only when following it would work.
+
 Worth being clear about what this does and does not do: the gate keeps
 people out of the *data*. The HTML and JavaScript are static files and can
 always be downloaded by anyone who knows the URL. Row Level Security and

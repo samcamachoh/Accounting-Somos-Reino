@@ -103,7 +103,6 @@ tr.inactive td{opacity:.55}
       <p class="lead">Add people, change what they can reach, and reset passwords. Only administrators can open this page.</p>
     </div>
     <div class="actions">
-      <a class="btn" href="/finance.html">Finance</a>
       <button class="btn" id="btnSignOut">Sign out</button>
       <button class="btn primary" id="btnAdd">＋ Add person</button>
     </div>
@@ -151,6 +150,7 @@ import { requireSession, signOut } from "/src/lib/auth.js";
 import { isConfigured } from "/src/lib/supabase.js";
 import { listUsers, createUser, updateUser, setUserPassword, sendPasswordReset, setUserActive, deleteUser } from "/src/lib/admin.js";
 import { showModeBadge } from "/src/lib/status.js";
+import { mountPortalNav } from "/src/lib/portal-nav.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
@@ -465,8 +465,19 @@ async function refresh(){
   render();
 }
 
+function mountNav(session){
+  mountPortalNav({
+    current:"settings",
+    mode:session?.mode || "demo",
+    profile:session?.profile,
+    lang:localStorage.getItem("sr-lang") || "es",
+    burgerInto:"header.top",
+  });
+}
+
 async function start(){
   if(!isConfigured){
+    mountNav(null);
     users = DEMO;
     callerId = "p1";
     live = false;
@@ -478,6 +489,7 @@ async function start(){
 
   const session = await requireSession({ adminOnly:true });
   if(!session) return;           /* redirected or gated */
+  mountNav(session);
 
   try {
     live = true;

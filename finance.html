@@ -376,12 +376,7 @@ button.tile:hover{border-color:var(--line-2);transform:translateY(-1px)}
       </div>
     </div>
     <nav class="nav" id="nav"></nav>
-    <nav class="nav nav-extra" aria-label="Other portals">
-      <a class="nav-item" href="/index.html">
-        <svg class="nav-ico" viewBox="0 0 18 18"><path d="M3 3h5v5H3zM10 3h5v5h-5zM3 10h5v5H3zM10 10h5v5h-5z"/></svg>
-        <span>All portals</span>
-      </a>
-    </nav>
+    <nav class="nav nav-extra" id="portalNav" aria-label="Portals"></nav>
     <div class="rail-foot">
       <button class="me" data-act="me">
         <span class="avatar" style="background:var(--coral);color:#3A100D">SC</span>
@@ -410,6 +405,7 @@ button.tile:hover{border-color:var(--line-2);transform:translateY(-1px)}
 
 <script type="module">
 import { getPortalSession, mountAuthGate, mountForbiddenGate } from "/src/lib/auth.js";
+import { portalItems } from "/src/lib/portal-nav.js";
 import {
   createExpense, createMemberAccount, deactivateMember, loadFinanceSnapshot,
   reactivateMember, reconcileTransactions, recordBankTransaction, setExpenseStatus, undoReconciliation,
@@ -558,6 +554,22 @@ const totalFunds = () => FUNDS.reduce((s,f)=>s+f.bal,0);
 const givingMTD = () => gifts.reduce((s,g)=>s+g.amount,0);
 
 /* ---------------- render: nav ---------------- */
+/* The rail above navigates within this portal; this list is the same
+   set of portals the other pages show in their sidebar, so leaving
+   Finance works the same way everywhere. */
+function renderPortalNav(session){
+  $("#portalNav").innerHTML = portalItems({
+    mode: session.mode,
+    profile: session.profile,
+    current: "finance",
+  }).map(item=>`
+    <a class="nav-item" href="${item.href}"${item.id==="finance"?' aria-current="true"':""}>
+      <svg class="nav-ico" viewBox="0 0 18 18"><path d="${item.ico}"/></svg>
+      <span>${item.label.en}</span>
+    </a>`).join("");
+}
+
+
 function renderNav(){
   const counts = {reconcile:openPayouts().length+openBank().length, expenses:pendingExp().length};
   $("#nav").innerHTML = NAV.map(g=>`
@@ -1518,10 +1530,11 @@ async function startPortal(){
   try{
     const session=await getPortalSession({staffOnly:true});
     backendMode=session.mode;
-    if(session.mode==="demo")return showModeBadge({mode:"demo",portal:"Finance"});
     if(session.mode==="signed-out")return mountAuthGate({staffOnly:true});
     if(session.mode==="disabled")return mountForbiddenGate("This account has been deactivated. Ask another administrator to restore access.");
     if(session.mode==="forbidden")return mountForbiddenGate();
+    renderPortalNav(session);
+    if(session.mode==="demo")return showModeBadge({mode:"demo",portal:"Finance"});
     const snapshot=await loadFinanceSnapshot();
     hydrateFinance(snapshot,session.profile);
     render();

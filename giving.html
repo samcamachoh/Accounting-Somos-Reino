@@ -238,7 +238,7 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 .kv .k{color:var(--text-2)}
 
 /* modal + toast */
-.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:18px}
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:70;padding:18px}
 .modal{background:var(--card);border-radius:22px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(23,21,28,.28);overflow:hidden}
 .modal-hd{padding:18px 20px 12px;border-bottom:1px solid var(--line)}
 .modal-t{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.03em}
@@ -261,7 +261,7 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 
 <header class="hdr">
   <div class="hdr-in">
-    <a class="hdr-home" href="/index.html">
+    <a class="hdr-home sr-wordmark" href="/index.html">
       <svg viewBox="0 0 3000 3000"><use href="#mark"/></svg>
       <span class="hdr-name">Somos Reino</span>
     </a>
@@ -283,6 +283,7 @@ h2{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.02
 import { getPortalSession, mountAuthGate, mountForbiddenGate } from "/src/lib/auth.js";
 import { loadGivingSnapshot, openBillingPortal, startCheckout } from "/src/lib/api.js";
 import { showModeBadge } from "/src/lib/status.js";
+import { mountPortalNav } from "/src/lib/portal-nav.js";
 /* ============================================================
    Somos Reino — giver portal (give, history, recurring, account)
    Single-file demo. In-memory sample data, bilingual ES/EN.
@@ -297,7 +298,6 @@ const STR = {
   navGive:{es:"Dar", en:"Give"},
   navHistory:{es:"Historial", en:"History"},
   navRecurring:{es:"Recurrente", en:"Recurring"},
-  navAccount:{es:"Cuenta", en:"Account"},
 
   greeting:{es:"Hola, {n}", en:"Hi, {n}"},
   ytdLabel:{es:"Dado en 2026", en:"Given in 2026"},
@@ -434,6 +434,10 @@ let recurring = [
 
 const TODAY = new Date();
 let backendMode = "demo";
+
+/* Built once the session is known — which portals it lists depends on
+   the role. */
+let nav = null;
 
 /* ---------------- state ---------------- */
 const state = {
@@ -725,13 +729,12 @@ function toast(msg){
 
 /* ---------------- render ---------------- */
 const VIEWS = {give:viewGive, history:viewHistory, recurring:viewRecurring};
-/* Account is not a view here — it lives on the member portal home,
-   so that tab leaves the page rather than switching one. */
+/* These are the views within this portal. Moving between portals is
+   the sidebar's job. */
 const NAV = [
   {id:"give", label:"navGive", ico:'M9 3.5v11M3.5 9h11'},
   {id:"history", label:"navHistory", ico:'M9 4.5v5l3.5 2M9 3a6 6 0 1 1-5.2 3'},
   {id:"recurring", label:"navRecurring", ico:'M3 6.5A5.5 5.5 0 0 1 13.7 5M15 5V2M15 5h-3M15 11.5A5.5 5.5 0 0 1 4.3 13M3 13v3M3 13h3'},
-  {id:"account", label:"navAccount", href:"/index.html", ico:'M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 15.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5'},
 ];
 function render(){
   document.documentElement.lang = state.lang;
@@ -739,12 +742,12 @@ function render(){
      screens without the success screen inheriting it. */
   document.body.dataset.giveForm = (state.view === "give" && !state.justGave) ? "1" : "";
   $("#view").innerHTML = VIEWS[state.view]();
-  $("#tabbar").innerHTML = NAV.map(n=>{
-    const inner = `<svg viewBox="0 0 18 18" aria-hidden="true"><path d="${n.ico}"/></svg><span>${t(n.label)}</span>`;
-    return n.href
-      ? `<a class="tab" href="${n.href}">${inner}</a>`
-      : `<button class="tab" data-nav="${n.id}" aria-current="${state.view===n.id}">${inner}</button>`;
-  }).join("");
+  $("#tabbar").innerHTML = NAV.map(n=>`
+    <button class="tab" data-nav="${n.id}" aria-current="${state.view===n.id}">
+      <svg viewBox="0 0 18 18" aria-hidden="true"><path d="${n.ico}"/></svg>
+      <span>${t(n.label)}</span>
+    </button>`).join("");
+  nav?.setLang(state.lang);
   document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.lang===state.lang)));
   $("#modalRoot").innerHTML = modalHTML();
 }
@@ -887,14 +890,25 @@ function hydrateGiving(snapshot, profile){
   const avatar=document.querySelector(".avatar"); if(avatar) avatar.textContent=ME.name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
 }
 
+function mountNav(session){
+  nav = mountPortalNav({
+    current:"giving",
+    mode:session.mode,
+    profile:session.profile,
+    lang:state.lang,
+    burgerInto:".hdr-in",
+  });
+}
+
 async function startPortal(){
   render();
   try{
     const session = await getPortalSession();
     backendMode = session.mode;
-    if(session.mode==="demo") return showModeBadge({mode:"demo",portal:"Giving"});
     if(session.mode==="signed-out") return mountAuthGate();
     if(session.mode==="disabled") return mountForbiddenGate("This account has been deactivated. Ask a church administrator to restore access.");
+    mountNav(session);
+    if(session.mode==="demo") return showModeBadge({mode:"demo",portal:"Giving"});
     const snapshot = await loadGivingSnapshot(session.user.id);
     hydrateGiving(snapshot, session.profile);
     render();
