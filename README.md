@@ -35,6 +35,31 @@ pnpm build      # production build into dist/
 pnpm check      # verify pages, imports, and build entries line up
 ```
 
+## Domains
+
+One Vercel project serves every page, under two domains:
+
+| Domain | Serves |
+|---|---|
+| `accounting.somosreino.org` | the whole thing — `/` is the member account home |
+| `services.somosreino.org` | `/` is the services portal |
+
+The second one is a rewrite in `vercel.json`, matched on the request
+host, so `services.somosreino.org/` returns `services.html` while the
+address bar keeps saying `services.somosreino.org`. Nothing else about
+the deployment differs — the same build answers both names.
+
+Adding a domain takes two steps outside this repo: a CNAME at the DNS
+provider pointing the subdomain at `cname.vercel-dns.com`, and the
+domain added to the project under **Vercel → accounting-somos-reino →
+Settings → Domains**. The rewrite here does nothing until both are done.
+
+Worth knowing before you send anyone the link: a subdomain is a
+separate origin, so a Supabase session on `accounting.somosreino.org`
+does not carry over. In live mode, someone signed in there will be
+asked to sign in again on `services.somosreino.org`. Serving the page
+from a path on the existing domain is the only way to avoid that.
+
 ## Demo mode and live mode
 
 Without credentials the portals run in **demo mode**: they render their
