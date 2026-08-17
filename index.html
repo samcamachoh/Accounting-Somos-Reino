@@ -29,6 +29,7 @@
     <p class="lead">Da a los fondos de la iglesia, revisa tu historial, administra tus aportaciones recurrentes y mantén tu información al día—en español o en inglés. Give, review your history, manage recurring gifts, and keep your details current.</p>
     <div class="choices" id="choices">
       <a class="choice" href="/giving.html"><b>Portal de aportaciones</b><p>Give, review history, and manage recurring gifts.</p><span>Open member portal →</span></a>
+      <a class="choice" href="/services.html"><b>Servicios &amp; equipos</b><p>Service plans, the order of service, scheduling, songs, and live.</p><span>Open services →</span></a>
       <a class="choice" href="/finance.html" id="financeChoice" hidden><b>Finance &amp; reconciliation</b><p>Review deposits, expenses, funds, people, and the audit trail.</p><span>Open leadership portal →</span></a>
     </div>
     <div class="utility">
@@ -56,8 +57,12 @@ if (session) {
   document.getElementById("financeChoice").hidden = !showFinance;
   document.getElementById("settingsLink").hidden = !showSettings;
 
-  /* One card shouldn't sit in a two-column grid. */
-  if (!showFinance) document.getElementById("choices").classList.add("single");
+  /* One card shouldn't sit in a two-column grid. Counted rather than
+     inferred from one card's visibility, so gating another portal
+     later can't quietly leave a lone card stretched across the row. */
+  const choices = document.getElementById("choices");
+  const visible = [...choices.children].filter((card) => !card.hidden).length;
+  if (visible < 2) choices.classList.add("single");
 
   if (live) {
     document.getElementById("who").textContent =
