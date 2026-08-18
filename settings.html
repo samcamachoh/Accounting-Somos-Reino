@@ -12,7 +12,11 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--paper);color:var(--text);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1120px;margin:0 auto;padding:32px 24px 80px}
-header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:28px}
+header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:28px;position:relative}
+/* This header wraps on a phone, which would drop the menu button below
+   the title. Pin it to the corner instead, where every other page keeps
+   it. */
+@media(max-width:899px){header.top .sr-burger{position:absolute;top:-6px;right:-6px}header.top>div:first-child{padding-right:44px}}
 .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);font-weight:700}
 h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-spacing:-.04em;margin:10px 0 8px}
 .lead{color:var(--text-2);line-height:1.5;max-width:620px}

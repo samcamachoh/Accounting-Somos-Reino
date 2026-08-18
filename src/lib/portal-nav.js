@@ -1,12 +1,13 @@
 /* ============================================================
    Somos Reino — portal navigation
    ------------------------------------------------------------
-   One sidebar for the whole app: Account, Giving, Finance,
-   Settings. Every page mounts the same list, so moving between
-   portals works the same way wherever you are.
+   One sidebar for the whole app: Account, Giving, Services,
+   Finance, Settings. Every page mounts the same list, so moving
+   between portals works the same way wherever you are.
 
-   On a phone the rail becomes a drawer behind a hamburger, since
-   236px of permanent chrome is most of a phone's width.
+   On a phone the rail becomes a drawer behind a hamburger in the
+   top right corner, since 236px of permanent chrome is most of a
+   phone's width.
 
    Which items appear is decided by canAccessFinance and
    canAccessSettings — the same predicates the pages themselves
@@ -24,6 +25,8 @@ const ITEMS = [
     ico:"M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 15.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5" },
   { id:"giving",   href:"/giving.html",   label:{es:"Aportaciones", en:"Giving"},
     ico:"M9 3.5v11M3.5 9h11" },
+  { id:"services", href:"/services.html", label:{es:"Servicios",    en:"Services"},
+    ico:"M3.5 3.5h11v11h-11zM3.5 7h11M6.5 10h5M6.5 12h3" },
   { id:"finance",  href:"/finance.html",  label:{es:"Finanzas",     en:"Finance"},
     gate:"finance", ico:"M2.5 15.5h13M5 13V9M9 13V4M13 13v-6" },
   { id:"settings", href:"/settings.html", label:{es:"Ajustes",      en:"Settings"},
@@ -62,7 +65,7 @@ const CSS = `
      there is one bar at the top of the page rather than two. */
   .sr-burger{
     display:none; align-items:center; justify-content:center;
-    width:40px; height:40px; margin-left:-8px; border:0; border-radius:12px;
+    width:40px; height:40px; margin-right:-6px; border:0; border-radius:12px;
     background:none; color:inherit; cursor:pointer; flex:0 0 auto;
   }
   .sr-burger svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
@@ -139,7 +142,7 @@ const MARK = `<svg viewBox="0 0 3000 3000" aria-hidden="true"><path d="M1914.98,
  * @param {string} [options.lang]   "es" or "en".
  * @param {string|Element} [options.burgerInto] Where the hamburger goes —
  *        a selector or element inside the page's own header. It is
- *        inserted first, so it reads before the wordmark.
+ *        appended, so it lands at the right-hand end of the row.
  * @returns {{setLang:(lang:string)=>void, close:()=>void}}
  */
 export function mountPortalNav({ current, mode = "demo", profile = null, lang = "es", burgerInto } = {}) {
@@ -187,7 +190,7 @@ export function mountPortalNav({ current, mode = "demo", profile = null, lang = 
   document.body.classList.add("sr-has-rail");
 
   const host = typeof burgerInto === "string" ? document.querySelector(burgerInto) : burgerInto;
-  if (host) host.prepend(burger);
+  if (host) host.append(burger);
 
   /* ---- open / close (phones only) ---- */
   const wide = window.matchMedia(RAIL_QUERY);

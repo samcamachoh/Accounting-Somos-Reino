@@ -14,6 +14,7 @@ export default defineConfig({
         login: page("login"),
         finance: page("finance"),
         giving: page("giving"),
+        services: page("services"),
         settings: page("settings"),
       },
     },
