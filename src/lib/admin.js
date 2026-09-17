@@ -11,8 +11,10 @@ import { requireClient, fail } from "./supabase.js";
 const FUNCTION = "admin-users";
 
 /* Where invite and reset emails should land. The function has no idea
-   what domain it is being called from, so the browser supplies it. */
-const loginUrl = () => new URL("/login.html", window.location.origin).href;
+   what domain it is being called from, so the browser supplies it.
+   There is one page, and it shows the sign-in view when there is no
+   session, so the origin is the whole address. */
+const returnUrl = () => window.location.origin;
 
 /** Invoke the admin function and unwrap its reply. */
 async function call(action, payload = {}) {
@@ -51,7 +53,7 @@ export async function listUsers() {
 export function createUser(user) {
   if (!user?.email) fail("An email address is required.");
   if (!user?.fullName) fail("A name is required.");
-  return call("create", { ...user, redirectTo: loginUrl() });
+  return call("create", { ...user, redirectTo: returnUrl() });
 }
 
 /**
@@ -74,7 +76,7 @@ export function setUserPassword(id, password) {
 /** Email a reset link so the person picks their own password. */
 export function sendPasswordReset(email) {
   if (!email) fail("An email address is required.");
-  return call("sendPasswordReset", { email, redirectTo: loginUrl() });
+  return call("sendPasswordReset", { email, redirectTo: returnUrl() });
 }
 
 /** Block or restore sign-in without touching the person's history. */

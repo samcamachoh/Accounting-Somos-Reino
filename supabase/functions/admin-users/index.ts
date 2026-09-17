@@ -29,7 +29,12 @@ const CORS = {
 };
 
 const MIN_PASSWORD_LENGTH = 8;
-const ROLES = ["admin", "finance", "member"];
+/* These two lists mirror src/lib/access.js, which turns a role and
+   a permission set into the capabilities the portal renders from.
+   Deno cannot import from src/, so they are duplicated here — a
+   role added there and not here is accepted on the screen and
+   refused by this function. */
+const ROLES = ["admin", "finance", "staff", "member"];
 const PERMISSION_KEYS = ["finance", "approve", "refund", "people", "payouts"];
 /* A banned user cannot sign in. ~100 years stands in for "until lifted". */
 const BAN_FOREVER = "876000h";
@@ -270,7 +275,7 @@ Deno.serve(async (req) => {
       if (error) return bad(`Could not update the account: ${error.message}`);
 
       /* Banning is what actually stops a sign-in; the profile flag
-         only controls what the portals render. */
+         only controls what the portal renders. */
       const { error: banError } = await service.auth.admin.updateUserById(targetId, {
         ban_duration: active ? "none" : BAN_FOREVER,
       });

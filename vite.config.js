@@ -1,22 +1,16 @@
 import { defineConfig } from "vite";
-import { fileURLToPath } from "node:url";
 
-/* Without an explicit input map Vite treats index.html as the only
-   entry, and the two portals never reach dist/. Each page here is
-   built and hashed on its own. */
-const page = (name) => fileURLToPath(new URL(`./${name}.html`, import.meta.url));
-
+/* One page. index.html is Vite's default entry, so there is no
+   input map to keep in step with the pages on disk any more —
+   which is what the old build kept silently dropping a portal
+   over. Views are ES modules imported by src/app.js and are
+   code-split and hashed automatically. */
 export default defineConfig({
   build: {
-    rollupOptions: {
-      input: {
-        index: page("index"),
-        login: page("login"),
-        finance: page("finance"),
-        giving: page("giving"),
-        services: page("services"),
-        settings: page("settings"),
-      },
-    },
+    target: "es2022",
+    /* The whole portal is one route; splitting it into fifteen
+       lazy chunks would trade a fast first paint for a stall on
+       every rail click. */
+    chunkSizeWarningLimit: 700,
   },
 });

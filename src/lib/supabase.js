@@ -1,12 +1,15 @@
 /* ============================================================
    Somos Reino — shared Supabase client
    ------------------------------------------------------------
-   The portals run in one of two modes:
+   The portal runs in one of two modes:
 
      demo  — no credentials configured. The pages keep their
              built-in sample data and nothing touches the network.
      ready — credentials present. Every read and write goes
              through Supabase with Row Level Security applied.
+
+   demo.js holds the sample data in the same shape this client's
+   reads return, which is what lets the views stay mode-blind.
 
    Credentials come from Vite env vars (see .env.example). They
    are read at build time, so restart `pnpm dev` after changing
@@ -30,10 +33,8 @@ export const supabase = isConfigured
 /* ------------------------------------------------------------
    Table and Edge Function names.
 
-   These were derived from how finance.html and giving.html read
-   the snapshots they are handed. Every name the pages did not
-   pin down directly is collected here so a schema that differs
-   can be reconciled in one place instead of across the file.
+   Every name is collected here so a schema that differs can be
+   reconciled in one place rather than across api.js.
    ------------------------------------------------------------ */
 export const TABLES = {
   funds: "funds",
