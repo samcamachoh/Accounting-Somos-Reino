@@ -109,3 +109,34 @@ a differing schema is a one-place change.
 Expected tables: `profiles`, `funds`, `donations`, `expenses`, `payouts`,
 `bank_transactions`, `reconciliation_matches`, `ledger_entries`,
 `payment_methods`, `recurring_gifts`.
+
+## Stripe giving
+
+Gifts go through Stripe Checkout (one-time, weekly, monthly). Each gift is
+recorded under the giver's name and email, and the history page has a
+report for any date range — this year, last year, all time, or custom —
+with CSV download and print/PDF.
+
+Stripe's **secret** key never goes in the repo or in any `VITE_` variable.
+It lives only in Supabase function secrets:
+
+```bash
+supabase db push                                   # adds the Stripe columns
+supabase secrets set STRIPE_SECRET_KEY=sk_live_... SITE_URL=https://somosreino.org
+supabase functions deploy create-checkout-session create-billing-portal-session
+supabase functions deploy stripe-webhook --no-verify-jwt
+```
+
+Then in the Stripe dashboard → Developers → Webhooks, add
+`https://<project-ref>.supabase.co/functions/v1/stripe-webhook` for
+`checkout.session.completed`, `invoice.paid`, and
+`customer.subscription.updated` / `.deleted`, and set the signing secret:
+
+```bash
+supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+Also enable the customer portal (Settings → Billing → Customer portal) so
+members can manage cards and recurring gifts. Gifts are matched to a member
+by their account; a gift whose email matches a member's email is linked to
+that member automatically.

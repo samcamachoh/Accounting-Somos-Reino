@@ -335,6 +335,17 @@ const STR = {
   legendMissed:{es:"Sin aportación", en:"No gift"},
   legendUpcoming:{es:"Por venir", en:"Upcoming"},
   noGiftsYear:{es:"Sin aportaciones registradas este año.", en:"No gifts recorded this year."},
+  reportTitle:{es:"Tu reporte de ofrendas", en:"Your giving report"},
+  repThisYear:{es:"Este año", en:"This year"},
+  repLastYear:{es:"Año pasado", en:"Last year"},
+  repAllTime:{es:"Todo el tiempo", en:"All time"},
+  repFrom:{es:"Desde", en:"From"},
+  repTo:{es:"Hasta", en:"To"},
+  repTotal:{es:"Total en el período", en:"Total in period"},
+  repCount:{es:"{n} aportaciones", en:"{n} gifts"},
+  repNone:{es:"Sin aportaciones en este período.", en:"No gifts in this period."},
+  repCsv:{es:"Descargar CSV", en:"Download CSV"},
+  repPrint:{es:"Imprimir / PDF", en:"Print / PDF"},
 
   recurringTitle:{es:"Recurrente", en:"Recurring"},
   recurringEmpty:{es:"No tienes aportaciones recurrentes activas.", en:"You don't have any active recurring gifts."},
@@ -449,6 +460,8 @@ const state = {
   coverFee:false,
   justGave:null,
   historyYear:2026,
+  reportFrom:"",
+  reportTo:"",
   modal:null,
 };
 const CHIPS = [25,50,100,250,500];
@@ -459,6 +472,27 @@ const years = () => [...new Set(gifts.map(g=>g.date.slice(0,4)))].map(Number).so
 const giftsInYear = y => gifts.filter(g=>g.date.slice(0,4)===String(y)).sort((a,b)=>b.date.localeCompare(a.date));
 const totalInYear = y => giftsInYear(y).reduce((s,g)=>s+g.amount,0);
 const ytdTotal = () => totalInYear(2026);
+/* Gifts inside the report range; an empty bound is open-ended. */
+const reportGifts = () => gifts
+  .filter(g=>(!state.reportFrom||g.date>=state.reportFrom)&&(!state.reportTo||g.date<=state.reportTo))
+  .sort((a,b)=>b.date.localeCompare(a.date));
+function setRange(kind){
+  const y = new Date().getFullYear();
+  if(kind==="this"){ state.reportFrom=`${y}-01-01`; state.reportTo=`${y}-12-31`; }
+  else if(kind==="last"){ state.reportFrom=`${y-1}-01-01`; state.reportTo=`${y-1}-12-31`; }
+  else { state.reportFrom=""; state.reportTo=""; }
+}
+function reportCsv(){
+  const q = v => `"${String(v).replace(/"/g,'""')}"`;
+  const rows = reportGifts();
+  const lines = [["Date","Fund","Amount (USD)","Method"].join(",")]
+    .concat(rows.map(g=>[g.date,q(fundById(g.fund).name.en),g.amount.toFixed(2),q(g.method)].join(",")))
+    .concat([["","Total",rows.reduce((s,g)=>s+g.amount,0).toFixed(2),""].join(",")]);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv"}));
+  a.download = `somos-reino-giving-${state.reportFrom||"start"}-to-${state.reportTo||new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
 const cardById = id => cards.find(c=>c.id===id);
 const fundName = id => fundById(id).name[state.lang];
 const methodLabel = m => m==="card" ? {es:"Tarjeta",en:"Card"}[state.lang] : m;
@@ -599,6 +633,32 @@ function viewHistory(){
     <h1>${t("historyTitle")}</h1>
     <div class="chips" style="justify-content:flex-start">
       ${years().map(yr=>`<button class="chip" data-year="${yr}" aria-pressed="${y===yr}">${yr}</button>`).join("")}
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="card" style="padding:16px">
+      <h2 style="margin-bottom:10px">${t("reportTitle")}</h2>
+      <div class="chips" style="justify-content:flex-start;margin-bottom:12px">
+        <button class="chip" data-range="this">${t("repThisYear")}</button>
+        <button class="chip" data-range="last">${t("repLastYear")}</button>
+        <button class="chip" data-range="all">${t("repAllTime")}</button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <label style="flex:1;min-width:140px;font-size:12.5px;color:var(--text-2)">${t("repFrom")}
+          <input type="date" id="repFrom" value="${state.reportFrom}" style="display:block;width:100%;min-height:44px;margin-top:4px"></label>
+        <label style="flex:1;min-width:140px;font-size:12.5px;color:var(--text-2)">${t("repTo")}
+          <input type="date" id="repTo" value="${state.reportTo}" style="display:block;width:100%;min-height:44px;margin-top:4px"></label>
+      </div>
+      ${(()=>{ const r=reportGifts(); const tot=r.reduce((a,g)=>a+g.amount,0); return `
+      <div class="yeargroup-hd" style="margin-bottom:10px">
+        <span class="y">${t("repTotal")}</span><span class="amt">${money(tot)}</span>
+      </div>
+      <div style="font-size:12.5px;color:var(--text-2);margin-bottom:10px">${r.length?t("repCount",{n:r.length}):t("repNone")}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm" data-act="repCsv" ${r.length?"":"disabled"}>${t("repCsv")}</button>
+        <button class="btn btn-sm" data-act="repPrint" ${r.length?"":"disabled"}>${t("repPrint")}</button>
+      </div>`; })()}
     </div>
   </div>
 
@@ -751,13 +811,14 @@ function render(){
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", async e=>{
-  const t_ = e.target.closest("[data-nav],[data-lang],[data-fund],[data-amt],[data-freq],[data-card],[data-act],[data-year],[data-scrim]");
+  const t_ = e.target.closest("[data-nav],[data-lang],[data-fund],[data-amt],[data-freq],[data-card],[data-act],[data-year],[data-range],[data-scrim]");
   if(!t_) return;
   if(t_.hasAttribute("data-scrim") && e.target===t_){ state.modal=null; return render(); }
 
   if(t_.dataset.lang){ state.lang=t_.dataset.lang; localStorage.setItem("sr-lang", state.lang); return render(); }
   if(t_.dataset.nav){ state.view=t_.dataset.nav; state.justGave=null; window.scrollTo({top:0}); return render(); }
   if(t_.dataset.fund){ state.giveFund=t_.dataset.fund; return render(); }
+  if(t_.dataset.range){ setRange(t_.dataset.range); return render(); }
   if(t_.dataset.year){ state.historyYear=Number(t_.dataset.year); return render(); }
   if(t_.dataset.card){ state.giveCard=t_.dataset.card; return render(); }
   if(t_.dataset.freq){ state.giveFreq=t_.dataset.freq; return render(); }
@@ -771,6 +832,8 @@ document.addEventListener("click", async e=>{
   const act = t_.dataset.act;
   if(!act) return;
 
+  if(act==="repCsv"){ reportCsv(); return; }
+  if(act==="repPrint"){ window.print(); return; }
   if(act==="toggleFee"){ state.coverFee=!state.coverFee; return render(); }
 
   if(act==="submitGive"){
@@ -847,6 +910,13 @@ document.addEventListener("click", async e=>{
     }
     state.modal=null;
     return render();
+  }
+});
+
+document.addEventListener("change", e=>{
+  if(e.target.id==="repFrom"||e.target.id==="repTo"){
+    state[e.target.id==="repFrom"?"reportFrom":"reportTo"] = e.target.value;
+    render();
   }
 });
 
