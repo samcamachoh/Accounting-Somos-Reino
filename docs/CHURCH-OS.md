@@ -98,8 +98,12 @@ project. The live project (`qbqjmdyqknuqlkfbubml`) may already have tables:
    overdue-first, call and text links, log a contact (closes the task and
    keeps the history), snooze, add by hand. Still to do: rule editor, and
    assigning from the card.
-4. **Calendar portal** (`calendar.html`): month/week/agenda, room booking,
-   RSVP, recurring events, public ICS feed.
+4. ~~**Calendar portal** (`calendar.html`)~~ — **built.** Month and agenda views,
+   type and room filters, RSVP with capacity, add/edit, repeating events (daily,
+   weekly on chosen days, monthly by date or "2nd Sunday", up to 104 at a time),
+   room booking that names the clashing dates before saving, cancel/restore/delete
+   one event or "this and all following", and a .ics download. Still to do: week
+   view, edit-all-in-series, a public/subscribable .ics feed, multi-day events.
 5. **Wire `services.html`** to the services tables (it is demo-only today).
 6. **Check-in** (kids/adults) writing `event_attendance`, which feeds
    absence follow-ups.

@@ -17,6 +17,7 @@ export default defineConfig({
         services: page("services"),
         followups: page("followups"),
         people: page("people"),
+        calendar: page("calendar"),
         settings: page("settings"),
       },
     },

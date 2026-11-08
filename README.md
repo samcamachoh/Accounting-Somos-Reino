@@ -14,6 +14,7 @@ leadership side of the books, behind the same sign-in.
 | `login.html` | Sign in, reset a password, choose a new one |
 | `giving.html` | Members: give, review history, manage recurring gifts (ES/EN) |
 | `finance.html` | Leadership: deposits, expenses, funds, people, reconciliation |
+| `calendar.html` | Everyone: what's happening, RSVP. Calendar managers: add, repeat, cancel, and book rooms |
 | `people.html` | People managers: directory of everyone — families, visitors, members; add, edit, import and export |
 | `followups.html` | Pastoral team: who needs a call, visit, or note — queue, log contact, snooze |
 | `services.html` | Everyone serving: service plans, scheduling, songs, live |

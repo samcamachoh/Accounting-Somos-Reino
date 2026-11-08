@@ -48,6 +48,10 @@ export const canAccessFollowUps = (profile) =>
 export const canAccessPeople = (profile) =>
   profile?.role === "admin" || Boolean(profile?.permissions?.people);
 
+/** Create and edit events, rooms, and bookings. Everyone else can view and RSVP. */
+export const canManageCalendar = (profile) =>
+  profile?.role === "admin" || Boolean(profile?.permissions?.calendar) || Boolean(profile?.permissions?.people);
+
 /** The giving portal is open to anyone with an active account. */
 export const canAccessGiving = () => true;
 

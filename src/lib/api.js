@@ -528,3 +528,162 @@ export async function importPeople(rows) {
 }
 
 export { PERSON_STATUSES };
+
+/* ------------------------------------------------------------
+   Calendar
+   ------------------------------------------------------------ */
+
+const EVENT_SELECT = "*, rooms(id, name), groups(id, name), event_series(rrule)";
+const EVENT_FIELDS = [
+  "title", "kind", "starts_at", "ends_at", "all_day", "location", "room_id", "group_id",
+  "description", "visibility", "rsvp_enabled", "capacity", "status",
+];
+
+const pickEvent = (input) => Object.fromEntries(
+  EVENT_FIELDS.filter((k) => k in input).map((k) => {
+    const v = input[k];
+    return [k, typeof v === "string" ? (v.trim() === "" ? null : v.trim()) : v];
+  }),
+);
+
+/** Rooms, groups, and the signed-in person's own people row (needed to RSVP). */
+export async function loadCalendarBase(userId) {
+  const db = requireClient();
+  const [rooms, groups, me] = await Promise.all([
+    db.from(TABLES.rooms).select("*").eq("is_active", true).order("name"),
+    db.from(TABLES.groups).select("id, name").eq("is_active", true).order("name"),
+    userId ? db.from(TABLES.people).select("id").eq("profile_id", userId).maybeSingle() : Promise.resolve({ data: null, error: null }),
+  ]);
+  return {
+    rooms: unwrap(rooms, "Loading rooms"),
+    groups: unwrap(groups, "Loading groups"),
+    personId: unwrap(me, "Finding your record")?.id ?? null,
+  };
+}
+
+/**
+ * Events overlapping [from, to), plus attendance rows for them. Managers
+ * get everyone's RSVPs; everyone else gets only their own — RLS decides.
+ * @param {Date} from
+ * @param {Date} to
+ */
+export async function loadCalendarRange(from, to) {
+  const db = requireClient();
+  const events = unwrap(
+    await db.from(TABLES.events).select(EVENT_SELECT).lt("starts_at", to.toISOString()).gte("ends_at", from.toISOString()).order("starts_at"),
+    "Loading events",
+  );
+
+  const attendance = [];
+  const ids = events.filter((e) => e.rsvp_enabled).map((e) => e.id);
+  for (let i = 0; i < ids.length; i += 80) {
+    attendance.push(...unwrap(
+      await db.from(TABLES.eventAttendance).select("event_id, person_id, rsvp, checked_in_at, guests").in("event_id", ids.slice(i, i + 80)),
+      "Loading RSVPs",
+    ));
+  }
+  return { events, attendance };
+}
+
+/**
+ * Which of these time slots would collide with an existing booking of the
+ * room? Checked before saving so a series can say *which* dates clash —
+ * the database trigger still refuses a collision that sneaks in between.
+ * @param {string} roomId
+ * @param {{starts_at:string,ends_at:string}[]} slots
+ * @param {string[]} [excludeIds] Events to ignore (the one being edited).
+ * @returns {Promise<{starts_at:string,title:string}[]>} The slots that clash.
+ */
+export async function findRoomConflicts(roomId, slots, excludeIds = []) {
+  if (!roomId || !slots.length) return [];
+  const db = requireClient();
+  const lo = slots.reduce((a, s) => (s.starts_at < a ? s.starts_at : a), slots[0].starts_at);
+  const hi = slots.reduce((a, s) => (s.ends_at > a ? s.ends_at : a), slots[0].ends_at);
+
+  const rows = unwrap(
+    await db.from(TABLES.events).select("id, title, starts_at, ends_at").eq("room_id", roomId).eq("status", "scheduled").lt("starts_at", hi).gt("ends_at", lo),
+    "Checking the room",
+  ).filter((r) => !excludeIds.includes(r.id));
+
+  const clashes = [];
+  for (const slot of slots) {
+    const hit = rows.find((r) => new Date(r.starts_at) < new Date(slot.ends_at) && new Date(r.ends_at) > new Date(slot.starts_at));
+    if (hit) clashes.push({ starts_at: slot.starts_at, title: hit.title });
+  }
+  return clashes;
+}
+
+/**
+ * Create one event, or a repeating series.
+ * @param {object} base Event fields shared by every occurrence.
+ * @param {{starts_at:string,ends_at:string}[]} slots One per occurrence.
+ * @param {{rrule:string,starts_on:string,until_on?:string|null}|null} series
+ */
+export async function createEvents(base, slots, series = null) {
+  const db = requireClient();
+  if (!base?.title?.trim()) fail("An event needs a title.");
+  if (!slots?.length) fail("An event needs a date.");
+
+  let seriesId = null;
+  if (series) {
+    const made = await db.from(TABLES.eventSeries).insert(series).select("id").single();
+    seriesId = unwrap(made, "Creating the series").id;
+  }
+
+  const rows = slots.map((slot) => ({ ...pickEvent(base), ...slot, series_id: seriesId }));
+  const result = await db.from(TABLES.events).insert(rows).select(EVENT_SELECT);
+  if (result.error) {
+    /* Don't leave an empty series behind a failed insert. */
+    if (seriesId) await db.from(TABLES.eventSeries).delete().eq("id", seriesId);
+    fail(`Saving the event: ${result.error.message}`);
+  }
+  return result.data;
+}
+
+/** Change one event. */
+export async function updateEvent(id, patch) {
+  const db = requireClient();
+  if (!id) fail("Which event?");
+  if ("title" in patch && !String(patch.title ?? "").trim()) fail("An event needs a title.");
+  const result = await db.from(TABLES.events).update(pickEvent(patch)).eq("id", id).select(EVENT_SELECT).single();
+  return unwrap(result, "Saving the event");
+}
+
+/** Ids of a series' events from a moment on — for "this and all following". */
+export async function loadSeriesEventIds(seriesId, fromIso) {
+  const db = requireClient();
+  const rows = unwrap(
+    await db.from(TABLES.events).select("id").eq("series_id", seriesId).gte("starts_at", fromIso),
+    "Finding the rest of the series",
+  );
+  return rows.map((r) => r.id);
+}
+
+/** Cancel (or restore) events without losing them. */
+export async function setEventsStatus(ids, status) {
+  const db = requireClient();
+  if (!ids?.length) fail("Which events?");
+  if (!["scheduled", "cancelled"].includes(status)) fail("Unknown status.");
+  const result = await db.from(TABLES.events).update({ status }).in("id", ids).select(EVENT_SELECT);
+  return unwrap(result, status === "cancelled" ? "Cancelling" : "Restoring");
+}
+
+/** Permanently remove events (their RSVPs go with them). */
+export async function deleteEvents(ids) {
+  const db = requireClient();
+  if (!ids?.length) fail("Which events?");
+  unwrap(await db.from(TABLES.events).delete().in("id", ids), "Deleting");
+}
+
+/** Say yes, maybe, or no to an event. Replaces any earlier answer. */
+export async function setRsvp(eventId, personId, rsvp) {
+  const db = requireClient();
+  if (!personId) fail("Your account isn't linked to a person yet, so it can't RSVP. Ask an administrator.");
+  if (!["yes", "no", "maybe"].includes(rsvp)) fail("Choose yes, maybe, or no.");
+  const result = await db
+    .from(TABLES.eventAttendance)
+    .upsert({ event_id: eventId, person_id: personId, rsvp }, { onConflict: "event_id,person_id" })
+    .select("event_id, person_id, rsvp, checked_in_at, guests")
+    .single();
+  return unwrap(result, "Saving your RSVP");
+}

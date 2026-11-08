@@ -197,6 +197,7 @@ const STR = {
   tabSettings:{es:"Ajustes", en:"Settings"},
   tabFollowUps:{es:"Seguimiento", en:"Follow-ups"},
   tabPeople:{es:"Personas", en:"People"},
+  tabCalendar:{es:"Calendario", en:"Calendar"},
 
   profileSection:{es:"Perfil", en:"Profile"},
   nameF:{es:"Nombre", en:"Name"},
@@ -279,6 +280,9 @@ const TABS = [
   /* Ungated: volunteers need their own schedule, not just leadership. */
   {id:"services", label:"tabServices", href:"/services.html",
    ico:"M3.5 3.5h11v11h-11zM3.5 7h11M6.5 10h5M6.5 12h3"},
+  /* Ungated: everyone can see what's happening and RSVP. */
+  {id:"calendar", label:"tabCalendar", href:"/calendar.html",
+   ico:"M3.5 4.5h11v10h-11zM3.5 7.5h11M6.5 3v3M11.5 3v3"},
   {id:"people", label:"tabPeople", href:"/people.html", gate:()=>state.showPeople,
    ico:"M6.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM2 14.5c0-2.4 2-4 4.5-4s4.5 1.6 4.5 4M12 8.2a2.2 2.2 0 1 0 0-4.4M13.5 10.6c1.6.4 2.5 1.7 2.5 3.4"},
   {id:"followups", label:"tabFollowUps", href:"/followups.html", gate:()=>state.showFollowUps,
