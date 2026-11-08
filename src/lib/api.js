@@ -296,3 +296,98 @@ export async function openBillingPortal() {
 
   window.location.assign(data.url);
 }
+
+/* ------------------------------------------------------------
+   Follow-ups
+   ------------------------------------------------------------ */
+
+const FOLLOW_UP_SELECT =
+  "*, people(id, first_name, last_name, phone, email, status), assignee:profiles!assigned_to(id, full_name)";
+
+/**
+ * Everything the follow-up queue renders: open and snoozed tasks, tasks
+ * finished in the last 30 days, people to add tasks for, and who can
+ * be assigned them.
+ */
+export async function loadFollowUpSnapshot() {
+  const db = requireClient();
+  const since = new Date(Date.now() - 30 * 864e5).toISOString();
+
+  const [open, done, people, staff] = await Promise.all([
+    db.from(TABLES.followUps).select(FOLLOW_UP_SELECT).in("status", ["open", "snoozed"]).order("due_on"),
+    db.from(TABLES.followUps).select(FOLLOW_UP_SELECT).in("status", ["done", "dropped"]).gte("completed_at", since).order("completed_at", { ascending: false }),
+    db.from(TABLES.people).select("id, first_name, last_name, phone, email, status").order("last_name"),
+    db.from(TABLES.profiles).select("id, full_name, email").eq("is_active", true).order("full_name"),
+  ]);
+
+  return {
+    followUps: [...unwrap(open, "Loading follow-ups"), ...unwrap(done, "Loading finished follow-ups")],
+    people: unwrap(people, "Loading people"),
+    staff: unwrap(staff, "Loading staff"),
+  };
+}
+
+/** A person's recent contact history, newest first. */
+export async function loadInteractions(personId) {
+  const db = requireClient();
+  if (!personId) fail("Which person?");
+  const result = await db
+    .from(TABLES.interactions)
+    .select("*, author:profiles!logged_by(full_name)")
+    .eq("person_id", personId)
+    .order("occurred_at", { ascending: false })
+    .limit(10);
+  return unwrap(result, "Loading contact history");
+}
+
+/**
+ * Add a follow-up by hand.
+ * @param {{person_id:string,title:string,kind?:string,due_on?:string,priority?:string,assigned_to?:string|null,details?:string}} followUp
+ */
+export async function createFollowUp(followUp) {
+  const db = requireClient();
+  if (!followUp?.person_id) fail("Choose who this follow-up is about.");
+  if (!followUp?.title?.trim()) fail("A follow-up needs a title.");
+
+  const result = await db
+    .from(TABLES.followUps)
+    .insert({ ...followUp, title: followUp.title.trim(), source: "manual" })
+    .select(FOLLOW_UP_SELECT)
+    .single();
+  return unwrap(result, "Creating the follow-up");
+}
+
+/**
+ * Change a follow-up. The database stamps `completed_at` itself when
+ * a task is closed, so callers only say what the status is.
+ */
+export async function updateFollowUp(id, patch) {
+  const db = requireClient();
+  if (!id) fail("Which follow-up?");
+  const result = await db.from(TABLES.followUps).update(patch).eq("id", id).select(FOLLOW_UP_SELECT).single();
+  return unwrap(result, "Updating the follow-up");
+}
+
+/**
+ * Log a call, visit or note about someone — and, when `followUpId` is
+ * given, close that follow-up with the same summary as its outcome.
+ * The log is written first, so a failure never loses what was said.
+ */
+export async function logInteraction({ personId, kind, summary, followUpId, close = true }) {
+  const db = requireClient();
+  if (!personId) fail("Which person?");
+  if (!summary?.trim()) fail("Write a line about what happened.");
+
+  const logged = await db
+    .from(TABLES.interactions)
+    .insert({ person_id: personId, kind, summary: summary.trim() })
+    .select()
+    .single();
+  const interaction = unwrap(logged, "Logging the contact");
+
+  if (followUpId && close) {
+    const followUp = await updateFollowUp(followUpId, { status: "done", outcome: summary.trim() });
+    return { interaction, followUp };
+  }
+  return { interaction };
+}

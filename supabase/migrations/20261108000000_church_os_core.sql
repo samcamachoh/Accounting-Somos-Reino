@@ -651,7 +651,7 @@ $$ select id from people where profile_id = auth.uid() limit 1 $$;
 drop policy if exists profiles_read  on profiles;
 drop policy if exists profiles_self  on profiles;
 drop policy if exists profiles_admin on profiles;
-create policy profiles_read  on profiles for select using (id = auth.uid() or can_people() or is_staff());
+create policy profiles_read  on profiles for select using (id = auth.uid() or can_people() or can_followups() or is_staff());
 create policy profiles_self  on profiles for update using (id = auth.uid())
   with check (id = auth.uid() and role = app_role() and permissions = my_permissions() and is_active);
 create policy profiles_admin on profiles for all using (is_admin()) with check (is_admin());

@@ -46,6 +46,10 @@ export const TABLES = {
   ledgerEntries: "ledger_entries",
   paymentMethods: "payment_methods",
   recurringGifts: "recurring_gifts",
+  people: "people",
+  followUps: "follow_ups",
+  interactions: "interactions",
+  followUpRules: "follow_up_rules",
 };
 
 /* Stripe and account provisioning need the service role, so they

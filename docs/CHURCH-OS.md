@@ -91,8 +91,10 @@ project. The live project (`qbqjmdyqknuqlkfbubml`) may already have tables:
 1. **Apply the schema** and reconcile with the live project.
 2. **People portal** (`people.html`): directory, household view, profile with
    giving summary, contact log, tags, import from CSV/Planning Center.
-3. **Follow-up queue** (`followups.html`): "my tasks", overdue, log a call in
-   one tap, rule editor. Likely the highest-value page for daily use.
+3. ~~**Follow-up queue** (`followups.html`)~~ — **built.** Mine / Everyone / Done,
+   overdue-first, call and text links, log a contact (closes the task and
+   keeps the history), snooze, add by hand. Still to do: rule editor, and
+   assigning from the card.
 4. **Calendar portal** (`calendar.html`): month/week/agenda, room booking,
    RSVP, recurring events, public ICS feed.
 5. **Wire `services.html`** to the services tables (it is demo-only today).
