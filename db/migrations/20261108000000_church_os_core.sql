@@ -32,23 +32,39 @@
 -- 1. ACCESS
 -- ------------------------------------------------------------
 
--- Roles the Data API switches into. `authenticated` is a signed-in person;
--- `anon` is everyone else and is granted nothing at all below.
+-- Roles the Data API switches into. `authenticated` is a signed-in person.
+-- The signed-out role is called `anon` by PostgREST's own docs and `anonymous`
+-- by Neon's Data API, so both are created; neither is ever granted anything
+-- (see the grants migration, which is safe to re-run).
 do $$
+declare r text;
 begin
-  if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
-  if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
+  foreach r in array array['anon', 'anonymous', 'authenticated'] loop
+    if not exists (select 1 from pg_roles where rolname = r) then execute format('create role %I nologin', r); end if;
+  end loop;
 end $$;
 
--- The raw Clerk user id from the verified session token. The Data API
--- verifies the token and exposes its claims to the session as JSON in
--- `request.jwt.claims` (the PostgREST convention); `sub` is the Clerk user
--- id (text like "user_2abc…", not a UUID). NULL with no token.
--- Nothing but requesting_user_id() and the "can I see my own profile"
--- policy should use this directly.
+-- The raw Clerk user id from the verified session token (`sub`: text like
+-- "user_2abc…", not a UUID). NULL with no token.
+-- Data APIs hand the verified token to the database in one of two ways, and
+-- both are accepted so the same schema runs on either:
+--   1. `auth.user_id()` — Neon's Data API (the pg_session_jwt extension)
+--   2. the `request.jwt.claims` setting — PostgREST's own convention
+-- The first is tried first; the check for it is dynamic so this still
+-- creates on a plain Postgres that has no `auth` schema.
+-- Nothing but requesting_user_id() and "can I see my own profile" should call this.
 create or replace function jwt_sub() returns text
-language sql stable as
-$$ select nullif(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub', '') $$;
+language plpgsql stable as
+$$
+declare sub text;
+begin
+  if to_regprocedure('auth.user_id()') is not null then
+    execute 'select auth.user_id()::text' into sub;
+    if nullif(sub, '') is not null then return sub; end if;
+  end if;
+  return nullif(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub', '');
+end
+$$;
 
 create table if not exists profiles (
   id           text primary key,                      -- Clerk user id
@@ -765,16 +781,3 @@ create policy match_all     on reconciliation_matches for all using (can_finance
 create policy ledger_all    on ledger_entries for all using (can_finance()) with check (can_finance());
 -- Stripe webhooks run as the database owner, which bypasses RLS, so no insert
 -- policy is needed for them.
-
--- ------------------------------------------------------------
--- GRANTS
--- Row Level Security decides which rows; these decide which tables a
--- signed-in person may touch at all. `anon` gets nothing.
--- ------------------------------------------------------------
-grant usage on schema public to authenticated;
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant execute on all functions in schema public to authenticated;
-alter default privileges in schema public grant select, insert, update, delete on tables to authenticated;
-
--- The nightly rules run from a scheduler, never from a browser.
-revoke execute on function run_scheduled_follow_up_rules() from public, anon, authenticated;

@@ -28,7 +28,8 @@ API that re-implements every rule in application code — is possible but a much
 
 | | |
 |---|---|
-| Schema on plain PostgreSQL 16, no host-specific pieces (roles, grants, policies, triggers) | **Tested** — 48 checks |
+| Schema on plain PostgreSQL 16 (roles, grants, policies, triggers), reading the signed-in person from **either** `auth.user_id()` (Neon) **or** `request.jwt.claims` (PostgREST) | **Tested** — 61 checks, both identity paths |
+| A host that grants too much when its Data API is switched on (simulated), then the grants file re-run | **Tested** — access returns to the intended rules |
 | Deactivated or profile-less accounts read and write nothing, even with a still-valid token | **Tested** (this was a real gap, found and fixed during the move) |
 | `api/admin-users` logic against a real database with a stand-in Clerk | **Tested** — 36 checks (authorization, create/update/delete, SQL-injection attempts, transaction clean-up) |
 | Browser data client: carries the Clerk token on reads, writes and function calls; sends none when signed out; function errors come through readably | **Tested** against stand-ins |
@@ -41,37 +42,50 @@ The first real sign-in is the first real test of the three bottom rows. If somet
 places are, in order: the Clerk token not carrying `"role": "authenticated"`, the Data API not trusting
 Clerk's signing keys, and the function's environment variables.
 
-## 1. Database and Data API
+## 1. Database and Data API (Neon)
 
-Create a PostgreSQL database and apply `db/migrations/20261108000000_church_os_core.sql` **as the
-database owner**. It is safe to re-run. It creates the `anon` and `authenticated` roles if missing, and
-grants `anon` nothing.
+**Cost.** Neon's free plan is $0 with 1 GB of storage per project, which is far more than this needs.
+Whether the Data API is available on the free plan was **not confirmed** — check Neon's pricing page
+before relying on it.
 
-Then expose the database through a Data API that:
+**Apply the schema** as the database owner, in order — both files are safe to re-run:
 
-1. connects as an `authenticator`-style login that may `SET ROLE authenticated` (and `anon`);
-2. **verifies Clerk's tokens** — it needs Clerk's public signing keys, published as JWKS at
-   `https://<your-clerk-domain>/.well-known/jwks.json` (for the dev instance:
-   `kind-orca-6383.clerk.accounts.dev`);
-3. switches to the role named in the token's `role` claim, and exposes the claims to the session as
-   `request.jwt.claims` — the PostgREST convention the schema's `jwt_sub()` reads.
+1. `db/migrations/20261108000000_church_os_core.sql` — tables, policies, rules.
+2. `db/migrations/20261108000100_grants.sql` — who may touch which tables.
 
-Clerk's session tokens carry no `role` claim by default. In the Clerk dashboard, customize the session
-token to add `{ "role": "authenticated" }` (name of the setting may have moved).
+**Then enable the Data API** in the Neon console for the project and database. What Neon's docs say
+(taken from search results, not tested here — confirm each against the current docs, since the Data
+API was in early access when it was introduced):
 
-- **Neon:** its Data API is PostgREST-compatible and has a Clerk option. Follow Neon's current docs; I
-  could not reach them from the build environment, so none of its specifics are confirmed here.
-- **PostgREST yourself:** `db-schemas = "public"`, `db-anon-role = "anon"`, `jwt-secret` = the JWKS
-  document, `role-claim-key = ".role"`. Run it anywhere that can reach the database; put TLS in front.
+- It is PostgREST-compatible and accepts any provider that issues JWTs, including Clerk, by checking
+  the provider's published signing keys (a JWKS URL).
+- **JWKS URL for this Clerk instance:** `https://kind-orca-6383.clerk.accounts.dev/.well-known/jwks.json`
+  (the domain is inside your publishable key). For production it will be your production Clerk domain.
+- The database role comes from the token's `role` claim (default path `role`). A token with no role
+  claim is treated as signed-out. So Clerk's session token **must** carry `"role": "authenticated"`
+  (step 2 below) — a valid signature alone is not enough.
+- Neon applies default grants to `authenticated` on the `public` schema when you enable the API, and
+  requires Row Level Security on every exposed table (this schema enables it on all of them).
+- Its signed-out role is named `anonymous`; the schema creates and locks down both that and `anon`.
 
-Set `VITE_DATA_API_URL` to its address.
+**Then run `20261108000100_grants.sql` again.** Enabling the API can change grants; re-running puts
+them back to the intended rules (signed-out visitors get nothing). It never harms a correct setup.
+
+Set `VITE_DATA_API_URL` to the Data API's address (shown in the Neon console).
+
+**For the admin function's `DATABASE_URL`** use the project's owner connection string. On serverless
+hosts, Neon's pooled connection string is usually the right one — confirm in their docs.
+
+*Not using Neon?* Any PostgREST works too: `db-schemas = "public"`, `db-anon-role = "anon"`,
+`jwt-secret` = the JWKS document, `role-claim-key = ".role"`. The schema reads the user from
+`request.jwt.claims`, which PostgREST sets itself.
 
 ## 2. Clerk
 
 - **User & authentication:** enable *Email address*, plus at least one of *Email verification code*
   (recommended — no passwords to manage) or *Password*.
 - **Sign-up mode: restricted.** The portal is for people the church has added.
-- **Session token:** add the `role` claim above.
+- **Session token:** customize it to add `{ "role": "authenticated" }` (look for *Customize session token* in the Clerk dashboard; the name may have moved).
 - Copy the **publishable key** (`pk_test_…`) into `VITE_CLERK_PUBLISHABLE_KEY`. Copy the **secret key**
   (`sk_…`) only into the function's environment — never a `VITE_` variable, never a file in the repo.
 - For production, create a production Clerk instance (`pk_live_…`) and swap the keys.
