@@ -16,6 +16,7 @@ export default defineConfig({
         giving: page("giving"),
         services: page("services"),
         followups: page("followups"),
+        people: page("people"),
         settings: page("settings"),
       },
     },

@@ -391,3 +391,140 @@ export async function logInteraction({ personId, kind, summary, followUpId, clos
   }
   return { interaction };
 }
+
+/* ------------------------------------------------------------
+   People directory
+   ------------------------------------------------------------ */
+
+const PERSON_FIELDS = [
+  "household_id", "household_role", "first_name", "last_name", "preferred_name", "email", "phone",
+  "birthday", "anniversary", "gender", "language", "status", "first_visit_on", "joined_on",
+  "baptized_on", "how_they_found_us", "tags", "notes", "background_check", "background_check_expires",
+];
+const PERSON_STATUSES = ["visitor", "regular", "member", "inactive", "former"];
+
+/** Keep only columns the table has, and turn blank strings into nulls. */
+function cleanPerson(input) {
+  const out = {};
+  for (const key of PERSON_FIELDS) {
+    if (!(key in input)) continue;
+    const value = input[key];
+    out[key] = typeof value === "string" ? (value.trim() === "" ? null : value.trim()) : value;
+  }
+  /* These columns are NOT NULL with defaults; null would be refused. */
+  for (const key of ["last_name", "language", "status", "background_check"]) {
+    if (key in out && out[key] === null) delete out[key];
+  }
+  if (!out.last_name && "last_name" in input) out.last_name = "";
+  return out;
+}
+
+/** Read every row of a query, a page at a time, past PostgREST's 1,000-row cap. */
+async function fetchAll(buildQuery, context) {
+  const size = 1000;
+  const rows = [];
+  for (let from = 0; ; from += size) {
+    const page = unwrap(await buildQuery().range(from, from + size - 1), context);
+    rows.push(...page);
+    if (page.length < size) return rows;
+  }
+}
+
+/** Everyone, with their family and groups, for the directory. */
+export async function loadPeopleSnapshot() {
+  const db = requireClient();
+  const [people, households, memberships] = await Promise.all([
+    fetchAll(() => db.from(TABLES.people).select("*").order("last_name").order("first_name"), "Loading people"),
+    fetchAll(() => db.from(TABLES.households).select("*").order("name"), "Loading families"),
+    fetchAll(() => db.from(TABLES.groupMembers).select("person_id, role, left_on, groups(id, name, kind)").is("left_on", null), "Loading groups"),
+  ]);
+  return { people, households, memberships };
+}
+
+/**
+ * One person's story: contact history, open follow-ups, family, and — when
+ * the viewer may see the books — what they have given this year.
+ */
+export async function loadPersonDetail(person, { includeGiving = false } = {}) {
+  const db = requireClient();
+  if (!person?.id) fail("Which person?");
+
+  const [interactions, followUps, family, giving] = await Promise.all([
+    db.from(TABLES.interactions).select("*, author:profiles!logged_by(full_name)").eq("person_id", person.id).order("occurred_at", { ascending: false }).limit(15),
+    db.from(TABLES.followUps).select("id, title, kind, due_on, status").eq("person_id", person.id).in("status", ["open", "snoozed"]).order("due_on"),
+    person.household_id
+      ? db.from(TABLES.people).select("id, first_name, last_name, household_role, status").eq("household_id", person.household_id).neq("id", person.id)
+      : Promise.resolve({ data: [], error: null }),
+    includeGiving
+      ? db.from(TABLES.givingSummary).select("year, gifts, total_cents, last_gift_at").eq("person_id", person.id).order("year", { ascending: false }).limit(3)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  return {
+    interactions: unwrap(interactions, "Loading contact history"),
+    followUps: unwrap(followUps, "Loading follow-ups"),
+    family: unwrap(family, "Loading family"),
+    giving: unwrap(giving, "Loading giving"),
+  };
+}
+
+/** Find a family by name (case-insensitive) or create it. Returns its id. */
+export async function ensureHousehold(name) {
+  const db = requireClient();
+  const clean = String(name ?? "").trim();
+  if (!clean) return null;
+
+  const found = unwrap(await db.from(TABLES.households).select("id").ilike("name", clean.replace(/[%_]/g, "\\$&")).limit(1), "Looking up the family");
+  if (found.length) return found[0].id;
+
+  return unwrap(await db.from(TABLES.households).insert({ name: clean }).select("id").single(), "Creating the family").id;
+}
+
+/** Add one person. Returns the created row. */
+export async function createPerson(input) {
+  const db = requireClient();
+  if (!input?.first_name?.trim()) fail("A first name is required.");
+  const result = await db.from(TABLES.people).insert(cleanPerson(input)).select("*").single();
+  return unwrap(result, "Adding the person");
+}
+
+/** Change a person; only the fields passed are touched. */
+export async function updatePerson(id, changes) {
+  const db = requireClient();
+  if (!id) fail("Which person?");
+  if ("first_name" in changes && !String(changes.first_name ?? "").trim()) fail("A first name is required.");
+  const result = await db.from(TABLES.people).update(cleanPerson(changes)).eq("id", id).select("*").single();
+  return unwrap(result, "Saving the person");
+}
+
+/**
+ * Bulk-add people from an import. Families are created once per name.
+ * Rows go in chunks, so a bad row fails its chunk without hiding which
+ * chunk it was in. Returns how many were added.
+ * @param {object[]} rows Person fields plus an optional `household_name`.
+ */
+export async function importPeople(rows) {
+  const db = requireClient();
+  if (!rows?.length) fail("There is nothing to import.");
+
+  const ids = new Map();
+  for (const name of new Set(rows.map((r) => String(r.household_name ?? "").trim()).filter(Boolean))) {
+    ids.set(name.toLowerCase(), await ensureHousehold(name));
+  }
+
+  const payload = rows.map(({ household_name, ...person }) => ({
+    ...cleanPerson(person),
+    household_id: household_name ? ids.get(String(household_name).trim().toLowerCase()) ?? null : null,
+  }));
+
+  let added = 0;
+  for (let i = 0; i < payload.length; i += 200) {
+    const chunk = payload.slice(i, i + 200);
+    const result = await db.from(TABLES.people).insert(chunk);
+    if (result.error) fail(`Importing rows ${i + 1}–${i + chunk.length}: ${result.error.message}. ${added} added before that.`);
+    added += chunk.length;
+  }
+  return { added };
+}
+
+export { PERSON_STATUSES };

@@ -44,14 +44,18 @@ export const canAccessSettings = (profile) => profile?.role === "admin";
 export const canAccessFollowUps = (profile) =>
   profile?.role === "admin" || Boolean(profile?.permissions?.followups) || Boolean(profile?.permissions?.people);
 
+/** People directory: admins and anyone granted `people`. */
+export const canAccessPeople = (profile) =>
+  profile?.role === "admin" || Boolean(profile?.permissions?.people);
+
 /** The giving portal is open to anyone with an active account. */
 export const canAccessGiving = () => true;
 
 /**
  * Resolve the visitor's portal state.
- * @param {{staffOnly?:boolean, adminOnly?:boolean, followupsOnly?:boolean}} options
+ * @param {{staffOnly?:boolean, adminOnly?:boolean, followupsOnly?:boolean, peopleOnly?:boolean}} options
  */
-export async function getPortalSession({ staffOnly = false, adminOnly = false, followupsOnly = false } = {}) {
+export async function getPortalSession({ staffOnly = false, adminOnly = false, followupsOnly = false, peopleOnly = false } = {}) {
   if (!isConfigured) return { mode: "demo" };
 
   const { data: { session }, error } = await supabase.auth.getSession();
@@ -70,6 +74,7 @@ export async function getPortalSession({ staffOnly = false, adminOnly = false, f
   if (profile.is_active === false) return { mode: "disabled", user, profile };
   if (adminOnly && !canAccessSettings(profile)) return { mode: "forbidden", user, profile };
   if (staffOnly && !canAccessFinance(profile)) return { mode: "forbidden", user, profile };
+  if (peopleOnly && !canAccessPeople(profile)) return { mode: "forbidden", user, profile };
   if (followupsOnly && !canAccessFollowUps(profile)) return { mode: "forbidden", user, profile };
 
   return { mode: "ready", user, profile };
@@ -175,7 +180,7 @@ export function mountForbiddenGate(message) {
  * session when the visitor may proceed.
  *
  * In demo mode it resolves immediately so local preview still works.
- * @param {{staffOnly?:boolean, adminOnly?:boolean, followupsOnly?:boolean}} options
+ * @param {{staffOnly?:boolean, adminOnly?:boolean, followupsOnly?:boolean, peopleOnly?:boolean}} options
  */
 export async function requireSession(options = {}) {
   const session = await getPortalSession(options);

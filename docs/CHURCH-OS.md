@@ -89,8 +89,11 @@ project. The live project (`qbqjmdyqknuqlkfbubml`) may already have tables:
 ## Roadmap
 
 1. **Apply the schema** and reconcile with the live project.
-2. **People portal** (`people.html`): directory, household view, profile with
-   giving summary, contact log, tags, import from CSV/Planning Center.
+2. ~~**People portal** (`people.html`)~~ — **built.** Search (name, email, phone,
+   family, tag), status and group filters, person detail (family, groups, open
+   follow-ups, contact history, giving for finance), add/edit with duplicate
+   warning, CSV import (English or Spanish headers) and export. Still to do:
+   merge duplicates, group membership editing, bulk edit, photos.
 3. ~~**Follow-up queue** (`followups.html`)~~ — **built.** Mine / Everyone / Done,
    overdue-first, call and text links, log a contact (closes the task and
    keeps the history), snooze, add by hand. Still to do: rule editor, and
