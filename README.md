@@ -11,7 +11,7 @@ leadership side of the books, behind the same sign-in.
 | Page | Who it's for |
 |---|---|
 | `index.html` | Members: your account — profile, payment methods, notifications — and the tabs to every portal your role opens |
-| `login.html` | Sign in, reset a password, choose a new one |
+| `login.html` | Sign in (Clerk) — password or emailed code, ES/EN |
 | `giving.html` | Members: give, review history, manage recurring gifts (ES/EN) |
 | `finance.html` | Leadership: deposits, expenses, funds, people, reconciliation |
 | `calendar.html` | Everyone: what's happening, RSVP. Calendar managers: add, repeat, cancel, and book rooms |
@@ -50,17 +50,21 @@ That is the intended state before a Supabase project exists — `pnpm dev`
 works on a fresh clone with no setup.
 
 Adding credentials switches everything to **live mode**, where every page
-requires a session and all data comes from Supabase.
+requires a session and all data comes from Supabase. Sign-in is
+[Clerk](https://clerk.com); data is Supabase. All three values are needed —
+with any missing, the portals stay in demo mode.
 
 ```bash
-cp .env.example .env    # then fill in the two values
+cp .env.example .env    # then fill in the three values
 ```
 
-Both values come from **Project Settings → API** in the Supabase
-dashboard. The anon key is meant to be public; Row Level Security is what
-protects the data. The `service_role` key must never appear in `.env` —
-anything prefixed `VITE_` is compiled into the JavaScript every visitor
-downloads.
+The Supabase URL and anon key come from **Project Settings → API**; the
+Clerk publishable key (`pk_test_…` / `pk_live_…`) from **API keys** in the
+Clerk dashboard. All three are meant to be public; Row Level Security is
+what protects the data. Neither the Supabase `service_role` key nor the
+Clerk **secret** key (`sk_…`) may ever appear in `.env` — anything prefixed
+`VITE_` is compiled into the JavaScript every visitor downloads. They live
+only in the `admin-users` function's secrets.
 
 ## Access control
 
@@ -84,22 +88,32 @@ database.
 ## Account management
 
 `settings.html` covers adding people, editing roles and permissions,
-setting passwords, emailing reset links, deactivating, and deleting.
+setting passwords, deactivating, and deleting.
 
-Creating users and setting passwords require the `service_role` key, which
-cannot live in a browser. Those operations run in an Edge Function that
-verifies the caller's JWT and re-reads their role from the database before
-acting:
+Accounts live in Clerk; each person's role and permissions live in the
+`profiles` table, keyed by their Clerk user id. **A profile is only ever
+created by an administrator** — that is what stops anyone choosing their own
+role. A Clerk account with no profile gets the "no access" screen.
+
+Creating accounts and setting passwords need secret keys, which cannot live
+in a browser. Those operations run in an Edge Function that verifies the
+caller's Clerk session token, then re-reads their role from the database
+before acting:
 
 ```bash
+supabase secrets set CLERK_SECRET_KEY=sk_...        # never commit this
+supabase secrets set CLERK_AUTHORIZED_PARTIES=https://your-portal-domain
 supabase functions deploy admin-users
 ```
 
-It needs `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and
-`SUPABASE_SERVICE_ROLE_KEY` in the function environment — Supabase
-provides all three automatically. Before going live, narrow
-`Access-Control-Allow-Origin` in `supabase/functions/admin-users/index.ts`
-from `*` to your own domain.
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided automatically.
+Before going live, narrow `Access-Control-Allow-Origin` in
+`supabase/functions/admin-users/index.ts` from `*` to your own domain.
+
+Adding a person creates an already-verified Clerk account and their profile
+in one step. Clerk sends no email when an admin does this, so tell them to
+open the portal and sign in with their email (a code is emailed to them), or
+with the password you set. See `docs/CLERK.md` for the dashboard settings.
 
 Three guard rails are built in: an admin cannot deactivate their own
 account, cannot remove their own admin role, and deleting someone who

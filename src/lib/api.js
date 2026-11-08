@@ -14,6 +14,7 @@
    what. Nothing here should be read as a permission check.
    ============================================================ */
 import { requireClient, unwrap, fail, TABLES, FUNCTIONS } from "./supabase.js";
+import { clerk } from "./clerk.js";
 
 /* ------------------------------------------------------------
    Reads
@@ -238,14 +239,13 @@ export async function updateMemberPermissions(profileId, permissions) {
 /** Update the signed-in person's own contact details. */
 export async function updateMyProfile({ full_name, email, phone }) {
   const db = requireClient();
-  const { data: { user }, error } = await db.auth.getUser();
-  if (error) fail(`Could not confirm who you are: ${error.message}`);
-  if (!user) fail("You need to be signed in to update your profile.");
+  const userId = clerk?.user?.id;
+  if (!userId) fail("You need to be signed in to update your profile.");
 
   const result = await db
     .from(TABLES.profiles)
     .update({ full_name, email, phone })
-    .eq("id", user.id)
+    .eq("id", userId)
     .select()
     .single();
 

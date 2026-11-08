@@ -10,21 +10,31 @@
 
    Credentials come from Vite env vars (see .env.example). They
    are read at build time, so restart `pnpm dev` after changing
-   them.
+   them. All three are needed: the Supabase URL and anon key for
+   data, and the Clerk publishable key for sign-in.
    ============================================================ */
 import { createClient } from "@supabase/supabase-js";
+import { clerkConfigured, getSessionToken } from "./clerk.js";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-/** True when both credentials are configured. */
-export const isConfigured = Boolean(url && anonKey);
+/**
+ * True when the database AND sign-in are both configured. Without sign-in
+ * there is no way to prove who anyone is, so the portals stay in demo mode
+ * rather than half-working.
+ */
+export const isConfigured = Boolean(url && anonKey && clerkConfigured);
 
-/** The shared client, or null in demo mode. */
+/**
+ * The shared client, or null in demo mode.
+ *
+ * Sign-in is Clerk's, not Supabase's: every request carries the Clerk
+ * session token, and the database reads the user id from it. That means
+ * supabase.auth.* is intentionally unavailable — use ./auth.js instead.
+ */
 export const supabase = isConfigured
-  ? createClient(url, anonKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-    })
+  ? createClient(url, anonKey, { accessToken: getSessionToken })
   : null;
 
 /* ------------------------------------------------------------

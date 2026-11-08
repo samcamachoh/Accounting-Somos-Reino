@@ -5,7 +5,10 @@
 project_id = "qbqjmdyqknuqlkfbubml"
 
 [functions.admin-users]
-# Supabase verifies the caller's JWT before the function runs. The
-# function then re-reads the caller's role from the database, because a
-# valid token only proves who someone is, not what they may do.
-verify_jwt = true
+# Sign-in is Clerk's, and the function verifies the Clerk session token
+# itself (signature, expiry, allowed origin) with CLERK_SECRET_KEY, then
+# re-reads the caller's role from the database — a valid token only proves
+# who someone is, not what they may do. Supabase's gateway check is built
+# for Supabase's own tokens, so it is turned off here; the function refuses
+# every request that fails its own check.
+verify_jwt = false

@@ -10,12 +10,18 @@
      forbidden  signed in, but not allowed in this portal
      ready      cleared — `user` and `profile` are populated
 
+   Sign-in itself is Clerk's. This file asks Clerk who is signed
+   in, then reads that person's profile (role, permissions) from
+   the database — a Clerk account with no profile is "forbidden",
+   because profiles are only ever created by an administrator.
+
    Authorization is enforced by Row Level Security in the
    database, and by the admin-users Edge Function for anything
    privileged. The checks here decide what to *render*; they are
    not the security boundary on their own.
    ============================================================ */
 import { supabase, isConfigured, TABLES } from "./supabase.js";
+import { clerk, loadClerk } from "./clerk.js";
 
 /** Roles permitted into the finance portal. */
 const STAFF_ROLES = ["admin", "finance"];
@@ -62,11 +68,12 @@ export const canAccessGiving = () => true;
 export async function getPortalSession({ staffOnly = false, adminOnly = false, followupsOnly = false, peopleOnly = false } = {}) {
   if (!isConfigured) return { mode: "demo" };
 
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error) throw new Error(`Could not read the session: ${error.message}`);
-  if (!session?.user) return { mode: "signed-out" };
+  await loadClerk();
+  if (!clerk.isSignedIn || !clerk.user) return { mode: "signed-out" };
 
-  const user = session.user;
+  const clerkUser = clerk.user;
+  const user = { id: clerkUser.id, email: clerkUser.primaryEmailAddress?.emailAddress ?? null };
+
   const { data: profile, error: profileError } = await supabase
     .from(TABLES.profiles)
     .select("*")
@@ -85,47 +92,14 @@ export async function getPortalSession({ staffOnly = false, adminOnly = false, f
 }
 
 /* ------------------------------------------------------------
-   Sign in / out
+   Sign out
    ------------------------------------------------------------ */
-
-/** Sign in with email and password. */
-export async function signInWithPassword(email, password) {
-  if (!supabase) throw new Error("Supabase is not configured.");
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw new Error(error.message);
-  return data;
-}
-
-/** Send a one-time sign-in link instead of using a password. */
-export async function sendMagicLink(email, redirectTo = window.location.href) {
-  if (!supabase) throw new Error("Supabase is not configured.");
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
-  if (error) throw new Error(error.message);
-}
-
-/** Email the visitor a link to choose a new password. */
-export async function requestPasswordReset(email, redirectTo) {
-  if (!supabase) throw new Error("Supabase is not configured.");
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: redirectTo || new URL(LOGIN_PAGE, window.location.origin).href,
-  });
-  if (error) throw new Error(error.message);
-}
-
-/** Change the signed-in person's own password. */
-export async function updateMyPassword(password) {
-  if (!supabase) throw new Error("Supabase is not configured.");
-  if (!password || password.length < 8) throw new Error("Password must be at least 8 characters.");
-  const { error } = await supabase.auth.updateUser({ password });
-  if (error) throw new Error(error.message);
-}
 
 /** Sign the current user out and return them to the login page. */
 export async function signOut() {
-  if (!supabase) return;
-  const { error } = await supabase.auth.signOut();
-  if (error) throw new Error(`Could not sign out: ${error.message}`);
-  window.location.assign(LOGIN_PAGE);
+  if (!clerk) return;
+  await loadClerk();
+  await clerk.signOut({ redirectUrl: LOGIN_PAGE });
 }
 
 /* ------------------------------------------------------------

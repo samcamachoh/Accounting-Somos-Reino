@@ -31,6 +31,8 @@
     .msg.err{color:var(--coral-deep)}
     .msg.ok{color:var(--sage)}
     .msg.info{color:var(--muted)}
+    #clerk-root{min-height:120px;display:flex;justify-content:center}
+    #clerk-root:empty::before{content:attr(data-loading);color:var(--muted);font-size:14px;align-self:center}
     .demo{margin-top:20px;padding:14px 16px;border:1px dashed var(--line-2);border-radius:12px;color:var(--muted);font-size:13px;line-height:1.5}
     .foot{text-align:center;margin-top:20px;font-size:12px;color:var(--muted)}
     [hidden]{display:none !important}
@@ -47,188 +49,94 @@
     </div>
 
     <div class="card">
-      <h1 id="title"></h1>
-      <p class="lead" id="lead"></p>
-
-      <!-- sign in -->
-      <form id="signinForm" novalidate>
-        <label for="email" id="lblEmail"></label>
-        <input id="email" type="email" autocomplete="email" required>
-        <label for="password" id="lblPassword"></label>
-        <input id="password" type="password" autocomplete="current-password" required>
-        <button class="primary" type="submit" id="btnSignIn"></button>
-        <div class="row">
-          <button class="link" type="button" id="btnForgot"></button>
-          <button class="link" type="button" id="btnMagic"></button>
-        </div>
-      </form>
-
-      <!-- choose a new password (after a reset link) -->
-      <form id="resetForm" novalidate hidden>
-        <label for="newPassword" id="lblNew"></label>
-        <input id="newPassword" type="password" autocomplete="new-password" required>
-        <label for="confirmPassword" id="lblConfirm"></label>
-        <input id="confirmPassword" type="password" autocomplete="new-password" required>
-        <button class="primary" type="submit" id="btnSave"></button>
-      </form>
+      <!-- Clerk mounts its sign-in (or, from an invitation link, sign-up) here -->
+      <div id="clerk-root" data-loading=""></div>
 
       <p class="msg" id="msg" role="status"></p>
+      <button class="link" type="button" id="btnRetry" hidden></button>
       <div class="demo" id="demoNote" hidden></div>
     </div>
-
-    <p class="foot" id="foot"></p>
   </main>
 
 <script type="module">
-import { supabase, isConfigured } from "/src/lib/supabase.js";
-import { signInWithPassword, sendMagicLink, requestPasswordReset, updateMyPassword } from "/src/lib/auth.js";
+import { isConfigured } from "/src/lib/supabase.js";
+import { clerk, loadClerk } from "/src/lib/clerk.js";
 
 const $ = (s) => document.querySelector(s);
 
 const STR = {
-  title:      {es:"Iniciar sesión",              en:"Sign in"},
-  lead:       {es:"Entra con tu correo y contraseña para ver el portal.", en:"Enter your email and password to reach the portal."},
-  email:      {es:"Correo",                      en:"Email"},
-  password:   {es:"Contraseña",                  en:"Password"},
-  signIn:     {es:"Entrar",                      en:"Sign in"},
-  forgot:     {es:"Olvidé mi contraseña",        en:"Forgot my password"},
-  magic:      {es:"Enviarme un enlace",          en:"Email me a link"},
-  signingIn:  {es:"Entrando…",                   en:"Signing in…"},
-  sending:    {es:"Enviando…",                   en:"Sending…"},
-  needEmail:  {es:"Escribe tu correo primero.",  en:"Enter your email first."},
-  needBoth:   {es:"Escribe tu correo y contraseña.", en:"Enter your email and password."},
-  resetSent:  {es:"Te enviamos un enlace para cambiar tu contraseña.", en:"We sent you a link to change your password."},
-  magicSent:  {es:"Revisa tu correo para el enlace de acceso.", en:"Check your email for the sign-in link."},
-  newTitle:   {es:"Elige una contraseña nueva",  en:"Choose a new password"},
-  newLead:    {es:"Escribe la contraseña que usarás de ahora en adelante.", en:"Set the password you'll use from now on."},
-  newPass:    {es:"Contraseña nueva",            en:"New password"},
-  confirm:    {es:"Confirmar contraseña",        en:"Confirm password"},
-  save:       {es:"Guardar y entrar",            en:"Save and continue"},
-  saving:     {es:"Guardando…",                  en:"Saving…"},
-  tooShort:   {es:"Usa al menos 8 caracteres.",  en:"Use at least 8 characters."},
-  noMatch:    {es:"Las contraseñas no coinciden.", en:"The passwords don't match."},
-  saved:      {es:"Listo. Entrando…",            en:"Saved. Signing you in…"},
-  foot:       {es:"Protegido por Supabase Auth", en:"Protected by Supabase Auth"},
-  demoTitle:  {es:"Modo demostración",           en:"Demo mode"},
-  demoBody:   {es:"No hay credenciales configuradas, así que no hay cuentas todavía. Copia .env.example a .env y agrega tu proyecto de Supabase para activar el inicio de sesión.",
-               en:"No credentials are configured, so there are no accounts yet. Copy .env.example to .env and add your Supabase project to turn sign-in on."},
+  loading:   {es:"Cargando…", en:"Loading…"},
+  loadFail:  {es:"No pudimos cargar el inicio de sesión. Revisa tu conexión e inténtalo de nuevo.", en:"We couldn't load sign-in. Check your connection and try again."},
+  retry:     {es:"Reintentar", en:"Try again"},
+  demoTitle: {es:"Modo demostración", en:"Demo mode"},
+  demoBody:  {es:"Aún no hay inicio de sesión configurado, así que no hay cuentas. Agrega las claves de Supabase y de Clerk en tu archivo .env (ver .env.example) para activarlo.",
+              en:"Sign-in isn't configured yet, so there are no accounts. Add your Supabase and Clerk keys to your .env file (see .env.example) to turn it on."},
 };
 
-let lang = localStorage.getItem("sr-lang") || "es";
+let lang = (() => { try { return localStorage.getItem("sr-lang") || "es"; } catch { return "es"; } })();
 const t = (k) => STR[k][lang];
 
 function paint(){
   document.documentElement.lang = lang;
-  $("#title").textContent      = mode === "recover" ? t("newTitle") : t("title");
-  $("#lead").textContent       = mode === "recover" ? t("newLead")  : t("lead");
-  $("#lblEmail").textContent   = t("email");
-  $("#lblPassword").textContent= t("password");
-  $("#btnSignIn").textContent  = t("signIn");
-  $("#btnForgot").textContent  = t("forgot");
-  $("#btnMagic").textContent   = t("magic");
-  $("#lblNew").textContent     = t("newPass");
-  $("#lblConfirm").textContent = t("confirm");
-  $("#btnSave").textContent    = t("save");
-  $("#foot").textContent       = t("foot");
-  $("#demoNote").innerHTML     = `<b>${t("demoTitle")}</b><br>${t("demoBody")}`;
+  $("#clerk-root").dataset.loading = t("loading");
+  $("#btnRetry").textContent = t("retry");
+  $("#demoNote").innerHTML = `<b>${t("demoTitle")}</b><br>${t("demoBody")}`;
   document.querySelectorAll(".langs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
 }
 
+/* Clerk's own screens speak the language chosen when Clerk loaded, so a
+   change here reloads rather than leaving half the page in the old one. */
 document.querySelectorAll(".langs button").forEach(b => b.addEventListener("click", () => {
-  lang = b.dataset.lang; localStorage.setItem("sr-lang", lang); paint();
+  if (b.dataset.lang === lang) return;
+  try { localStorage.setItem("sr-lang", b.dataset.lang); } catch { /* private mode: still switch this visit */ }
+  location.reload();
 }));
-
-const say = (text, kind = "info") => { const m = $("#msg"); m.className = `msg ${kind}`; m.textContent = text; };
 
 /* Where to land once signed in. Only same-origin paths are honoured,
    so a crafted ?next= can't bounce anyone off to another site. */
 function destination(){
   const next = new URLSearchParams(location.search).get("next");
-  if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+  if (next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\")) return next;
   return "/index.html";
 }
 
-let mode = "signin";
+const BRAND = {
+  variables: { colorPrimary: "#F7746D", colorText: "#17151C", borderRadius: "10px", fontFamily: '"Schibsted Grotesk", system-ui, sans-serif' },
+  elements: { rootBox: { width: "100%" }, cardBox: { boxShadow: "none", border: "0", width: "100%" }, card: { boxShadow: "none", border: "0", padding: "0", width: "100%" } },
+};
 
-function showRecovery(){
-  mode = "recover";
-  $("#signinForm").hidden = true;
-  $("#resetForm").hidden = false;
+async function start(){
   paint();
-}
+  $("#msg").textContent = ""; $("#btnRetry").hidden = true;
 
-/* ---- demo mode: no backend, so there is nothing to sign in to ---- */
-if (!isConfigured) {
-  $("#signinForm").hidden = true;
-  $("#demoNote").hidden = false;
-  paint();
-} else {
-  paint();
-
-  /* Arriving from a reset link puts the client in recovery. */
-  supabase.auth.onAuthStateChange((event) => {
-    if (event === "PASSWORD_RECOVERY") showRecovery();
-  });
-  if (location.hash.includes("type=recovery")) showRecovery();
-
-  /* Already signed in? Don't make them do it again. */
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session && mode === "signin" && !location.hash.includes("type=recovery")) {
-    location.replace(destination());
+  if (!isConfigured) {
+    $("#clerk-root").hidden = true;
+    $("#demoNote").hidden = false;
+    return;
   }
 
-  $("#signinForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = $("#email").value.trim(), password = $("#password").value;
-    if (!email || !password) return say(t("needBoth"), "err");
+  try {
+    await loadClerk();
+  } catch {
+    $("#clerk-root").dataset.loading = "";
+    $("#msg").className = "msg err"; $("#msg").textContent = t("loadFail");
+    $("#btnRetry").hidden = false;
+    return;
+  }
 
-    const button = $("#btnSignIn");
-    button.disabled = true; button.textContent = t("signingIn"); say("");
-    try {
-      await signInWithPassword(email, password);
-      location.assign(destination());
-    } catch (error) {
-      say(error.message, "err");
-      button.disabled = false; button.textContent = t("signIn");
-    }
-  });
+  /* Already signed in? Don't make them do it again. */
+  if (clerk.isSignedIn) return location.replace(destination());
 
-  $("#btnForgot").addEventListener("click", async () => {
-    const email = $("#email").value.trim();
-    if (!email) return say(t("needEmail"), "err");
-    say(t("sending"));
-    try { await requestPasswordReset(email); say(t("resetSent"), "ok"); }
-    catch (error) { say(error.message, "err"); }
-  });
-
-  $("#btnMagic").addEventListener("click", async () => {
-    const email = $("#email").value.trim();
-    if (!email) return say(t("needEmail"), "err");
-    say(t("sending"));
-    try {
-      await sendMagicLink(email, new URL(destination(), location.origin).href);
-      say(t("magicSent"), "ok");
-    } catch (error) { say(error.message, "err"); }
-  });
-
-  $("#resetForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const a = $("#newPassword").value, b = $("#confirmPassword").value;
-    if (a.length < 8) return say(t("tooShort"), "err");
-    if (a !== b) return say(t("noMatch"), "err");
-
-    const button = $("#btnSave");
-    button.disabled = true; button.textContent = t("saving"); say("");
-    try {
-      await updateMyPassword(a);
-      say(t("saved"), "ok");
-      location.assign(destination());
-    } catch (error) {
-      say(error.message, "err");
-      button.disabled = false; button.textContent = t("save");
-    }
-  });
+  /* An invitation link carries a ticket: that is the one way to create an
+     account, and it is a sign-up, not a sign-in. */
+  const invited = new URLSearchParams(location.search).has("__clerk_ticket");
+  const props = { ...BRAND, routing: "hash", forceRedirectUrl: destination() };
+  if (invited) clerk.mountSignUp($("#clerk-root"), { ...props, signInUrl: "/login.html" });
+  else clerk.mountSignIn($("#clerk-root"), props);
 }
+
+$("#btnRetry").addEventListener("click", start);
+await start();
 </script>
 </body>
 </html>
