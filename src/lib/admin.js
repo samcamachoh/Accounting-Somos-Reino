@@ -1,40 +1,19 @@
 /* ============================================================
    Somos Reino — admin user management (browser side)
    ------------------------------------------------------------
-   Thin wrapper over the admin-users Edge Function. Nothing
+   Thin wrapper over the admin-users serverless function. Nothing
    privileged happens here: this file only shapes requests and
    turns failures into readable messages. The function re-checks
    that the caller is an admin on every call.
    ============================================================ */
-import { requireClient, fail } from "./supabase.js";
+import { requireClient, fail, callApi } from "./db.js";
 
 const FUNCTION = "admin-users";
 
-/* Where invite and reset emails should land. The function has no idea
-   what domain it is being called from, so the browser supplies it. */
-const loginUrl = () => new URL("/login.html", window.location.origin).href;
-
 /** Invoke the admin function and unwrap its reply. */
-async function call(action, payload = {}) {
-  const db = requireClient();
-  const { data, error } = await db.functions.invoke(FUNCTION, {
-    body: { action, ...payload },
-  });
-
-  /* A non-2xx reply carries our own message in the body; surface
-     that rather than the generic "Edge Function returned a
-     non-2xx status code". */
-  if (error) {
-    let message = error.message;
-    try {
-      const body = await error.context?.json?.();
-      if (body?.error) message = body.error;
-    } catch { /* keep the original message */ }
-    fail(message);
-  }
-  if (data?.error) fail(data.error);
-
-  return data;
+function call(action, payload = {}) {
+  requireClient();
+  return callApi(FUNCTION, { action, ...payload });
 }
 
 /** Everyone with a profile, plus their sign-in status. */
@@ -44,14 +23,15 @@ export async function listUsers() {
 }
 
 /**
- * Create an account. Omit `password` to email an invite instead,
- * letting the person choose their own.
+ * Create an account, ready to sign in. With a `password` they can use it;
+ * without one they sign in with a code emailed to them. No email is sent by
+ * this call — tell the person to open the portal.
  * @param {{email:string,fullName:string,role?:string,teamName?:string,phone?:string,password?:string,permissions?:object}} user
  */
 export function createUser(user) {
   if (!user?.email) fail("An email address is required.");
   if (!user?.fullName) fail("A name is required.");
-  return call("create", { ...user, redirectTo: loginUrl() });
+  return call("create", user);
 }
 
 /**
@@ -74,7 +54,7 @@ export function setUserPassword(id, password) {
 /** Email a reset link so the person picks their own password. */
 export function sendPasswordReset(email) {
   if (!email) fail("An email address is required.");
-  return call("sendPasswordReset", { email, redirectTo: loginUrl() });
+  return call("sendPasswordReset", { email });
 }
 
 /** Block or restore sign-in without touching the person's history. */

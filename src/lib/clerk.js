@@ -2,8 +2,9 @@
    Somos Reino — Clerk (sign-in)
    ------------------------------------------------------------
    Clerk owns accounts and sessions. The database never sees a
-   password: Supabase is handed the Clerk session token on every
-   request (see supabase.js) and reads who you are from it.
+   password: the Data API is handed the Clerk session token on every
+   request (see db.js), verifies it, and the database reads who you
+   are from it.
 
    One shared instance, loaded once, so every page and module
    that asks gets the same signed-in state.
@@ -44,7 +45,7 @@ export function loadClerk() {
 }
 
 /**
- * The current session token for Supabase, or null when signed out.
+ * The current session token for the Data API, or null when signed out.
  * Clerk caches and refreshes tokens itself, so calling this per request is cheap.
  */
 export async function getSessionToken() {

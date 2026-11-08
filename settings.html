@@ -148,7 +148,7 @@ tr.inactive td{opacity:.55}
 
 <script type="module">
 import { requireSession, signOut } from "/src/lib/auth.js";
-import { isConfigured } from "/src/lib/supabase.js";
+import { isConfigured } from "/src/lib/db.js";
 import { listUsers, createUser, updateUser, setUserPassword, setUserActive, deleteUser } from "/src/lib/admin.js";
 import { showModeBadge } from "/src/lib/status.js";
 
@@ -295,7 +295,7 @@ const readPerms = () => Object.fromEntries(
 );
 
 function requireLive(){
-  if(!live) throw new Error("Demo mode — connect Supabase and Clerk to make changes stick.");
+  if(!live) throw new Error("Demo mode — connect the database and Clerk to make changes stick.");
 }
 
 function addPerson(){
@@ -469,7 +469,7 @@ async function start(){
     live = false;
     render();
     $("#banner").hidden = false;
-    $("#banner").textContent = "Demo mode — this is sample data. Add your Supabase and Clerk keys in .env to manage real accounts.";
+    $("#banner").textContent = "Demo mode — this is sample data. Add your database address and Clerk key in .env to manage real accounts.";
     return showModeBadge({ mode:"demo", portal:"Accounts" });
   }
 

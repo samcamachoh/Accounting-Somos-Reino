@@ -5,7 +5,7 @@
    is in. The portals branch on `mode` and render accordingly:
 
      demo       no credentials configured — keep sample data
-     signed-out no Supabase session — send them to login.html
+     signed-out no Clerk session — send them to login.html
      disabled   profile exists but has been deactivated
      forbidden  signed in, but not allowed in this portal
      ready      cleared — `user` and `profile` are populated
@@ -20,7 +20,7 @@
    privileged. The checks here decide what to *render*; they are
    not the security boundary on their own.
    ============================================================ */
-import { supabase, isConfigured, TABLES } from "./supabase.js";
+import { db, isConfigured, TABLES } from "./db.js";
 import { clerk, loadClerk } from "./clerk.js";
 
 /** Roles permitted into the finance portal. */
@@ -74,7 +74,7 @@ export async function getPortalSession({ staffOnly = false, adminOnly = false, f
   const clerkUser = clerk.user;
   const user = { id: clerkUser.id, email: clerkUser.primaryEmailAddress?.emailAddress ?? null };
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await db
     .from(TABLES.profiles)
     .select("*")
     .eq("id", user.id)

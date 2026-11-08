@@ -14,10 +14,15 @@
 -- gets a follow-up; a volunteer on a plan is a person; a gift is
 -- from a person; a calendar event has attendees who are people.
 --
--- Written for a fresh project. If the live project already has
--- tables, run `supabase db pull` first and reconcile — every
--- create is `if not exists`, but existing column differences are
--- not patched here.
+-- Plain PostgreSQL (14+). Nothing here is specific to any host: it runs
+-- on Neon, RDS, a VM, or a laptop. The pages reach it through a
+-- PostgREST-compatible Data API (Neon's Data API, or PostgREST itself),
+-- which verifies the Clerk session token and sets the request's claims;
+-- the policies below read the signed-in person from those claims.
+--
+-- Written for an empty database. If one already holds tables, compare
+-- first (`pg_dump --schema-only`) — every create is `if not exists`, but
+-- columns an existing table lacks are not patched here.
 --
 -- Row Level Security is on for every table, keyed on the Clerk user id. The pages' checks
 -- decide what to *show*; the policies below decide what is *allowed*.
@@ -27,13 +32,23 @@
 -- 1. ACCESS
 -- ------------------------------------------------------------
 
--- Who is signed in? Sign-in is handled by Clerk, whose user ids are text
--- ("user_2abc…"), not UUIDs, so requesting_user_id() cannot be used. Supabase checks
--- the Clerk session token and exposes its claims through auth.jwt(); `sub`
--- is the Clerk user id. NULL when signed out.
-create or replace function requesting_user_id() returns text
+-- Roles the Data API switches into. `authenticated` is a signed-in person;
+-- `anon` is everyone else and is granted nothing at all below.
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
+  if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
+end $$;
+
+-- The raw Clerk user id from the verified session token. The Data API
+-- verifies the token and exposes its claims to the session as JSON in
+-- `request.jwt.claims` (the PostgREST convention); `sub` is the Clerk user
+-- id (text like "user_2abc…", not a UUID). NULL with no token.
+-- Nothing but requesting_user_id() and the "can I see my own profile"
+-- policy should use this directly.
+create or replace function jwt_sub() returns text
 language sql stable as
-$$ select nullif(auth.jwt() ->> 'sub', '') $$;
+$$ select nullif(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub', '') $$;
 
 create table if not exists profiles (
   id           text primary key,                      -- Clerk user id
@@ -48,6 +63,16 @@ create table if not exists profiles (
   disabled_at  timestamptz,
   created_at   timestamptz not null default now()
 );
+
+-- Who is signed in AND allowed in? This is the id every policy uses. A person
+-- who has been deactivated, or who has a Clerk account but no profile (profiles
+-- are only created by an administrator), is treated exactly like a visitor with no
+-- token: NULL. So deactivating someone cuts off every read and write at once —
+-- including their own records — even while their session token is still valid.
+-- SECURITY DEFINER so it can read profiles without recursing into profiles' own policies.
+create or replace function requesting_user_id() returns text
+language sql stable security definer set search_path = public as
+$$ select id from profiles where id = jwt_sub() and is_active $$;
 
 -- Helpers. SECURITY DEFINER so policies can read profiles without
 -- recursing into profiles' own policies.
@@ -449,7 +474,7 @@ revoke all on function run_scheduled_follow_up_rules() from public, anon, authen
 
 -- ------------------------------------------------------------
 -- 6. ACCOUNTING
---    Names and columns match src/lib/supabase.js TABLES and what
+--    Names and columns match src/lib/db.js TABLES and what
 --    finance.html / giving.html already read.
 -- ------------------------------------------------------------
 
@@ -659,7 +684,9 @@ $$ select id from people where profile_id = requesting_user_id() limit 1 $$;
 drop policy if exists profiles_read  on profiles;
 drop policy if exists profiles_self  on profiles;
 drop policy if exists profiles_admin on profiles;
-create policy profiles_read  on profiles for select using (id = requesting_user_id() or can_people() or can_followups() or is_staff());
+-- Your own profile stays readable even when deactivated: that is how the app
+-- tells you "this account has been deactivated" instead of a blank screen.
+create policy profiles_read  on profiles for select using (id = jwt_sub() or can_people() or can_followups() or is_staff());
 create policy profiles_self  on profiles for update using (id = requesting_user_id())
   with check (id = requesting_user_id() and role = app_role() and permissions = my_permissions() and is_active);
 create policy profiles_admin on profiles for all using (is_admin()) with check (is_admin());
@@ -736,5 +763,18 @@ create policy payouts_all   on payouts for all using (can_finance()) with check 
 create policy bank_all      on bank_transactions for all using (can_finance()) with check (can_finance());
 create policy match_all     on reconciliation_matches for all using (can_finance()) with check (can_finance());
 create policy ledger_all    on ledger_entries for all using (can_finance()) with check (can_finance());
--- Stripe webhooks (service role) create payment methods, recurring gifts and
--- gifts; the service role bypasses RLS, so no insert policy is needed for them.
+-- Stripe webhooks run as the database owner, which bypasses RLS, so no insert
+-- policy is needed for them.
+
+-- ------------------------------------------------------------
+-- GRANTS
+-- Row Level Security decides which rows; these decide which tables a
+-- signed-in person may touch at all. `anon` gets nothing.
+-- ------------------------------------------------------------
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant execute on all functions in schema public to authenticated;
+alter default privileges in schema public grant select, insert, update, delete on tables to authenticated;
+
+-- The nightly rules run from a scheduler, never from a browser.
+revoke execute on function run_scheduled_follow_up_rules() from public, anon, authenticated;

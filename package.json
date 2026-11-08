@@ -10,9 +10,11 @@
     "check": "node scripts/check-project.mjs"
   },
   "dependencies": {
+    "@clerk/backend": "^3.27.0",
     "@clerk/clerk-js": "^6.42.3",
     "@clerk/localizations": "^4.24.6",
-    "@supabase/supabase-js": "^2.55.0"
+    "@supabase/postgrest-js": "^2.119.0",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "vite": "^7.0.0"

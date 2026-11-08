@@ -59,7 +59,7 @@
   </main>
 
 <script type="module">
-import { isConfigured } from "/src/lib/supabase.js";
+import { isConfigured } from "/src/lib/db.js";
 import { clerk, loadClerk } from "/src/lib/clerk.js";
 
 const $ = (s) => document.querySelector(s);
@@ -69,8 +69,8 @@ const STR = {
   loadFail:  {es:"No pudimos cargar el inicio de sesión. Revisa tu conexión e inténtalo de nuevo.", en:"We couldn't load sign-in. Check your connection and try again."},
   retry:     {es:"Reintentar", en:"Try again"},
   demoTitle: {es:"Modo demostración", en:"Demo mode"},
-  demoBody:  {es:"Aún no hay inicio de sesión configurado, así que no hay cuentas. Agrega las claves de Supabase y de Clerk en tu archivo .env (ver .env.example) para activarlo.",
-              en:"Sign-in isn't configured yet, so there are no accounts. Add your Supabase and Clerk keys to your .env file (see .env.example) to turn it on."},
+  demoBody:  {es:"Aún no hay inicio de sesión configurado, así que no hay cuentas. Agrega la dirección de la base de datos y la clave de Clerk en tu archivo .env (ver .env.example) para activarlo.",
+              en:"Sign-in isn't configured yet, so there are no accounts. Add your database address and Clerk key to your .env file (see .env.example) to turn it on."},
 };
 
 let lang = (() => { try { return localStorage.getItem("sr-lang") || "es"; } catch { return "es"; } })();

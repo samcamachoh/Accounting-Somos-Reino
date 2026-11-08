@@ -13,7 +13,7 @@
    Row Level Security is the authority on who may read or write
    what. Nothing here should be read as a permission check.
    ============================================================ */
-import { requireClient, unwrap, fail, TABLES, FUNCTIONS } from "./supabase.js";
+import { requireClient, unwrap, fail, callApi, TABLES, FUNCTIONS } from "./db.js";
 import { clerk } from "./clerk.js";
 
 /* ------------------------------------------------------------
@@ -176,18 +176,15 @@ export async function undoRecordedBankTransaction(bankTransactionId) {
    ------------------------------------------------------------ */
 
 /**
- * Invite a new member. Creating an auth user needs the service
- * role, so this runs as an Edge Function rather than in the browser.
+ * Add a new member. Creating a sign-in account needs a secret key, so
+ * this runs as a serverless function rather than in the browser.
  * @returns {Promise<{userId:string}>}
  */
 export async function createMemberAccount({ email, fullName, role, teamName }) {
-  const db = requireClient();
+  requireClient();
   if (!email || !fullName) fail("A name and an email are needed to create the account.");
 
-  const { data, error } = await db.functions.invoke(FUNCTIONS.createMember, {
-    body: { email, fullName, role, teamName },
-  });
-  if (error) fail(`Creating the account: ${error.message}`);
+  const data = await callApi(FUNCTIONS.createMember, { email, fullName, role, teamName });
   if (!data?.userId) fail("The account was created but no user id came back.");
 
   return data;
@@ -262,20 +259,17 @@ export async function updateMyProfile({ full_name, email, phone }) {
  * @param {{fundId:string,amountCents:number,frequency:"once"|"weekly"|"monthly",coverFee:boolean}} gift
  */
 export async function startCheckout({ fundId, amountCents, frequency, coverFee }) {
-  const db = requireClient();
+  requireClient();
   if (!fundId) fail("Choose a fund before giving.");
   if (!(amountCents > 0)) fail("Choose an amount above zero.");
 
-  const { data, error } = await db.functions.invoke(FUNCTIONS.checkout, {
-    body: {
-      fundId,
-      amountCents,
-      frequency,
-      coverFee: Boolean(coverFee),
-      returnUrl: window.location.href,
-    },
+  const data = await callApi(FUNCTIONS.checkout, {
+    fundId,
+    amountCents,
+    frequency,
+    coverFee: Boolean(coverFee),
+    returnUrl: window.location.href,
   });
-  if (error) fail(`Opening checkout: ${error.message}`);
   if (!data?.url) fail("Checkout did not return a payment link.");
 
   window.location.assign(data.url);
@@ -286,12 +280,9 @@ export async function startCheckout({ fundId, amountCents, frequency, coverFee }
  * are managed. Redirects the browser on success.
  */
 export async function openBillingPortal() {
-  const db = requireClient();
+  requireClient();
 
-  const { data, error } = await db.functions.invoke(FUNCTIONS.billingPortal, {
-    body: { returnUrl: window.location.href },
-  });
-  if (error) fail(`Opening the billing portal: ${error.message}`);
+  const data = await callApi(FUNCTIONS.billingPortal, { returnUrl: window.location.href });
   if (!data?.url) fail("The billing portal did not return a link.");
 
   window.location.assign(data.url);

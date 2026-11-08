@@ -1,8 +1,8 @@
 # Church OS — one database for the whole church
 
 Somos Reino's accounting, calendar, people and follow-ups all live in one
-Supabase (Postgres) database, defined in
-`supabase/migrations/20261108000000_church_os_core.sql`. The pages are
+PostgreSQL database, defined in
+`db/migrations/20261108000000_church_os_core.sql`. The pages are
 views onto it; the database is the product.
 
 ## The idea: everything hangs off a person
@@ -70,21 +70,19 @@ notes (`people.notes`, `interactions`, `follow_ups`) are never visible to
 plain members. Row Level Security enforces all of this; the pages only
 decide what to show.
 
-Tested against Postgres 16: the migration applies cleanly and re-runs; a member
-cannot read other people's gifts, cannot read follow-ups, cannot promote
-themselves, cannot check themselves in; rooms reject overlap; visitor,
-absence and birthday rules fire once.
+Tested against Postgres 16 (48 checks): the migration applies cleanly and re-runs;
+a member cannot read other people's gifts, cannot read follow-ups, cannot promote
+themselves, cannot check themselves in; a deactivated account reads and writes
+nothing; rooms reject overlap; visitor, absence and birthday rules fire once;
+signed-out visitors are granted nothing.
 
-## Before applying to the live project
+## Applying it
 
-There was no schema in the repo, so this migration is written for a fresh
-project. The live project (`qbqjmdyqknuqlkfbubml`) may already have tables:
-
-1. `supabase db pull` and compare with this file.
-2. Existing tables are left alone (`create table if not exists`); any column
-   they lack (`donations.person_id`, the new permission flags) needs an
-   `alter table`.
-3. Take a backup before running anything.
+See [SETUP.md](SETUP.md). The migration is for an empty database; if one
+already holds tables, compare first (`pg_dump --schema-only`) and take a
+backup. Existing tables are left alone (`create table if not exists`), so a
+column they lack (`donations.person_id`, the permission flags) needs an
+`alter table`.
 
 ## Roadmap
 
