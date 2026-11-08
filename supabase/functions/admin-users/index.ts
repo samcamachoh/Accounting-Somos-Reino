@@ -30,7 +30,7 @@ const CORS = {
 
 const MIN_PASSWORD_LENGTH = 8;
 const ROLES = ["admin", "finance", "member"];
-const PERMISSION_KEYS = ["finance", "approve", "refund", "people", "payouts"];
+const PERMISSION_KEYS = ["finance", "approve", "refund", "people", "payouts", "calendar", "followups"];
 /* A banned user cannot sign in. ~100 years stands in for "until lifted". */
 const BAN_FOREVER = "876000h";
 
@@ -42,7 +42,7 @@ const json = (body: unknown, status = 200) =>
 
 const bad = (message: string, status = 400) => json({ error: message }, status);
 
-/** Normalize an incoming permissions object to the five known flags. */
+/** Normalize an incoming permissions object to the known flags. */
 function cleanPermissions(input: unknown) {
   if (!input || typeof input !== "object") return undefined;
   const out: Record<string, boolean> = {};

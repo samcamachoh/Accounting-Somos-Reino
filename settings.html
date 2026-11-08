@@ -157,7 +157,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":
 const AV = ["#F7746D","#3F7A63","#A97613","#5B5470","#2F6E8F","#8A4A6B","#4C6B3F"];
 const avColor = (n) => AV[[...String(n||"?")].reduce((a,c)=>a+c.charCodeAt(0),0) % AV.length];
 const initials = (n) => String(n||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
-const PERMS = ["finance","approve","refund","people","payouts"];
+const PERMS = ["finance","approve","refund","people","payouts","calendar","followups"];
 
 let users = [], callerId = null, live = false;
 const state = { q:"", role:"all", status:"active", modal:null, busy:false };

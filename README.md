@@ -1,5 +1,9 @@
 # Accounting-Somos-Reino
 
+> **Direction:** this is becoming the church's operating software — accounting,
+> calendar, people and follow-ups on one database. See [docs/CHURCH-OS.md](docs/CHURCH-OS.md)
+> for the schema, access model and roadmap.
+
 A member portal for Somos Reino — give, review your history, and manage
 recurring gifts in Spanish or English. The same records feed the
 leadership side of the books, behind the same sign-in.
