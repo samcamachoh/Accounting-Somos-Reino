@@ -19,7 +19,7 @@
 -- create is `if not exists`, but existing column differences are
 -- not patched here.
 --
--- Row Level Security is on for every table. The pages' checks
+-- Row Level Security is on for every table, keyed on the Clerk user id. The pages' checks
 -- decide what to *show*; the policies below decide what is *allowed*.
 -- ============================================================
 
@@ -27,8 +27,16 @@
 -- 1. ACCESS
 -- ------------------------------------------------------------
 
+-- Who is signed in? Sign-in is handled by Clerk, whose user ids are text
+-- ("user_2abc…"), not UUIDs, so requesting_user_id() cannot be used. Supabase checks
+-- the Clerk session token and exposes its claims through auth.jwt(); `sub`
+-- is the Clerk user id. NULL when signed out.
+create or replace function requesting_user_id() returns text
+language sql stable as
+$$ select nullif(auth.jwt() ->> 'sub', '') $$;
+
 create table if not exists profiles (
-  id           uuid primary key references auth.users(id) on delete cascade,
+  id           text primary key,                      -- Clerk user id
   full_name    text,
   email        text,
   phone        text,
@@ -45,18 +53,18 @@ create table if not exists profiles (
 -- recursing into profiles' own policies.
 create or replace function app_role() returns text
 language sql stable security definer set search_path = public as
-$$ select role from profiles where id = auth.uid() and is_active $$;
+$$ select role from profiles where id = requesting_user_id() and is_active $$;
 
 create or replace function app_has(flag text) returns boolean
 language sql stable security definer set search_path = public as
 $$ select coalesce(
      (select role = 'admin' or coalesce((permissions ->> flag)::boolean, false)
-        from profiles where id = auth.uid() and is_active),
+        from profiles where id = requesting_user_id() and is_active),
      false) $$;
 
 create or replace function my_permissions() returns jsonb
 language sql stable security definer set search_path = public as
-$$ select permissions from profiles where id = auth.uid() $$;
+$$ select permissions from profiles where id = requesting_user_id() $$;
 
 create or replace function is_admin()    returns boolean language sql stable as $$ select app_role() = 'admin' $$;
 create or replace function is_staff()    returns boolean language sql stable as $$ select app_role() in ('admin','finance') $$;
@@ -89,7 +97,7 @@ create table if not exists households (
 -- profile_id links the ones who can.
 create table if not exists people (
   id                uuid primary key default gen_random_uuid(),
-  profile_id        uuid unique references profiles(id) on delete set null,
+  profile_id        text unique references profiles(id) on delete set null,
   household_id      uuid references households(id) on delete set null,
   household_role    text check (household_role in ('head','spouse','child','other')),
   first_name        text not null,
@@ -194,7 +202,7 @@ create table if not exists events (
   rsvp_enabled boolean not null default false,
   capacity     int,
   status       text not null default 'scheduled' check (status in ('scheduled','cancelled')),
-  created_by   uuid references profiles(id) on delete set null,
+  created_by   text references profiles(id) on delete set null,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now(),
   check (ends_at >= starts_at)
@@ -315,7 +323,7 @@ create table if not exists interactions (
   kind        text not null check (kind in ('call','text','email','visit','in_person','prayer','note')),
   summary     text not null,
   occurred_at timestamptz not null default now(),
-  logged_by   uuid references profiles(id) on delete set null default auth.uid(),
+  logged_by   text references profiles(id) on delete set null default requesting_user_id(),
   created_at  timestamptz not null default now()
 );
 create index if not exists interactions_person_idx on interactions(person_id, occurred_at desc);
@@ -331,13 +339,13 @@ create table if not exists follow_ups (
   due_on       date not null default current_date,
   priority     text not null default 'normal' check (priority in ('low','normal','high')),
   status       text not null default 'open' check (status in ('open','snoozed','done','dropped')),
-  assigned_to  uuid references profiles(id) on delete set null,
+  assigned_to  text references profiles(id) on delete set null,
   event_id     uuid references events(id) on delete set null,   -- the visit / service it came from
   source       text not null default 'manual' check (source in ('manual','rule','import')),
   rule_id      uuid,
   outcome      text,
   completed_at timestamptz,
-  created_by   uuid references profiles(id) on delete set null default auth.uid(),
+  created_by   text references profiles(id) on delete set null default requesting_user_id(),
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
@@ -354,7 +362,7 @@ create table if not exists follow_up_rules (
   delay_days     int not null default 2,
   kind           text not null default 'general',
   title_template text not null,               -- {{name}} is replaced with the person's name
-  assign_to      uuid references profiles(id) on delete set null,
+  assign_to      text references profiles(id) on delete set null,
   is_active      boolean not null default true
 );
 alter table follow_ups drop constraint if exists follow_ups_rule_fk;
@@ -458,7 +466,7 @@ create table if not exists funds (
 
 create table if not exists payment_methods (
   id          uuid primary key default gen_random_uuid(),
-  profile_id  uuid not null references profiles(id) on delete cascade,
+  profile_id  text not null references profiles(id) on delete cascade,
   type        text not null default 'card',
   brand       text,
   last4       text,
@@ -471,7 +479,7 @@ create table if not exists payment_methods (
 
 create table if not exists recurring_gifts (
   id          uuid primary key default gen_random_uuid(),
-  profile_id  uuid not null references profiles(id) on delete cascade,
+  profile_id  text not null references profiles(id) on delete cascade,
   fund_id     uuid not null references funds(id),
   amount_cents bigint not null check (amount_cents > 0),
   frequency   text not null check (frequency in ('weekly','monthly')),
@@ -483,7 +491,7 @@ create table if not exists recurring_gifts (
 
 create table if not exists donations (
   id                  uuid primary key default gen_random_uuid(),
-  profile_id          uuid references profiles(id) on delete set null,    -- signed-in giver
+  profile_id          text references profiles(id) on delete set null,    -- signed-in giver
   person_id           uuid references people(id) on delete set null,      -- any giver, incl. cash & check
   fund_id             uuid not null references funds(id),
   amount_cents        bigint not null check (amount_cents > 0),
@@ -501,7 +509,7 @@ create index if not exists donations_profile_idx on donations(profile_id, occurr
 
 create table if not exists expenses (
   id                uuid primary key default gen_random_uuid(),
-  submitter_id      uuid references profiles(id) on delete set null,
+  submitter_id      text references profiles(id) on delete set null,
   fund_id           uuid references funds(id),
   description       text not null,
   team_name         text,
@@ -645,15 +653,15 @@ end $$;
 
 -- A small helper so policies can say "this row is about me".
 create or replace function my_person_id() returns uuid language sql stable security definer set search_path = public as
-$$ select id from people where profile_id = auth.uid() limit 1 $$;
+$$ select id from people where profile_id = requesting_user_id() limit 1 $$;
 
 -- ---- profiles: yourself, or everyone if you manage people; admins write.
 drop policy if exists profiles_read  on profiles;
 drop policy if exists profiles_self  on profiles;
 drop policy if exists profiles_admin on profiles;
-create policy profiles_read  on profiles for select using (id = auth.uid() or can_people() or can_followups() or is_staff());
-create policy profiles_self  on profiles for update using (id = auth.uid())
-  with check (id = auth.uid() and role = app_role() and permissions = my_permissions() and is_active);
+create policy profiles_read  on profiles for select using (id = requesting_user_id() or can_people() or can_followups() or is_staff());
+create policy profiles_self  on profiles for update using (id = requesting_user_id())
+  with check (id = requesting_user_id() and role = app_role() and permissions = my_permissions() and is_active);
 create policy profiles_admin on profiles for all using (is_admin()) with check (is_admin());
 
 -- ---- people & households: people-managers read/write; a person reads their own record.
@@ -664,23 +672,23 @@ create policy households_read  on households for select using (can_people() or i
 create policy households_write on households for all using (can_people()) with check (can_people());
 
 -- ---- groups: any signed-in member sees them; people-managers edit.
-create policy groups_read   on groups for select using (auth.uid() is not null);
+create policy groups_read   on groups for select using (requesting_user_id() is not null);
 create policy groups_write  on groups for all using (can_people()) with check (can_people());
 create policy gm_read       on group_members for select using (can_people() or person_id = my_person_id());
 create policy gm_write      on group_members for all using (can_people()) with check (can_people());
-create policy gp_read       on group_positions for select using (auth.uid() is not null);
+create policy gp_read       on group_positions for select using (requesting_user_id() is not null);
 create policy gp_write      on group_positions for all using (can_people()) with check (can_people());
 create policy pp_read       on person_positions for select using (can_people() or can_calendar() or person_id = my_person_id());
 create policy pp_write      on person_positions for all using (can_people()) with check (can_people());
 
 -- ---- calendar: visibility decides who sees an event.
-create policy rooms_read    on rooms for select using (auth.uid() is not null);
+create policy rooms_read    on rooms for select using (requesting_user_id() is not null);
 create policy rooms_write   on rooms for all using (can_calendar()) with check (can_calendar());
-create policy series_read   on event_series for select using (auth.uid() is not null);
+create policy series_read   on event_series for select using (requesting_user_id() is not null);
 create policy series_write  on event_series for all using (can_calendar()) with check (can_calendar());
 create policy events_read   on events for select using (
   visibility = 'public'
-  or (visibility = 'members' and auth.uid() is not null)
+  or (visibility = 'members' and requesting_user_id() is not null)
   or can_calendar() or is_staff());
 create policy events_write  on events for all using (can_calendar()) with check (can_calendar());
 create policy att_read      on event_attendance for select using (can_calendar() or can_people() or person_id = my_person_id());
@@ -689,15 +697,15 @@ create policy att_rsvp      on event_attendance for insert with check (person_id
 create policy att_rsvp_upd  on event_attendance for update using (person_id = my_person_id()) with check (person_id = my_person_id() and checked_in_at is null);
 
 -- ---- services: everyone serving can read; calendar managers plan.
-create policy st_read   on service_types for select using (auth.uid() is not null);
+create policy st_read   on service_types for select using (requesting_user_id() is not null);
 create policy st_write  on service_types for all using (can_calendar()) with check (can_calendar());
-create policy sp_read   on service_plans for select using (auth.uid() is not null);
+create policy sp_read   on service_plans for select using (requesting_user_id() is not null);
 create policy sp_write  on service_plans for all using (can_calendar()) with check (can_calendar());
-create policy songs_read  on songs for select using (auth.uid() is not null);
+create policy songs_read  on songs for select using (requesting_user_id() is not null);
 create policy songs_write on songs for all using (can_calendar()) with check (can_calendar());
-create policy pi_read   on plan_items for select using (auth.uid() is not null);
+create policy pi_read   on plan_items for select using (requesting_user_id() is not null);
 create policy pi_write  on plan_items for all using (can_calendar()) with check (can_calendar());
-create policy pa_read   on plan_assignments for select using (auth.uid() is not null);
+create policy pa_read   on plan_assignments for select using (requesting_user_id() is not null);
 create policy pa_write  on plan_assignments for all using (can_calendar()) with check (can_calendar());
 -- Accept / decline your own slot — and nothing else about it.
 create policy pa_respond on plan_assignments for update using (person_id = my_person_id())
@@ -707,22 +715,22 @@ create policy bo_own    on blockouts for all using (person_id = my_person_id() o
   with check (person_id = my_person_id() or can_calendar());
 
 -- ---- follow-ups: pastoral data. Only people who run follow-ups.
-create policy fu_read    on follow_ups for select using (can_followups() or assigned_to = auth.uid());
+create policy fu_read    on follow_ups for select using (can_followups() or assigned_to = requesting_user_id());
 create policy fu_write   on follow_ups for all using (can_followups()) with check (can_followups());
-create policy fu_mine    on follow_ups for update using (assigned_to = auth.uid()) with check (assigned_to = auth.uid());
+create policy fu_mine    on follow_ups for update using (assigned_to = requesting_user_id()) with check (assigned_to = requesting_user_id());
 create policy ix_read    on interactions for select using (can_followups() or can_people());
 create policy ix_write   on interactions for all using (can_followups() or can_people()) with check (can_followups() or can_people());
 create policy rules_all  on follow_up_rules for all using (is_admin() or can_followups()) with check (is_admin() or can_followups());
 
 -- ---- accounting: finance sees everything; a giver sees only their own.
-create policy funds_read    on funds for select using (auth.uid() is not null);
+create policy funds_read    on funds for select using (requesting_user_id() is not null);
 create policy funds_write   on funds for all using (can_finance()) with check (can_finance());
-create policy pm_own        on payment_methods for select using (profile_id = auth.uid() or can_finance());
-create policy rg_own        on recurring_gifts for select using (profile_id = auth.uid() or can_finance());
-create policy don_own       on donations for select using (profile_id = auth.uid() or person_id = my_person_id() or can_finance());
+create policy pm_own        on payment_methods for select using (profile_id = requesting_user_id() or can_finance());
+create policy rg_own        on recurring_gifts for select using (profile_id = requesting_user_id() or can_finance());
+create policy don_own       on donations for select using (profile_id = requesting_user_id() or person_id = my_person_id() or can_finance());
 create policy don_write     on donations for all using (can_finance()) with check (can_finance());
-create policy exp_read      on expenses for select using (submitter_id = auth.uid() or can_finance());
-create policy exp_submit    on expenses for insert with check (submitter_id = auth.uid() and status = 'pending');
+create policy exp_read      on expenses for select using (submitter_id = requesting_user_id() or can_finance());
+create policy exp_submit    on expenses for insert with check (submitter_id = requesting_user_id() and status = 'pending');
 create policy exp_review    on expenses for update using (can_finance()) with check (can_finance());
 create policy payouts_all   on payouts for all using (can_finance()) with check (can_finance());
 create policy bank_all      on bank_transactions for all using (can_finance()) with check (can_finance());
