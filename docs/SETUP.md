@@ -154,6 +154,22 @@ never creates a duplicate while one is open. It is deliberately not callable fro
   profile row stays readable so the app can say *why*.)
 - Pages hide what you cannot open, but that is presentation; the policies are the enforcement.
 
+## What the first real preview taught us (Clerk)
+
+- **Clerk's sign-in screens are a separate package, `@clerk/ui`.** With only `@clerk/clerk-js`, the login page
+  stuck on "Loading…" with an empty box, because Clerk tried to download the screens at runtime. The login page
+  now passes them in (`clerk.load({ ui: { ClerkUI } })`, loaded lazily so other pages never pay for them), and
+  a stalled load shows a message and a retry button after 15–20 seconds instead of waiting forever.
+- Tested headless with the real publishable key: the box draws in about 2.5 s, in Spanish and English, fits at
+  360 px and desktop widths, talks to Clerk (an invalid email gets Clerk's own error), and every protected page
+  redirects a signed-out visitor to `/login.html?next=…` in about 1.5 s. Completing a sign-in was **not** tried
+  (it needs the code Clerk emails you).
+- **Things visible on Clerk's box that you may want to change in the Clerk dashboard:** an *Apple* and a *Google*
+  button, and a *"Don't have an account? Sign up"* link. Sign-up is open on this development instance. A stranger
+  who signs up gets a Clerk account but **no profile**, so they see "no access" and read nothing — harmless, but
+  noisy. If the portal is for invited people only, restrict sign-up and turn off social sign-in (Configure →
+  User & authentication).
+
 ## Differences from the old Supabase sign-in
 
 - **No emailed invite or reset link from the Settings screen.** Clerk has no admin call for that. A new

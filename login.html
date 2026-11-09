@@ -32,6 +32,9 @@
     .msg.ok{color:var(--sage)}
     .msg.info{color:var(--muted)}
     #clerk-root{min-height:120px;display:flex;justify-content:center}
+    /* Once Clerk draws its own card, ours steps aside so the two don't fight over width. */
+    .card.clerk{background:none;border:0;padding:0}
+    .card.clerk .msg{padding:0 4px}
     #clerk-root:empty::before{content:attr(data-loading);color:var(--muted);font-size:14px;align-self:center}
     .demo{margin-top:20px;padding:14px 16px;border:1px dashed var(--line-2);border-radius:12px;color:var(--muted);font-size:13px;line-height:1.5}
     .foot{text-align:center;margin-top:20px;font-size:12px;color:var(--muted)}
@@ -102,7 +105,7 @@ function destination(){
 
 const BRAND = {
   variables: { colorPrimary: "#F7746D", colorText: "#17151C", borderRadius: "10px", fontFamily: '"Schibsted Grotesk", system-ui, sans-serif' },
-  elements: { rootBox: { width: "100%" }, cardBox: { boxShadow: "none", border: "0", width: "100%" }, card: { boxShadow: "none", border: "0", padding: "0", width: "100%" } },
+  elements: { rootBox: { width: "100%", maxWidth: "400px" }, cardBox: { width: "100%", maxWidth: "400px" } },
 };
 
 async function start(){
@@ -116,12 +119,10 @@ async function start(){
   }
 
   try {
-    await loadClerk();
-  } catch {
-    $("#clerk-root").dataset.loading = "";
-    $("#msg").className = "msg err"; $("#msg").textContent = t("loadFail");
-    $("#btnRetry").hidden = false;
-    return;
+    await loadClerk({ ui: true });
+  } catch (error) {
+    console.error("Clerk failed to load:", error);
+    return failed();
   }
 
   /* Already signed in? Don't make them do it again. */
@@ -131,8 +132,23 @@ async function start(){
      account, and it is a sign-up, not a sign-in. */
   const invited = new URLSearchParams(location.search).has("__clerk_ticket");
   const props = { ...BRAND, routing: "hash", forceRedirectUrl: destination() };
-  if (invited) clerk.mountSignUp($("#clerk-root"), { ...props, signInUrl: "/login.html" });
-  else clerk.mountSignIn($("#clerk-root"), props);
+  $(".card").classList.add("clerk");
+  try {
+    if (invited) clerk.mountSignUp($("#clerk-root"), { ...props, signInUrl: "/login.html" });
+    else clerk.mountSignIn($("#clerk-root"), props);
+  } catch (error) {
+    console.error("Clerk could not draw the sign-in box:", error);
+    return failed();
+  }
+
+  /* If nothing has drawn after a while, say so rather than sit on "Loading…". */
+  setTimeout(() => { if (!$("#clerk-root").childElementCount) failed(); }, 15000);
+}
+
+function failed(){
+  $("#clerk-root").dataset.loading = "";
+  $("#msg").className = "msg err"; $("#msg").textContent = t("loadFail");
+  $("#btnRetry").hidden = false;
 }
 
 $("#btnRetry").addEventListener("click", start);
