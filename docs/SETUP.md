@@ -50,17 +50,23 @@ Clerk's signing keys, and the function's environment variables.
 before real data goes in.
 
 **Where things stand for this project** (`neon-aureolin-elephant`, created through Vercel, PostgreSQL 18):
-the schema is loaded, and the Data API is **already switched on** (Neon enables it at creation):
+the schema is loaded, and the Data API has been **re-created with Clerk as its sign-in provider**
+(`neon data-api create --auth-provider external --provider-name Clerk --jwks-url
+https://kind-orca-6383.clerk.accounts.dev/.well-known/jwks.json`). It had been on Neon's built-in
+sign-in, which Neon sets at creation and cannot change afterwards — hence delete and re-create.
 
-- Data API address, for `VITE_DATA_API_URL`:
+- Data API address, for `VITE_DATA_API_URL` (public by design; protected by Row Level Security):
   `https://ep-proud-meadow-bbsnb47y.apirest.c-15.us-east-1.aws.neon.tech/neondb/rest/v1`
-  (public by design; the data behind it is protected by Row Level Security.)
-- Its sign-in provider has **not yet been pointed at Clerk**. Neon sets the provider when the Data API is
-  *created* — `neon data-api update` cannot change it — so switching means `neon data-api delete`, then
-  `neon data-api create --auth-provider external --provider-name Clerk --jwks-url <your Clerk JWKS URL>`
-  (add `--add-default-grants` only if you want Neon's own grants; the grants migration here already
-  sets them, and re-running it afterwards is the safe order). Check what is configured first.
-- Set `--server-cors-allowed-origins` to your site's address so a browser may call it.
+- Tested from outside as a signed-out visitor: **every** request is refused without a valid Clerk token —
+  reads, writes, and even the API's own schema listing. A forged token and a malformed token are both
+  rejected. (A *valid* Clerk token has not been tried: that is the first real sign-in.)
+- **Still to do:** the API currently accepts browser requests from **any** website (`access-control-allow-origin: *`).
+  That is not exploitable by itself (every request needs a token; there are no cookies to ride), but limit it
+  to the portal once its address is known:
+  `neon data-api update --project-id lively-dew-71166534 --branch main --database neondb --server-cors-allowed-origins "https://<your-portal>,http://localhost:5173"`
+- After any change to the Data API, re-run `db/migrations/20261108000100_grants.sql` and check
+  `select count(*) from information_schema.role_table_grants where grantee in ('anon','anonymous')` is `0`.
+  (After this re-creation Neon left the permissions exactly as intended.)
 
 **Apply the schema** as the database owner, in order — both files are safe to re-run:
 
