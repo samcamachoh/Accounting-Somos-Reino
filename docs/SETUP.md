@@ -117,7 +117,7 @@ hosts, Neon's pooled connection string is usually the right one — confirm in t
 | Variable | |
 |---|---|
 | `CLERK_SECRET_KEY` | required |
-| `DATABASE_URL` | required — a login that **owns** the tables (it bypasses Row Level Security, which is why the handler checks for an admin first). Not the Data API's login. |
+| `DATABASE_URL` | required — a login that **owns** the tables (it bypasses Row Level Security, which is why the handler checks for an admin first). Not the Data API's login. On this project Vercel's Neon integration created it as **`SOMOS_DATABASE_URL`** (installed with the prefix `SOMOS`); the function reads either name, so don't add a duplicate. |
 | `CLERK_AUTHORIZED_PARTIES` | optional but recommended — your portal's origin, e.g. `https://portal.example.org`; tokens issued for any other page are refused |
 | `ALLOWED_ORIGIN` | only if the pages are on a different origin than the function |
 

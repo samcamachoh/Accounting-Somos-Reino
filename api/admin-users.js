@@ -11,6 +11,10 @@
                                 (it bypasses Row Level Security, which
                                 is why the handler checks for an admin
                                 first). NOT the Data API's login.
+                                Falls back to SOMOS_DATABASE_URL, the name
+                                Vercel's Neon integration created for this
+                                project (it was installed with the prefix
+                                SOMOS), so nothing needs duplicating.
      CLERK_AUTHORIZED_PARTIES   optional, comma-separated origins the
                                 session token may have been issued for,
                                 e.g. https://portal.example.org
@@ -30,7 +34,8 @@ const secretKey = process.env.CLERK_SECRET_KEY ?? "";
 const authorizedParties = (process.env.CLERK_AUTHORIZED_PARTIES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 
 /* One small pool per function instance; serverless instances are short-lived. */
-const pool = process.env.DATABASE_URL ? new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 2 }) : null;
+const databaseUrl = process.env.DATABASE_URL || process.env.SOMOS_DATABASE_URL || "";
+const pool = databaseUrl ? new pg.Pool({ connectionString: databaseUrl, max: 2 }) : null;
 
 const handler = createHandler({
   verifyToken: (token) => verifyToken(token, { secretKey, ...(authorizedParties.length ? { authorizedParties } : {}) }),
@@ -40,7 +45,7 @@ const handler = createHandler({
 });
 
 const misconfigured = () =>
-  new Response(JSON.stringify({ error: "The server is missing CLERK_SECRET_KEY or DATABASE_URL." }), {
+  new Response(JSON.stringify({ error: "The server is missing CLERK_SECRET_KEY or the database address (DATABASE_URL / SOMOS_DATABASE_URL)." }), {
     status: 500,
     headers: { "Content-Type": "application/json" },
   });
