@@ -48,21 +48,36 @@ end $$;
 -- "user_2abc…", not a UUID). NULL with no token.
 -- Data APIs hand the verified token to the database in one of two ways, and
 -- both are accepted so the same schema runs on either:
---   1. `auth.user_id()` — Neon's Data API (the pg_session_jwt extension)
---   2. the `request.jwt.claims` setting — PostgREST's own convention
--- The first is tried first; the check for it is dynamic so this still
--- creates on a plain Postgres that has no `auth` schema.
+--   1. the `request.jwt.claims` setting — PostgREST's convention
+--   2. `auth.user_id()` — Neon's Data API (the pg_session_jwt extension)
+-- The plain setting is read FIRST: it is a harmless read that cannot fail,
+-- whereas calling a host function that raises when no token is set can
+-- disturb what follows it (seen on Neon). Malformed claims are treated as "no
+-- answer", never as an error that breaks the query.
+-- SECURITY DEFINER so it runs with its owner's access: the signed-in role
+-- often has no right to use the host's `auth` schema until the Data API is
+-- enabled, and this must work regardless.
 -- Nothing but requesting_user_id() and "can I see my own profile" should call this.
 create or replace function jwt_sub() returns text
-language plpgsql stable as
+language plpgsql stable security definer set search_path = public, pg_temp as
 $$
 declare sub text;
 begin
-  if to_regprocedure('auth.user_id()') is not null then
-    execute 'select auth.user_id()::text' into sub;
-    if nullif(sub, '') is not null then return sub; end if;
-  end if;
-  return nullif(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub', '');
+  begin
+    sub := nullif(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub', '');
+  exception when others then
+    sub := null;
+  end;
+  if sub is not null then return sub; end if;
+
+  begin
+    if to_regprocedure('auth.user_id()') is not null then
+      execute 'select auth.user_id()::text' into sub;
+    end if;
+  exception when others then
+    sub := null;
+  end;
+  return nullif(sub, '');
 end
 $$;
 

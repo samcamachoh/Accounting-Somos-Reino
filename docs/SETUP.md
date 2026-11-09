@@ -28,7 +28,8 @@ API that re-implements every rule in application code — is possible but a much
 
 | | |
 |---|---|
-| Schema on plain PostgreSQL 16 (roles, grants, policies, triggers), reading the signed-in person from **either** `auth.user_id()` (Neon) **or** `request.jwt.claims` (PostgREST) | **Tested** — 61 checks, both identity paths |
+| Schema on plain PostgreSQL 16 (roles, grants, policies, triggers), reading the signed-in person from **either** the `request.jwt.claims` setting (PostgREST) **or** `auth.user_id()` (Neon) | **Tested** — 70 checks, both identity paths, including every Neon quirk found below |
+| **Loaded into the church's Neon database** (PostgreSQL 18.6): 29 tables, 58 policies, 18 functions, 9 triggers, Row Level Security on every table | **Done and verified** — structure identical to the local test database; a rolled-back behaviour test (member sees only their own gift, admin sees all, deactivated and unknown accounts see nothing, signed-out role denied) passes on the real server |
 | A host that grants too much when its Data API is switched on (simulated), then the grants file re-run | **Tested** — access returns to the intended rules |
 | Deactivated or profile-less accounts read and write nothing, even with a still-valid token | **Tested** (this was a real gap, found and fixed during the move) |
 | `api/admin-users` logic against a real database with a stand-in Clerk | **Tested** — 36 checks (authorization, create/update/delete, SQL-injection attempts, transaction clean-up) |
@@ -44,9 +45,22 @@ Clerk's signing keys, and the function's environment variables.
 
 ## 1. Database and Data API (Neon)
 
-**Cost.** Neon's free plan is $0 with 1 GB of storage per project, which is far more than this needs.
-Whether the Data API is available on the free plan was **not confirmed** — check Neon's pricing page
-before relying on it.
+**Cost.** Neon's free plan is $0 with 1 GB of storage per project, far more than this needs. It keeps only
+**6 hours** of restore history — for accounting records, take regular exports or pay for a longer window
+before real data goes in.
+
+**Where things stand for this project** (`neon-aureolin-elephant`, created through Vercel, PostgreSQL 18):
+the schema is loaded, and the Data API is **already switched on** (Neon enables it at creation):
+
+- Data API address, for `VITE_DATA_API_URL`:
+  `https://ep-proud-meadow-bbsnb47y.apirest.c-15.us-east-1.aws.neon.tech/neondb/rest/v1`
+  (public by design; the data behind it is protected by Row Level Security.)
+- Its sign-in provider has **not yet been pointed at Clerk**. Neon sets the provider when the Data API is
+  *created* — `neon data-api update` cannot change it — so switching means `neon data-api delete`, then
+  `neon data-api create --auth-provider external --provider-name Clerk --jwks-url <your Clerk JWKS URL>`
+  (add `--add-default-grants` only if you want Neon's own grants; the grants migration here already
+  sets them, and re-running it afterwards is the safe order). Check what is configured first.
+- Set `--server-cors-allowed-origins` to your site's address so a browser may call it.
 
 **Apply the schema** as the database owner, in order — both files are safe to re-run:
 
@@ -141,5 +155,22 @@ never creates a duplicate while one is open. It is deliberately not callable fro
   password?* on the sign-in page.
 - **Open sign-up is closed on purpose.** Someone invited from the Clerk dashboard (not from Settings)
   will see "no access" until an admin adds their profile.
+## What the real Neon database taught us
+
+Found by testing on the real server, not from documentation; the schema now handles each:
+
+- **Neon clears the `request.jwt.claims` setting whenever the role is switched.** Identity is therefore
+  read after the role is set. (Matters only for tests; the Data API does this in the right order.)
+- **The signed-in role has no access to Neon's `auth` schema** until the Data API grants it. `jwt_sub()`
+  now runs with its owner's access, so it works either way.
+- **Calling Neon's `auth.user_id()` first could leave the first lookup empty.** The identity function now
+  reads the plain claims setting first (a harmless read), and only then tries Neon's function. A bug here
+  would have shown as "a member sees none of their own giving" — which is exactly what the first test run
+  on the real database showed, before the fix.
+- Neon's database owner bypasses Row Level Security (as table owners do), which is why the admin
+  function can write anywhere and why it must check for an admin first.
+
+## Differences from the old Supabase sign-in
+
 - The pages use `@supabase/postgrest-js` — a small, standalone, MIT-licensed PostgREST client. It is the
   only remaining "supabase" name in the repo and has no connection to the Supabase service.
