@@ -1,4 +1,4 @@
-# Accounting-Somos-Reino
+# Management-Somos-Reino
 
 A member portal for Somos Reino — give, review your history, and manage
 recurring gifts in Spanish or English. The same records feed the
