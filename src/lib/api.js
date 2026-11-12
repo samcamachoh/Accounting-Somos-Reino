@@ -573,7 +573,11 @@ export async function loadCalendarRange(from, to) {
       "Loading RSVPs",
     ));
   }
-  return { events, attendance, going: await loadGoingCounts(ids) };
+  /* A database that hasn't had the review-fixes migration applied has no
+     counting function; the page then falls back to the rows it can see. */
+  let going = null;
+  try { going = await loadGoingCounts(ids); } catch { going = null; }
+  return { events, attendance, going };
 }
 
 /**
