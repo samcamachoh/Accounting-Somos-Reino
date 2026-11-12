@@ -170,7 +170,7 @@ h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-sp
 import { requireSession, canManageCalendar } from "/src/lib/auth.js";
 import {
   loadCalendarBase, loadCalendarRange, findRoomConflicts, createEvents, updateEvent,
-  loadSeriesEventIds, setEventsStatus, deleteEvents, setRsvp,
+  loadSeriesEventIds, setEventsStatus, deleteEvents, setRsvp, loadGoingCounts,
 } from "/src/lib/api.js";
 import { showModeBadge } from "/src/lib/status.js";
 import { expand, toRRule, describe } from "/src/lib/recurrence.js";
@@ -205,7 +205,7 @@ function toast(message){
 
 /* ---------- state ---------- */
 let live = false, canManage = false, personId = null;
-let events = [], attendance = [], rooms = [], groups = [];
+let events = [], attendance = [], rooms = [], groups = [], goingCounts = {};
 const state = { view:"month", cursor:dayOf(new Date()), kind:"", room:"", busy:false };
 state.cursor.setDate(1);
 let seq = 0;
@@ -258,7 +258,8 @@ const byDay = (list) => {
   return map;
 };
 const myRsvp = (e) => attendance.find((a) => a.event_id === e.id && a.person_id === personId)?.rsvp || null;
-const goingCount = (e) => attendance.filter((a) => a.event_id === e.id && a.rsvp === "yes").length;
+/* Live: totals come from the database, since members can't read other people's RSVP rows. */
+const goingCount = (e) => live ? (goingCounts[e.id] ?? 0) : attendance.filter((a) => a.event_id === e.id && a.rsvp === "yes").length;
 const when = (e) => e.all_day ? "All day" : `${timeLabel(start(e))}–${timeLabel(end(e))}`;
 
 /* ---------- render ---------- */
@@ -308,7 +309,7 @@ async function loadWindow(){
   const { from, to } = gridRange();
   try {
     const res = await loadCalendarRange(from, to);
-    events = res.events; attendance = res.attendance;
+    events = res.events; attendance = res.attendance; goingCounts = res.going || {};
   } catch (e) { toast(e.message); }
   render();
 }
@@ -379,6 +380,7 @@ function openDetail(id){
     if (live) {
       const row = await setRsvp(e.id, personId, v);
       attendance = attendance.filter((a) => !(a.event_id === e.id && a.person_id === personId)); attendance.push(row);
+      Object.assign(goingCounts, await loadGoingCounts([e.id]));
     } else {
       attendance = attendance.filter((a) => !(a.event_id === e.id && a.person_id === "me"));
       attendance.push({ event_id:e.id, person_id:"me", rsvp:v });

@@ -40,8 +40,8 @@ export const LOGIN_PAGE = "/login.html";
    RLS and the admin-users function remain the enforcement.
    ------------------------------------------------------------ */
 
-/** Finance portal: staff only. */
-export const canAccessFinance = (profile) => STAFF_ROLES.includes(profile?.role);
+/** Finance portal: staff, plus anyone an admin granted `finance` (same rule as the database's can_finance()). */
+export const canAccessFinance = (profile) => STAFF_ROLES.includes(profile?.role) || profile?.permissions?.finance === true;
 
 /** Account management: admins only. */
 export const canAccessSettings = (profile) => profile?.role === "admin";

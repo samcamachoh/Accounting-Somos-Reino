@@ -11,7 +11,7 @@
 ```
 
 - **Clerk** owns accounts, passwords, codes, and sessions. The database never sees a password.
-- **PostgreSQL** (14+, any host) holds all the church's data. `db/migrations/` is the whole schema.
+- **PostgreSQL** (15+, any host) holds all the church's data. `db/migrations/` is the whole schema.
 - **A Data API** is a PostgREST-compatible web address in front of the database. The pages query it
   directly; it verifies the Clerk token and tells the database who is asking. Row Level Security —
   the policies in the migration — is what keeps a member from reading anyone else's giving.
@@ -72,6 +72,7 @@ sign-in, which Neon sets at creation and cannot change afterwards — hence dele
 
 1. `db/migrations/20261108000000_church_os_core.sql` — tables, policies, rules.
 2. `db/migrations/20261108000100_grants.sql` — who may touch which tables.
+3. `db/migrations/20261112000000_review_fixes.sql` — members may edit only their own contact details; RSVP capacity is enforced.
 
 **Then enable the Data API** in the Neon console for the project and database. What Neon's docs say
 (taken from search results, not tested here — confirm each against the current docs, since the Data

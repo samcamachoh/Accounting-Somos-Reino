@@ -573,7 +573,23 @@ export async function loadCalendarRange(from, to) {
       "Loading RSVPs",
     ));
   }
-  return { events, attendance };
+  return { events, attendance, going: await loadGoingCounts(ids) };
+}
+
+/**
+ * How many people have said yes, for events the caller can see. Members can't
+ * read each other's RSVP rows, so this asks the database for totals only.
+ * @param {string[]} ids event ids
+ * @returns {Promise<Record<string, number>>} event id -> number going
+ */
+export async function loadGoingCounts(ids) {
+  const db = requireClient();
+  const going = {};
+  for (let i = 0; i < ids.length; i += 80) {
+    const rows = unwrap(await db.rpc("event_going_counts", { event_ids: ids.slice(i, i + 80) }), "Counting RSVPs");
+    for (const r of rows || []) going[r.event_id] = Number(r.going);
+  }
+  return going;
 }
 
 /**

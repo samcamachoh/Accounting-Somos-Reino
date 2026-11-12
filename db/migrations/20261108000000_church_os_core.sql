@@ -14,7 +14,7 @@
 -- gets a follow-up; a volunteer on a plan is a person; a gift is
 -- from a person; a calendar event has attendees who are people.
 --
--- Plain PostgreSQL (14+). Nothing here is specific to any host: it runs
+-- Plain PostgreSQL (15+). Nothing here is specific to any host: it runs
 -- on Neon, RDS, a VM, or a laptop. The pages reach it through a
 -- PostgREST-compatible Data API (Neon's Data API, or PostgREST itself),
 -- which verifies the Clerk session token and sets the request's claims;

@@ -117,7 +117,7 @@ access at once, even while the person's session is still valid.
 
 ## Schema
 
-`db/migrations/` is the whole schema, plain PostgreSQL 14+ with no
+`db/migrations/` is the whole schema, plain PostgreSQL 15+ with no
 host-specific pieces. The table and column names in `src/lib/db.js`
 (`TABLES`) match it; a differing schema is a one-place change there.
 

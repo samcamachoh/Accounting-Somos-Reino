@@ -16,7 +16,9 @@
    ============================================================ */
 
 export const MAX_OCCURRENCES = 104;
-const HORIZON_DAYS = 366 * 5;
+/* Generous days-per-occurrence, per frequency. Monthly rules can skip months
+   (the 31st, a fifth Sunday), so allow well over a month each. */
+const DAYS_PER_STEP = { daily: 1, weekly: 7, monthly: 100 };
 const DAY_CODES = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
 
 const parse = (iso) => {
@@ -58,8 +60,10 @@ export function expand(rule, limit = MAX_OCCURRENCES) {
 
   const interval = Math.max(1, Math.floor(rule.interval || 1));
   const start = parse(rule.start);
-  const last = until ? parse(until) : addDays(start, HORIZON_DAYS);
   const cap = Math.min(limit, count || limit);
+  /* With only a count, scan far enough to find every requested occurrence
+     (a five-year fixed window returned just 61 of 104 monthly dates). */
+  const last = until ? parse(until) : addDays(start, cap * interval * DAYS_PER_STEP[freq] + 62);
 
   const byday = freq === "weekly" ? (rule.byday?.length ? [...new Set(rule.byday)] : [start.getDay()]) : [];
   const weekOne = addDays(start, -start.getDay());
