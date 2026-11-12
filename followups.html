@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Somos Reino · Follow-ups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--coral:#F7746D;--coral-deep:#C8483F;--coral-wash:#FDECEA;--ink:#17151C;--paper:#FAF7F5;--card:#fff;--line:#E9E2DD;--line-2:#D8CFC8;--text:#1E1B22;--text-2:#6A6371;--text-3:#9A9299;--sage:#3F7A63;--sage-wash:#E7F1EC;--amber:#A97613;--amber-wash:#FBF0DC;--blue:#2F6E8F;--blue-wash:#E6F0F5;--mono:"IBM Plex Mono",ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--text);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:860px;margin:0 auto;padding:32px 20px 90px}
+header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);font-weight:700}
+h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-spacing:-.04em;margin:10px 0 8px}
+.lead{color:var(--text-2);line-height:1.5;max-width:560px}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{padding:10px 16px;border-radius:9px;border:1px solid var(--line-2);background:#fff;color:var(--text);font-weight:600;font-size:14px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.btn:hover{border-color:var(--text-3)}
+.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.btn:disabled{opacity:.55;cursor:default}
+.banner{background:var(--amber-wash);border:1px solid #E8D5A8;color:var(--amber);padding:13px 16px;border-radius:12px;font-size:14px;line-height:1.5;margin-bottom:18px}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat b{display:block;font:800 28px/1 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em}
+.stat span{font-size:12px;color:var(--text-2);font-weight:600}
+.stat.hot b{color:var(--coral-deep)}
+
+.tabs{display:flex;gap:6px;margin-bottom:12px;background:#F0EAE6;padding:4px;border-radius:11px;width:max-content;max-width:100%}
+.tabs button{border:0;background:none;padding:8px 14px;border-radius:8px;font-weight:600;font-size:14px;line-height:1;color:var(--text-2)}
+.tabs button[aria-pressed="true"]{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(23,21,28,.1)}
+.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--line-2);border-radius:9px;font-weight:400;font-size:14px;line-height:1;background:#fff;color:inherit}
+.toolbar input{flex:1;min-width:180px}
+
+.group{margin-bottom:22px}
+.group h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);font-weight:700;margin:0 2px 8px;display:flex;gap:8px;align-items:center}
+.group h2.late{color:var(--coral-deep)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:8px}
+.card.late{border-left:3px solid var(--coral)}
+.card.fin{opacity:.7}
+.row1{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.who{font-weight:700;font-size:16px}
+.who small{font-weight:500;color:var(--text-2);font-size:13px;margin-left:6px}
+.what{color:var(--text);margin-top:3px;line-height:1.4}
+.meta{display:flex;gap:6px 10px;flex-wrap:wrap;margin-top:8px;align-items:center;font-size:12px;color:var(--text-2)}
+.tag{display:inline-block;padding:3px 8px;border-radius:999px;font-weight:700;font-size:11px;line-height:1.25;background:#F0EAE6;color:var(--text-2)}
+.tag.visitor{background:var(--blue-wash);color:var(--blue)}
+.tag.high{background:var(--coral-wash);color:var(--coral-deep)}
+.tag.snooze{background:var(--amber-wash);color:var(--amber)}
+.tag.done{background:var(--sage-wash);color:var(--sage)}
+.due{font-family:var(--mono);font-size:12px;white-space:nowrap}
+.due.late{color:var(--coral-deep);font-weight:500}
+.outcome{margin-top:8px;font-size:13px;color:var(--text-2);line-height:1.45;border-left:2px solid var(--line-2);padding-left:10px}
+.acts{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.acts a,.acts button{padding:8px 12px;border-radius:8px;border:1px solid var(--line-2);background:#fff;font-weight:600;font-size:13px;line-height:1;color:var(--text-2);display:inline-flex;align-items:center}
+.acts a:hover,.acts button:hover{color:var(--text);border-color:var(--text-3)}
+.acts .go{background:var(--sage);border-color:var(--sage);color:#fff}
+.acts .go:hover{color:#fff;opacity:.92}
+.acts .log{background:var(--coral);border-color:var(--coral);color:#fff}
+.acts .log:hover{color:#fff;opacity:.92}
+.empty{padding:44px 20px;text-align:center;color:var(--text-2);background:var(--card);border:1px dashed var(--line-2);border-radius:14px;line-height:1.5}
+.empty b{display:block;color:var(--text);font-size:17px;margin-bottom:4px}
+
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:20px}
+.modal{background:#fff;border-radius:18px;width:min(520px,100%);max-height:90vh;overflow:auto;padding:26px}
+.modal h2{font:800 23px/1.1 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;margin-bottom:6px}
+.modal p.sub{color:var(--text-2);font-size:14px;line-height:1.5;margin-bottom:16px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--line-2);border-radius:9px;font-weight:400;font-size:15px;line-height:1.3;background:#fff;color:inherit}
+.field textarea{min-height:84px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:9px 13px;border-radius:999px;border:1px solid var(--line-2);background:#fff;font-weight:600;font-size:13px;line-height:1;color:var(--text-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.hist{margin:4px 0 14px;border-top:1px solid var(--line);padding-top:10px}
+.hist h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
+.hist li{list-style:none;font-size:13px;color:var(--text-2);line-height:1.45;padding:4px 0}
+.hist li b{color:var(--text);font-weight:600}
+.modal .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap}
+.modal .err{color:var(--coral-deep);font-size:14px;line-height:1.45;margin-top:12px;min-height:1.2em}
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:11px 17px;border-radius:9px;font-size:13px;font-weight:500;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:min(520px,90vw)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:760px){
+  .wrap{padding:24px 16px 100px}
+  .stat b{font-size:24px}
+  .tabs{width:100%}
+  .tabs button{flex:1}
+  .acts a,.acts button{flex:1 1 auto;justify-content:center}
+  .two{grid-template-columns:1fr}
+}
+@media(max-width:760px),(pointer:coarse){
+  .btn,.acts a,.acts button,.seg button,.tabs button{min-height:44px}
+  .toolbar input,.toolbar select,.field input,.field select,.field textarea{min-height:44px;font-size:16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Somos Reino · Cuidado pastoral</div>
+      <h1>Follow-ups</h1>
+      <p class="lead">Everyone who needs a call, a visit, or a note — in the order they need it.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/index.html">Portal</a>
+      <button class="btn primary" id="btnAdd">＋ Add follow-up</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="tabs" role="group" aria-label="View">
+    <button data-view="mine" aria-pressed="true">Mine</button>
+    <button data-view="all" aria-pressed="false">Everyone</button>
+    <button data-view="done" aria-pressed="false">Done</button>
+  </div>
+
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="Search by name or task" aria-label="Search follow-ups">
+    <select id="filterKind" aria-label="Filter by type">
+      <option value="all">All types</option>
+    </select>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script type="module">
+import { requireSession } from "/src/lib/auth.js";
+import { loadFollowUpSnapshot, loadInteractions, createFollowUp, updateFollowUp, logInteraction } from "/src/lib/api.js";
+import { showModeBadge } from "/src/lib/status.js";
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+const KINDS = {
+  first_visit:"First visit", new_member:"New member", absence:"Missed", care:"Care",
+  prayer:"Prayer", birthday:"Birthday", giving:"Giving", volunteer:"Volunteer", general:"General",
+};
+const CONTACT = { call:"Called", text:"Texted", email:"Emailed", visit:"Visited", in_person:"Spoke in person", prayer:"Prayed", note:"Note" };
+
+/* Local calendar days, never UTC — a task due "today" must stay due
+   today at 9pm in Orlando, not flip to tomorrow. */
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const addDays = (n, from = new Date()) => { const d = new Date(from); d.setDate(d.getDate() + n); return d; };
+const today = () => ymd(new Date());
+const daysBetween = (a, b) => Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 864e5);
+const nice = (iso) => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { month:"short", day:"numeric" });
+
+function dueLabel(f){
+  const n = daysBetween(today(), f.due_on);
+  if (n < 0) return `${-n}d overdue`;
+  if (n === 0) return "Today";
+  if (n === 1) return "Tomorrow";
+  return nice(f.due_on);
+}
+
+let toastTimer;
+function toast(message){
+  const el = $("#toast");
+  el.textContent = message; el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("on"), 4200);
+}
+
+/* ---------------- state ---------------- */
+let live = false, me = null;
+let followUps = [], people = [], staff = [];
+const state = { view:"mine", q:"", kind:"all", busy:false };
+let demoSeq = 100;
+
+/* ---------------- sample data, used only in demo mode ---------------- */
+function demoData(){
+  const P = [
+    { id:"pe1", first_name:"Lucía", last_name:"Pérez", phone:"(407) 555-0101", email:"lucia@example.com", status:"visitor" },
+    { id:"pe2", first_name:"Marcos", last_name:"Dávila", phone:"(407) 555-0102", email:"marcos@example.com", status:"visitor" },
+    { id:"pe3", first_name:"Rosa", last_name:"Villalobos", phone:"(407) 555-0103", email:"", status:"member" },
+    { id:"pe4", first_name:"Tomás", last_name:"Aguilar", phone:"(407) 555-0104", email:"tomas@example.com", status:"member" },
+    { id:"pe5", first_name:"Elena", last_name:"Ramos", phone:"(407) 555-0105", email:"elena@example.com", status:"regular" },
+  ];
+  const S = [{ id:"demo", full_name:"You (demo)" }, { id:"s2", full_name:"Daniel Reyes" }];
+  const mk = (id, pe, kind, title, due, extra = {}) => ({
+    id, person_id:P[pe].id, people:P[pe], kind, title, details:null, due_on:ymd(addDays(due)), priority:"normal",
+    status:"open", assigned_to:"demo", assignee:S[0], source:"rule", outcome:null, completed_at:null, ...extra,
+  });
+  return { P, S, F:[
+    mk("f1", 0, "first_visit", "Call Lucía after her first visit", -2, { priority:"high" }),
+    mk("f2", 1, "first_visit", "Call Marcos after his first visit", 0),
+    mk("f3", 2, "absence", "Check in with Rosa — missed 4 weeks", -1),
+    mk("f4", 3, "care", "Hospital visit — surgery on Thursday", 2, { assigned_to:"s2", assignee:S[1] }),
+    mk("f5", 4, "birthday", "Birthday: Elena Ramos", 5),
+    mk("f6", 3, "volunteer", "Ask Tomás about joining parking team", 1, { status:"snoozed" }),
+    mk("f7", 2, "prayer", "Pray with Rosa about her mother", -6, { status:"done", outcome:"Prayed on the phone. Her mother is home from the hospital.", completed_at:addDays(-5).toISOString() }),
+  ]};
+}
+
+/* ---------------- mutations (live or demo) ---------------- */
+async function patchFollowUp(id, patch){
+  if (live) { const row = await updateFollowUp(id, patch); replace(row); return row; }
+  const f = followUps.find((x) => x.id === id);
+  Object.assign(f, patch);
+  if (patch.status === "done" || patch.status === "dropped") f.completed_at = new Date().toISOString();
+  if (patch.status === "open" || patch.status === "snoozed") f.completed_at = null;
+  return f;
+}
+function replace(row){
+  const i = followUps.findIndex((x) => x.id === row.id);
+  if (i >= 0) followUps[i] = row; else followUps.unshift(row);
+}
+
+/* ---------------- derived ---------------- */
+const isOpen = (f) => f.status === "open" || f.status === "snoozed";
+const nameOf = (p) => `${p?.first_name ?? ""} ${p?.last_name ?? ""}`.trim() || "Unknown";
+
+function visible(){
+  const q = state.q.trim().toLowerCase();
+  return followUps.filter((f) => {
+    if (state.view === "done" ? isOpen(f) : !isOpen(f)) return false;
+    if (state.view === "mine" && f.assigned_to !== me) return false;
+    if (state.kind !== "all" && f.kind !== state.kind) return false;
+    if (q && !(nameOf(f.people).toLowerCase().includes(q) || f.title.toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+/* ---------------- render ---------------- */
+function renderStats(){
+  const mine = followUps.filter((f) => f.status === "open" && (state.view !== "mine" || f.assigned_to === me));
+  const t = today();
+  const late = mine.filter((f) => f.due_on < t).length;
+  const now = mine.filter((f) => f.due_on === t).length;
+  const week = mine.filter((f) => f.due_on > t && f.due_on <= ymd(addDays(7))).length;
+  $("#stats").innerHTML = `
+    <div class="stat${late ? " hot" : ""}"><b>${late}</b><span>Overdue</span></div>
+    <div class="stat"><b>${now}</b><span>Due today</span></div>
+    <div class="stat"><b>${week}</b><span>Next 7 days</span></div>`;
+}
+
+function card(f){
+  const p = f.people, finished = !isOpen(f), late = !finished && f.status === "open" && f.due_on < today();
+  const tel = p?.phone ? p.phone.replace(/[^\d+]/g, "") : "";
+  return `
+  <div class="card${late ? " late" : ""}${finished ? " fin" : ""}" data-id="${esc(f.id)}">
+    <div class="row1">
+      <div>
+        <div class="who">${esc(nameOf(p))}${p?.status === "visitor" ? ' <span class="tag visitor">Visitor</span>' : ""}</div>
+        <div class="what">${esc(f.title)}</div>
+      </div>
+      ${finished ? `<span class="tag done">${f.status === "dropped" ? "Dropped" : "Done"}</span>` : `<span class="due${late ? " late" : ""}">${esc(dueLabel(f))}</span>`}
+    </div>
+    <div class="meta">
+      <span class="tag">${esc(KINDS[f.kind] || f.kind)}</span>
+      ${f.priority === "high" ? '<span class="tag high">High priority</span>' : ""}
+      ${f.status === "snoozed" ? '<span class="tag snooze">Snoozed</span>' : ""}
+      ${state.view !== "mine" ? `<span>${esc(f.assignee?.full_name || "Unassigned")}</span>` : ""}
+    </div>
+    ${f.details ? `<div class="outcome">${esc(f.details)}</div>` : ""}
+    ${finished && f.outcome ? `<div class="outcome">${esc(f.outcome)}</div>` : ""}
+    <div class="acts">
+      ${finished ? `<button data-act="reopen">Reopen</button>` : `
+        ${tel ? `<a href="tel:${esc(tel)}">Call</a><a href="sms:${esc(tel)}">Text</a>` : ""}
+        <button class="log" data-act="log">Log contact</button>
+        <button data-act="snooze">Snooze</button>
+        <button data-act="done">Done</button>`}
+    </div>
+  </div>`;
+}
+
+function renderList(){
+  const rows = visible();
+  if (!rows.length) {
+    $("#list").innerHTML = state.view === "done"
+      ? `<div class="empty"><b>Nothing finished yet</b>Completed follow-ups from the last 30 days show up here.</div>`
+      : `<div class="empty"><b>${state.q || state.kind !== "all" ? "No matches" : "You're all caught up"}</b>${state.q || state.kind !== "all" ? "Try a different search." : "New visitors and members who miss a few weeks will appear here on their own."}</div>`;
+    return;
+  }
+  if (state.view === "done") { $("#list").innerHTML = rows.map(card).join(""); return; }
+
+  const t = today();
+  const groups = [
+    ["Overdue", "late", rows.filter((f) => f.status === "open" && f.due_on < t)],
+    ["Today", "", rows.filter((f) => f.status === "open" && f.due_on === t)],
+    ["Coming up", "", rows.filter((f) => f.status === "open" && f.due_on > t)],
+    ["Snoozed", "", rows.filter((f) => f.status === "snoozed")],
+  ];
+  $("#list").innerHTML = groups.filter((g) => g[2].length).map(([label, cls, items]) =>
+    `<section class="group"><h2 class="${cls}">${label} · ${items.length}</h2>${items.map(card).join("")}</section>`).join("");
+}
+
+function render(){ renderStats(); renderList(); }
+
+/* ---------------- modal ---------------- */
+function openModal(html){
+  closeModal();
+  $("#modalRoot").innerHTML = `<div class="scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  $("#scrim").addEventListener("mousedown", (e) => { if (e.target.id === "scrim") closeModal(); });
+  document.addEventListener("keydown", onEsc);
+  return $(".modal");
+}
+function onEsc(e){ if (e.key === "Escape") closeModal(); }
+function closeModal(){ $("#modalRoot").innerHTML = ""; document.removeEventListener("keydown", onEsc); }
+
+async function busy(button, errEl, work){
+  if (state.busy) return;
+  state.busy = true; button.disabled = true; errEl.textContent = "";
+  try { await work(); }
+  catch (e) { errEl.textContent = e.message; }
+  finally { state.busy = false; button.disabled = false; }
+}
+
+async function openLog(f){
+  const p = f.people;
+  const m = openModal(`
+    <h2>Log contact</h2>
+    <p class="sub">${esc(nameOf(p))} — ${esc(f.title)}</p>
+    <div class="field"><label>What happened</label>
+      <div class="seg" id="kindSeg">${Object.entries(CONTACT).filter(([k]) => k !== "note").map(([k, v], i) =>
+        `<button type="button" data-k="${k}" aria-pressed="${i === 0}">${v}</button>`).join("")}</div></div>
+    <div class="field"><label for="sum">Notes</label>
+      <textarea id="sum" placeholder="Spoke for 10 minutes. Wants to join a small group."></textarea></div>
+    <div class="field"><label><input type="checkbox" id="closeIt" checked style="width:auto;min-height:0;margin-right:7px">Mark this follow-up done</label></div>
+    <div class="hist" id="hist"></div>
+    <div class="err" id="err"></div>
+    <div class="foot"><button class="btn" id="cancel">Cancel</button><button class="btn primary" id="save">Save</button></div>`);
+  let kind = "call";
+  m.querySelectorAll("#kindSeg button").forEach((b) => b.addEventListener("click", () => {
+    kind = b.dataset.k;
+    m.querySelectorAll("#kindSeg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+  $("#cancel").onclick = closeModal;
+  $("#sum").focus();
+
+  if (live) {
+    loadInteractions(p.id).then((rows) => {
+      if (!$("#hist")) return;
+      $("#hist").innerHTML = rows.length
+        ? `<h3>Recent history</h3><ul>${rows.map((r) => `<li><b>${esc(CONTACT[r.kind] || r.kind)}</b> · ${esc(nice(r.occurred_at.slice(0, 10)))}${r.author?.full_name ? " · " + esc(r.author.full_name) : ""}<br>${esc(r.summary)}</li>`).join("")}</ul>`
+        : "";
+    }).catch(() => {});
+  }
+
+  $("#save").onclick = () => busy($("#save"), $("#err"), async () => {
+    const summary = $("#sum").value, close = $("#closeIt").checked;
+    if (!summary.trim()) throw new Error("Write a line about what happened.");
+    if (live) {
+      const res = await logInteraction({ personId:p.id, kind, summary, followUpId:f.id, close });
+      if (res.followUp) replace(res.followUp);
+    } else if (close) {
+      await patchFollowUp(f.id, { status:"done", outcome:summary.trim() });
+    }
+    closeModal(); render();
+    toast(close ? "Logged and marked done." : "Contact logged.");
+  });
+}
+
+function openSnooze(f){
+  const opts = [["Tomorrow", 1], ["In 3 days", 3], ["Next week", 7], ["In 2 weeks", 14]];
+  const m = openModal(`
+    <h2>Snooze</h2>
+    <p class="sub">${esc(nameOf(f.people))} — it comes back on the day you pick.</p>
+    <div class="seg" id="snoozeSeg">${opts.map(([l, n]) => `<button type="button" data-n="${n}">${l}</button>`).join("")}</div>
+    <div class="err" id="err"></div>
+    <div class="foot"><button class="btn" id="cancel">Cancel</button></div>`);
+  $("#cancel").onclick = closeModal;
+  m.querySelectorAll("#snoozeSeg button").forEach((b) => b.addEventListener("click", () =>
+    busy(b, $("#err"), async () => {
+      await patchFollowUp(f.id, { status:"open", due_on:ymd(addDays(Number(b.dataset.n))) });
+      closeModal(); render(); toast(`Back on ${nice(ymd(addDays(Number(b.dataset.n))))}.`);
+    })));
+}
+
+function openAdd(){
+  const staffOpts = staff.map((s) => `<option value="${esc(s.id)}"${s.id === me ? " selected" : ""}>${esc(s.full_name || s.email)}</option>`).join("");
+  const m = openModal(`
+    <h2>Add follow-up</h2>
+    <p class="sub">Something someone needs to do about someone.</p>
+    <div class="field"><label for="who">Person</label>
+      <input id="who" list="peopleList" placeholder="Start typing a name" autocomplete="off">
+      <datalist id="peopleList">${people.map((p) => `<option value="${esc(nameOf(p))}" data-id="${esc(p.id)}"></option>`).join("")}</datalist></div>
+    <div class="field"><label for="title">What needs to happen</label><input id="title" placeholder="Call to check on her after the surgery"></div>
+    <div class="two">
+      <div class="field"><label for="kind">Type</label><select id="kind">${Object.entries(KINDS).map(([k, v]) => `<option value="${k}"${k === "general" ? " selected" : ""}>${v}</option>`).join("")}</select></div>
+      <div class="field"><label for="due">Due</label><input id="due" type="date" value="${today()}"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="prio">Priority</label><select id="prio"><option value="normal">Normal</option><option value="high">High</option><option value="low">Low</option></select></div>
+      <div class="field"><label for="own">Assigned to</label><select id="own"><option value="">Unassigned</option>${staffOpts}</select></div>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="foot"><button class="btn" id="cancel">Cancel</button><button class="btn primary" id="save">Add</button></div>`);
+  $("#cancel").onclick = closeModal;
+  $("#who").focus();
+  $("#save").onclick = () => busy($("#save"), $("#err"), async () => {
+    const typed = $("#who").value.trim().toLowerCase();
+    const matches = people.filter((p) => nameOf(p).toLowerCase() === typed);
+    if (matches.length !== 1) throw new Error(matches.length ? "More than one person has that name — add a last name or initial." : "Pick someone from the list.");
+    const person = matches[0];
+    const body = {
+      person_id:person.id, title:$("#title").value, kind:$("#kind").value, due_on:$("#due").value || today(),
+      priority:$("#prio").value, assigned_to:$("#own").value || null,
+    };
+    if (!body.title.trim()) throw new Error("A follow-up needs a title.");
+    if (live) replace(await createFollowUp(body));
+    else followUps.unshift({ ...body, id:`d${++demoSeq}`, people:person, status:"open", source:"manual",
+      assignee:staff.find((s) => s.id === body.assigned_to) || null, outcome:null, completed_at:null, details:null });
+    closeModal(); render(); toast("Follow-up added.");
+  });
+}
+
+/* ---------------- events ---------------- */
+$("#list").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-act]");
+  if (!btn) return;
+  const f = followUps.find((x) => x.id === btn.closest(".card").dataset.id);
+  if (!f) return;
+  const act = btn.dataset.act;
+  if (act === "log") return openLog(f);
+  if (act === "snooze") return openSnooze(f);
+  try {
+    btn.disabled = true;
+    if (act === "done") { await patchFollowUp(f.id, { status:"done" }); toast("Marked done."); }
+    if (act === "reopen") { await patchFollowUp(f.id, { status:"open" }); toast("Reopened."); }
+    render();
+  } catch (error) { toast(error.message); btn.disabled = false; }
+});
+
+document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+  state.view = b.dataset.view;
+  document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  render();
+}));
+$("#q").addEventListener("input", (e) => { state.q = e.target.value; renderList(); });
+$("#filterKind").innerHTML += Object.entries(KINDS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+$("#filterKind").addEventListener("change", (e) => { state.kind = e.target.value; renderList(); });
+$("#btnAdd").addEventListener("click", openAdd);
+
+/* ---------------- start ---------------- */
+async function start(){
+  try {
+    const session = await requireSession({ followupsOnly:true });
+    if (!session) return;
+
+    if (session.mode === "demo") {
+      const d = demoData();
+      followUps = d.F; people = d.P; staff = d.S; me = "demo";
+      render();
+      return showModeBadge({ mode:"demo", portal:"Follow-ups" });
+    }
+
+    live = true; me = session.user.id;
+    const snap = await loadFollowUpSnapshot();
+    followUps = snap.followUps; people = snap.people; staff = snap.staff;
+    render();
+    showModeBadge({ mode:"ready", portal:"Follow-ups" });
+  } catch (error) {
+    render();
+    showModeBadge({ mode:"error", portal:"Follow-ups", error:error.message });
+  }
+}
+await start();
+</script>
+</body>
+</html>

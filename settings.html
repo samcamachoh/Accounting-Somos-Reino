@@ -148,8 +148,8 @@ tr.inactive td{opacity:.55}
 
 <script type="module">
 import { requireSession, signOut } from "/src/lib/auth.js";
-import { isConfigured } from "/src/lib/supabase.js";
-import { listUsers, createUser, updateUser, setUserPassword, sendPasswordReset, setUserActive, deleteUser } from "/src/lib/admin.js";
+import { isConfigured } from "/src/lib/db.js";
+import { listUsers, createUser, updateUser, setUserPassword, setUserActive, deleteUser } from "/src/lib/admin.js";
 import { showModeBadge } from "/src/lib/status.js";
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -157,7 +157,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":
 const AV = ["#F7746D","#3F7A63","#A97613","#5B5470","#2F6E8F","#8A4A6B","#4C6B3F"];
 const avColor = (n) => AV[[...String(n||"?")].reduce((a,c)=>a+c.charCodeAt(0),0) % AV.length];
 const initials = (n) => String(n||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
-const PERMS = ["finance","approve","refund","people","payouts"];
+const PERMS = ["finance","approve","refund","people","payouts","calendar","followups"];
 
 let users = [], callerId = null, live = false;
 const state = { q:"", role:"all", status:"active", modal:null, busy:false };
@@ -295,13 +295,13 @@ const readPerms = () => Object.fromEntries(
 );
 
 function requireLive(){
-  if(!live) throw new Error("Demo mode — connect Supabase to make changes stick.");
+  if(!live) throw new Error("Demo mode — connect the database and Clerk to make changes stick.");
 }
 
 function addPerson(){
   openModal({
     title: "Add a person",
-    sub: "They get an email invite to choose their own password, unless you set one here.",
+    sub: "The account is ready right away. Tell them to open the portal and sign in with this email — they will get a code by email, or use the password if you set one here.",
     fields: `
       <div class="field"><label for="f_name">Full name</label><input id="f_name" required></div>
       <div class="field"><label for="f_email">Email</label><input id="f_email" type="email" required></div>
@@ -310,7 +310,7 @@ function addPerson(){
       <div class="field"><label for="f_team">Team</label><input id="f_team" placeholder="Media, Kids, Care…"></div>
       <div class="field"><label for="f_phone">Phone</label><input id="f_phone" type="tel"></div>
       <div class="field"><label for="f_pw">Password (optional)</label><input id="f_pw" type="password" autocomplete="new-password">
-        <div class="hint">Leave blank to send an invite. At least 8 characters if you set one.</div></div>
+        <div class="hint">Leave blank and they sign in with an emailed code. At least 8 characters if you set one.</div></div>
       <div class="field"><label>Permissions</label>${permBoxes()}</div>`,
     confirmText: "Create account",
     onConfirm: async () => {
@@ -326,7 +326,7 @@ function addPerson(){
         password: password || undefined,
         permissions: readPerms(),
       });
-      toast(result.invited ? "Account created — invite sent." : "Account created.");
+      toast(result.signInWith === "password" ? "Account created — they can sign in with the password you set." : "Account created — tell them to sign in with their email; a code will be sent to them.");
       await refresh();
     },
   });
@@ -364,12 +364,12 @@ function editPerson(user){
 function changePassword(user){
   openModal({
     title: "Set a password",
-    sub: `For ${esc(user.full_name || user.email)}. Tell them the new password over a channel they trust, or send a reset link instead so only they ever see it.`,
+    sub: `For ${esc(user.full_name || user.email)}. Tell them the new password over a channel they trust. Or let them choose their own: they can use “Forgot password?” on the sign-in page.`,
     fields: `
       <div class="field"><label for="f_pw">New password</label><input id="f_pw" type="password" autocomplete="new-password" required>
         <div class="hint">At least 8 characters.</div></div>
       <div class="field"><label for="f_pw2">Confirm password</label><input id="f_pw2" type="password" autocomplete="new-password" required></div>
-      <div class="field"><button class="btn" type="button" id="f_reset">Email a reset link instead</button></div>`,
+      <div class="field"><button class="btn" type="button" id="f_reset">How do they reset it themselves?</button></div>`,
     confirmText: "Set password",
     onConfirm: async () => {
       const a = $("#f_pw").value, b = $("#f_pw2").value;
@@ -381,13 +381,10 @@ function changePassword(user){
     },
   });
 
-  $("#f_reset").addEventListener("click", async () => {
-    try {
-      requireLive();
-      await sendPasswordReset(user.email);
-      toast(`Reset link sent to ${user.email}.`);
-      closeModal();
-    } catch (error) { $("#merr").textContent = error.message; }
+  /* Clerk has no admin call that emails a reset link — resets happen on the
+     sign-in page, where the person proves it is them. So say that, plainly. */
+  $("#f_reset").addEventListener("click", () => {
+    $("#merr").textContent = "They can choose “Forgot password?” on the sign-in page, or sign in with a code emailed to them. Nothing to send from here.";
   });
 }
 
@@ -472,7 +469,7 @@ async function start(){
     live = false;
     render();
     $("#banner").hidden = false;
-    $("#banner").textContent = "Demo mode — this is sample data. Connect Supabase in .env to manage real accounts.";
+    $("#banner").textContent = "Demo mode — this is sample data. Add your database address and Clerk key in .env to manage real accounts.";
     return showModeBadge({ mode:"demo", portal:"Accounts" });
   }
 

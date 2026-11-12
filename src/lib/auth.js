@@ -5,17 +5,23 @@
    is in. The portals branch on `mode` and render accordingly:
 
      demo       no credentials configured — keep sample data
-     signed-out no Supabase session — send them to login.html
+     signed-out no Clerk session — send them to login.html
      disabled   profile exists but has been deactivated
      forbidden  signed in, but not allowed in this portal
      ready      cleared — `user` and `profile` are populated
+
+   Sign-in itself is Clerk's. This file asks Clerk who is signed
+   in, then reads that person's profile (role, permissions) from
+   the database — a Clerk account with no profile is "forbidden",
+   because profiles are only ever created by an administrator.
 
    Authorization is enforced by Row Level Security in the
    database, and by the admin-users Edge Function for anything
    privileged. The checks here decide what to *render*; they are
    not the security boundary on their own.
    ============================================================ */
-import { supabase, isConfigured, TABLES } from "./supabase.js";
+import { db, isConfigured, TABLES } from "./db.js";
+import { clerk, loadClerk } from "./clerk.js";
 
 /** Roles permitted into the finance portal. */
 const STAFF_ROLES = ["admin", "finance"];
@@ -34,28 +40,41 @@ export const LOGIN_PAGE = "/login.html";
    RLS and the admin-users function remain the enforcement.
    ------------------------------------------------------------ */
 
-/** Finance portal: staff only. */
-export const canAccessFinance = (profile) => STAFF_ROLES.includes(profile?.role);
+/** Finance portal: staff, plus anyone an admin granted `finance` (same rule as the database's can_finance()). */
+export const canAccessFinance = (profile) => STAFF_ROLES.includes(profile?.role) || profile?.permissions?.finance === true;
 
 /** Account management: admins only. */
 export const canAccessSettings = (profile) => profile?.role === "admin";
+
+/** Follow-ups: admins, plus anyone granted `followups` or `people`. */
+export const canAccessFollowUps = (profile) =>
+  profile?.role === "admin" || Boolean(profile?.permissions?.followups) || Boolean(profile?.permissions?.people);
+
+/** People directory: admins and anyone granted `people`. */
+export const canAccessPeople = (profile) =>
+  profile?.role === "admin" || Boolean(profile?.permissions?.people);
+
+/** Create and edit events, rooms, and bookings. Everyone else can view and RSVP. */
+export const canManageCalendar = (profile) =>
+  profile?.role === "admin" || Boolean(profile?.permissions?.calendar) || Boolean(profile?.permissions?.people);
 
 /** The giving portal is open to anyone with an active account. */
 export const canAccessGiving = () => true;
 
 /**
  * Resolve the visitor's portal state.
- * @param {{staffOnly?:boolean, adminOnly?:boolean}} options
+ * @param {{staffOnly?:boolean, adminOnly?:boolean, followupsOnly?:boolean, peopleOnly?:boolean}} options
  */
-export async function getPortalSession({ staffOnly = false, adminOnly = false } = {}) {
+export async function getPortalSession({ staffOnly = false, adminOnly = false, followupsOnly = false, peopleOnly = false } = {}) {
   if (!isConfigured) return { mode: "demo" };
 
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error) throw new Error(`Could not read the session: ${error.message}`);
-  if (!session?.user) return { mode: "signed-out" };
+  await loadClerk();
+  if (!clerk.isSignedIn || !clerk.user) return { mode: "signed-out" };
 
-  const user = session.user;
-  const { data: profile, error: profileError } = await supabase
+  const clerkUser = clerk.user;
+  const user = { id: clerkUser.id, email: clerkUser.primaryEmailAddress?.emailAddress ?? null };
+
+  const { data: profile, error: profileError } = await db
     .from(TABLES.profiles)
     .select("*")
     .eq("id", user.id)
@@ -66,52 +85,21 @@ export async function getPortalSession({ staffOnly = false, adminOnly = false } 
   if (profile.is_active === false) return { mode: "disabled", user, profile };
   if (adminOnly && !canAccessSettings(profile)) return { mode: "forbidden", user, profile };
   if (staffOnly && !canAccessFinance(profile)) return { mode: "forbidden", user, profile };
+  if (peopleOnly && !canAccessPeople(profile)) return { mode: "forbidden", user, profile };
+  if (followupsOnly && !canAccessFollowUps(profile)) return { mode: "forbidden", user, profile };
 
   return { mode: "ready", user, profile };
 }
 
 /* ------------------------------------------------------------
-   Sign in / out
+   Sign out
    ------------------------------------------------------------ */
-
-/** Sign in with email and password. */
-export async function signInWithPassword(email, password) {
-  if (!supabase) throw new Error("Supabase is not configured.");
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw new Error(error.message);
-  return data;
-}
-
-/** Send a one-time sign-in link instead of using a password. */
-export async function sendMagicLink(email, redirectTo = window.location.href) {
-  if (!supabase) throw new Error("Supabase is not configured.");
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
-  if (error) throw new Error(error.message);
-}
-
-/** Email the visitor a link to choose a new password. */
-export async function requestPasswordReset(email, redirectTo) {
-  if (!supabase) throw new Error("Supabase is not configured.");
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: redirectTo || new URL(LOGIN_PAGE, window.location.origin).href,
-  });
-  if (error) throw new Error(error.message);
-}
-
-/** Change the signed-in person's own password. */
-export async function updateMyPassword(password) {
-  if (!supabase) throw new Error("Supabase is not configured.");
-  if (!password || password.length < 8) throw new Error("Password must be at least 8 characters.");
-  const { error } = await supabase.auth.updateUser({ password });
-  if (error) throw new Error(error.message);
-}
 
 /** Sign the current user out and return them to the login page. */
 export async function signOut() {
-  if (!supabase) return;
-  const { error } = await supabase.auth.signOut();
-  if (error) throw new Error(`Could not sign out: ${error.message}`);
-  window.location.assign(LOGIN_PAGE);
+  if (!clerk) return;
+  await loadClerk();
+  await clerk.signOut({ redirectUrl: LOGIN_PAGE });
 }
 
 /* ------------------------------------------------------------
@@ -170,7 +158,7 @@ export function mountForbiddenGate(message) {
  * session when the visitor may proceed.
  *
  * In demo mode it resolves immediately so local preview still works.
- * @param {{staffOnly?:boolean, adminOnly?:boolean}} options
+ * @param {{staffOnly?:boolean, adminOnly?:boolean, followupsOnly?:boolean, peopleOnly?:boolean}} options
  */
 export async function requireSession(options = {}) {
   const session = await getPortalSession(options);
