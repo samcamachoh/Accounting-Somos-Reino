@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Somos Reino · Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--coral:#F7746D;--coral-deep:#C8483F;--coral-wash:#FDECEA;--ink:#17151C;--paper:#FAF7F5;--card:#fff;--line:#E9E2DD;--line-2:#D8CFC8;--text:#1E1B22;--text-2:#6A6371;--text-3:#9A9299;--sage:#3F7A63;--sage-wash:#E7F1EC;--amber:#A97613;--amber-wash:#FBF0DC;--blue:#2F6E8F;--blue-wash:#E6F0F5;--plum:#8A4A6B;--plum-wash:#F5E9F0;--mono:"IBM Plex Mono",ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--text);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:1040px;margin:0 auto;padding:32px 20px 90px}
+header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);font-weight:700}
+h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-spacing:-.04em;margin:10px 0 8px}
+.lead{color:var(--text-2);line-height:1.5;max-width:560px}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{padding:10px 16px;border-radius:9px;border:1px solid var(--line-2);background:#fff;color:var(--text);font-weight:600;font-size:14px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.btn:hover{border-color:var(--text-3)}
+.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.btn.danger{color:var(--coral-deep);border-color:#F3C9C5}
+.btn:disabled{opacity:.55;cursor:default}
+
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.nav{display:flex;gap:6px;align-items:center}
+.nav .btn{padding:9px 13px}
+.month{font:800 24px/1 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;min-width:170px}
+.seg{display:flex;background:#F0EAE6;padding:3px;border-radius:10px;margin-left:auto}
+.seg button{border:0;background:none;padding:7px 13px;border-radius:7px;font-weight:600;font-size:13px;line-height:1;color:var(--text-2)}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(23,21,28,.1)}
+.filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.filters select{padding:9px 12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;background:#fff;color:inherit;font-family:inherit}
+
+.grid{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);background:#FCFAF8;border-bottom:1px solid var(--line)}
+.dow div{padding:9px 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-weight:700}
+.cells{display:grid;grid-template-columns:repeat(7,1fr)}
+.cell{min-height:104px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px;background:#fff;text-align:left;border-top:0;border-left:0;color:inherit;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;width:100%;overflow:hidden}
+.cell:nth-child(7n){border-right:0}
+.cell:hover{background:#FCFAF8}
+.cell.out{background:#FBF9F7}
+.cell.out .d{color:var(--text-3)}
+.d{font-family:var(--mono);font-size:12px;font-weight:500;display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:50%;margin-bottom:3px}
+.cell.today .d{background:var(--coral);color:#fff}
+.chip{display:block;width:100%;font-size:12px;font-weight:600;line-height:1.25;padding:3px 6px;border-radius:5px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--k-bg,#F0EAE6);color:var(--k-fg,var(--text-2))}
+.chip.x{text-decoration:line-through;opacity:.55}
+.chip time{font-family:var(--mono);font-weight:400;margin-right:4px;opacity:.8}
+.more{font-size:11px;color:var(--text-2);font-weight:700;padding-left:4px}
+.dots{display:none;gap:3px;flex-wrap:wrap;margin-top:2px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--k-fg,var(--text-3))}
+.k-service{--k-bg:var(--coral-wash);--k-fg:var(--coral-deep)}
+.k-event{--k-bg:var(--blue-wash);--k-fg:var(--blue)}
+.k-meeting{--k-bg:#F0EAE6;--k-fg:var(--text-2)}
+.k-class{--k-bg:var(--sage-wash);--k-fg:var(--sage)}
+.k-outreach{--k-bg:var(--amber-wash);--k-fg:var(--amber)}
+.k-rental{--k-bg:var(--plum-wash);--k-fg:var(--plum)}
+.k-holiday{--k-bg:#EEE;--k-fg:#555}
+
+.agenda .day{margin-bottom:18px}
+.agenda h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-weight:700;margin:0 2px 8px}
+.agenda h2.today{color:var(--coral-deep)}
+.item{display:flex;gap:14px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:7px;color:inherit;border-left:4px solid var(--k-fg,var(--line-2))}
+.item:hover{border-color:var(--line-2);border-left-color:var(--k-fg,var(--line-2))}
+.item .t{font-family:var(--mono);font-size:12px;color:var(--text-2);min-width:74px;padding-top:2px}
+.item b{display:block;font-size:15px}
+.item.x b{text-decoration:line-through;color:var(--text-3)}
+.item .s{font-size:13px;color:var(--text-2);margin-top:2px}
+.empty{padding:44px 20px;text-align:center;color:var(--text-2);background:var(--card);border:1px dashed var(--line-2);border-radius:14px;line-height:1.5}
+.empty b{display:block;color:var(--text);font-size:17px;margin-bottom:4px}
+.tag{display:inline-block;padding:3px 8px;border-radius:999px;font-weight:700;font-size:11px;line-height:1.25;background:#F0EAE6;color:var(--text-2)}
+.tag.x{background:var(--coral-wash);color:var(--coral-deep)}
+.tag.ok{background:var(--sage-wash);color:var(--sage)}
+
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:20px}
+.modal{background:#fff;border-radius:18px;width:min(540px,100%);max-height:92vh;overflow:auto;padding:26px}
+.modal h2{font:800 23px/1.1 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;margin-bottom:6px}
+.modal p.lede{color:var(--text-2);font-size:14px;line-height:1.5;margin-bottom:16px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+.field input:not([type=checkbox]):not([type=radio]),.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--line-2);border-radius:9px;font-size:15px;line-height:1.3;font-family:inherit;background:#fff;color:inherit}
+.field textarea{min-height:76px;resize:vertical}
+.field .hint{font-size:12px;color:var(--text-3);margin-top:5px;line-height:1.45}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:13px;cursor:pointer}
+.check input{width:17px;height:17px;accent-color:var(--coral)}
+.days{display:flex;gap:6px;flex-wrap:wrap}
+.days button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line-2);background:#fff;font-weight:700;font-size:12px;color:var(--text-2)}
+.days button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.box{background:#FCFAF8;border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:13px}
+.modal .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap}
+.modal .foot .l{margin-right:auto}
+.modal .err{color:var(--coral-deep);font-size:14px;line-height:1.5;margin-top:12px;min-height:1.2em}
+.warnbox{background:var(--amber-wash);border:1px solid #E8D5A8;color:var(--amber);padding:10px 12px;border-radius:9px;font-size:13px;line-height:1.45;margin-bottom:13px}
+.kv{display:grid;grid-template-columns:90px 1fr;gap:6px 12px;font-size:14px;margin:12px 0}
+.kv dt{color:var(--text-2)}
+.rsvp{display:flex;gap:8px;margin:6px 0 4px}
+.rsvp button{flex:1;padding:10px;border-radius:9px;border:1px solid var(--line-2);background:#fff;font-weight:600;font-size:14px;color:var(--text-2)}
+.rsvp button[aria-pressed="true"]{background:var(--sage);border-color:var(--sage);color:#fff}
+.rsvp button.no[aria-pressed="true"]{background:var(--text-2);border-color:var(--text-2)}
+.desc{white-space:pre-wrap;font-size:14px;line-height:1.55;border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+.opt{display:flex;gap:8px;align-items:center;font-size:14px;margin:8px 0;cursor:pointer}
+.opt input{accent-color:var(--coral);width:17px;height:17px}
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:11px 17px;border-radius:9px;font-size:13px;font-weight:500;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:min(520px,90vw)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:760px){
+  .wrap{padding:24px 16px 100px}
+  .month{font-size:20px;min-width:0;flex:1;white-space:nowrap}
+  .seg{margin-left:0;order:3;width:100%}
+  .seg button{flex:1}
+  .cell{min-height:62px;padding:4px}
+  .cell .chip,.cell .more{display:none}
+  .dots{display:flex}
+  .dow div{padding:8px 4px;text-align:center;letter-spacing:0}
+  .two,.three{grid-template-columns:1fr}
+  .two.keep{grid-template-columns:1fr 1fr}
+  .item .t{min-width:62px}
+}
+@media(max-width:760px),(pointer:coarse){
+  .btn,.seg button,.rsvp button{min-height:44px}
+  .filters select,.field input:not([type=checkbox]):not([type=radio]),.field select,.field textarea{min-height:44px;font-size:16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Somos Reino · Calendario</div>
+      <h1>Calendar</h1>
+      <p class="lead">Services, meetings, classes and rooms — everything happening at the church.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/index.html">Portal</a>
+      <button class="btn" id="btnIcs">Download .ics</button>
+      <button class="btn primary" id="btnAdd" hidden>＋ Add event</button>
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="nav">
+      <button class="btn" id="prev" aria-label="Previous month">‹</button>
+      <button class="btn" id="today">Today</button>
+      <button class="btn" id="next" aria-label="Next month">›</button>
+    </div>
+    <div class="month" id="monthLabel" aria-live="polite"></div>
+    <div class="seg" role="group" aria-label="View">
+      <button data-view="month" aria-pressed="true">Month</button>
+      <button data-view="agenda" aria-pressed="false">Agenda</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <select id="fKind" aria-label="Filter by type"><option value="">All types</option></select>
+    <select id="fRoom" aria-label="Filter by room"><option value="">All rooms</option></select>
+  </div>
+
+  <div id="view"></div>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script type="module">
+import { requireSession, canManageCalendar } from "/src/lib/auth.js";
+import {
+  loadCalendarBase, loadCalendarRange, findRoomConflicts, createEvents, updateEvent,
+  loadSeriesEventIds, setEventsStatus, deleteEvents, setRsvp, loadGoingCounts,
+} from "/src/lib/api.js";
+import { showModeBadge } from "/src/lib/status.js";
+import { expand, toRRule, describe } from "/src/lib/recurrence.js";
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+const KINDS = [["service","Service"],["event","Event"],["meeting","Meeting"],["class","Class"],["outreach","Outreach"],["rental","Rental"],["holiday","Holiday"]];
+const KIND_LABEL = Object.fromEntries(KINDS);
+const VIS = [["public","Public — anyone"],["members","Members only"],["staff","Staff only"]];
+const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const DOW1 = ["S","M","T","W","T","F","S"];
+const FULL = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+/* ---------- dates: local wall-clock days, never UTC ---------- */
+const pad = (n) => String(n).padStart(2, "0");
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const dayOf = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const atLocal = (date, time) => new Date(`${date}T${time || "00:00"}`);
+const timeLabel = (d) => d.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" }).replace(" AM", "a").replace(" PM", "p").replace(":00", "");
+const dayLabel = (d) => d.toLocaleDateString(undefined, { weekday:"long", month:"long", day:"numeric" });
+
+let toastTimer;
+function toast(message){
+  const el = $("#toast");
+  el.textContent = message; el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("on"), 4200);
+}
+
+/* ---------- state ---------- */
+let live = false, canManage = false, personId = null;
+let events = [], attendance = [], rooms = [], groups = [], goingCounts = null;
+const state = { view:"month", cursor:dayOf(new Date()), kind:"", room:"", busy:false };
+state.cursor.setDate(1);
+let seq = 0;
+
+const start = (e) => new Date(e.starts_at);
+const end = (e) => new Date(e.ends_at);
+const roomName = (e) => e.rooms?.name || rooms.find((r) => r.id === e.room_id)?.name || "";
+
+/* ---------- visible window: the month's grid, padded to whole weeks ---------- */
+function gridRange(){
+  const first = new Date(state.cursor);
+  const from = addDays(first, -first.getDay());
+  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
+  const to = addDays(last, 7 - last.getDay());   // exclusive
+  return { from, to, first, last };
+}
+
+/* ---------- sample data, used only in demo mode ---------- */
+function demoData(){
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+  const R = [{ id:"r1", name:"Sanctuary" }, { id:"r2", name:"Fellowship hall" }, { id:"r3", name:"Kids room" }];
+  const G = [{ id:"g1", name:"Worship" }, { id:"g2", name:"Kids" }, { id:"g3", name:"Welcome" }];
+  const out = [];
+  const add = (title, kind, date, st, en, extra = {}) => out.push({
+    id:`e${++seq}`, title, kind, starts_at:atLocal(date, st).toISOString(), ends_at:atLocal(date, en).toISOString(),
+    all_day:false, location:null, room_id:null, group_id:null, description:null, visibility:"public",
+    rsvp_enabled:false, capacity:null, status:"scheduled", series_id:null, rooms:null, groups:null, event_series:null, ...extra });
+  for (let d = new Date(y, m - 1, 1); d < new Date(y, m + 2, 1); d = addDays(d, 1)) {
+    if (d.getDay() === 0) {
+      add("Sunday Morning", "service", ymd(d), "10:00", "11:30", { room_id:"r1", rooms:R[0], series_id:"s1", event_series:{ rrule:"FREQ=WEEKLY;BYDAY=SU;COUNT=104" } });
+      add("Servicio en Español", "service", ymd(d), "12:30", "14:00", { room_id:"r1", rooms:R[0], series_id:"s2", event_series:{ rrule:"FREQ=WEEKLY;BYDAY=SU;COUNT=104" } });
+    }
+    if (d.getDay() === 3) add("Midweek Prayer", "meeting", ymd(d), "19:00", "20:00", { room_id:"r2", rooms:R[1] });
+  }
+  add("Women's brunch", "event", ymd(new Date(y, m, 14)), "09:30", "11:30", { room_id:"r2", rooms:R[1], rsvp_enabled:true, capacity:30, description:"Brunch, worship and testimonies.\nBring a friend!" });
+  add("Church-wide potluck", "event", ymd(new Date(y, m, 21)), "13:00", "16:00", { rsvp_enabled:true, location:"Fellowship hall + patio" });
+  add("Baptism class", "class", ymd(new Date(y, m, 18)), "18:30", "20:00", { room_id:"r3", rooms:R[2], groups:G[1], group_id:"g2" });
+  add("Thanksgiving — office closed", "holiday", ymd(new Date(y, 10, 26)), "00:00", "23:59", { all_day:true });
+  return { R, G, E:out };
+}
+
+/* ---------- derived ---------- */
+function visibleEvents(){
+  return events.filter((e) => (!state.kind || e.kind === state.kind) && (!state.room || e.room_id === state.room));
+}
+const byDay = (list) => {
+  const map = new Map();
+  for (const e of list) { const k = ymd(start(e)); (map.get(k) || map.set(k, []).get(k)).push(e); }
+  for (const arr of map.values()) arr.sort((a, b) => start(a) - start(b));
+  return map;
+};
+const myRsvp = (e) => attendance.find((a) => a.event_id === e.id && a.person_id === personId)?.rsvp || null;
+/* Live: totals come from the database, since members can't read other people's RSVP rows. */
+const goingCount = (e) => live && goingCounts ? (goingCounts[e.id] ?? 0) : attendance.filter((a) => a.event_id === e.id && a.rsvp === "yes").length;
+const when = (e) => e.all_day ? "All day" : `${timeLabel(start(e))}–${timeLabel(end(e))}`;
+
+/* ---------- render ---------- */
+function renderMonth(){
+  const { from, to, first } = gridRange();
+  const map = byDay(visibleEvents());
+  const todayKey = ymd(new Date());
+  let html = `<div class="grid"><div class="dow">${DOW.map((d) => `<div>${d}</div>`).join("")}</div><div class="cells">`;
+  for (let d = from; d < to; d = addDays(d, 1)) {
+    const key = ymd(d), list = map.get(key) || [];
+    const chips = list.slice(0, 3).map((e) => `<span class="chip k-${esc(e.kind)}${e.status === "cancelled" ? " x" : ""}">${e.all_day ? "" : `<time>${esc(timeLabel(start(e)))}</time>`}${esc(e.title)}</span>`).join("");
+    html += `<button class="cell${d.getMonth() !== first.getMonth() ? " out" : ""}${key === todayKey ? " today" : ""}" data-day="${key}" aria-label="${esc(dayLabel(d))}, ${list.length} event${list.length === 1 ? "" : "s"}">
+      <span class="d">${d.getDate()}</span>${chips}${list.length > 3 ? `<span class="more">+${list.length - 3} more</span>` : ""}
+      ${list.length ? `<span class="dots">${list.slice(0, 6).map((e) => `<i class="k-${esc(e.kind)}"></i>`).join("")}</span>` : ""}</button>`;
+  }
+  $("#view").innerHTML = html + "</div></div>";
+}
+
+function itemHtml(e){
+  const sub = [roomName(e) || e.location, e.groups?.name].filter(Boolean).join(" · ");
+  return `<button class="item k-${esc(e.kind)}${e.status === "cancelled" ? " x" : ""}" data-id="${esc(e.id)}">
+    <span class="t">${esc(e.all_day ? "All day" : timeLabel(start(e)))}</span>
+    <span><b>${esc(e.title)}</b><span class="s">${esc(sub || KIND_LABEL[e.kind] || "")}${e.status === "cancelled" ? ' <span class="tag x">Cancelled</span>' : ""}${myRsvp(e) === "yes" ? ' <span class="tag ok">Going</span>' : ""}</span></span></button>`;
+}
+
+function renderAgenda(){
+  const { first, last } = gridRange();
+  const map = byDay(visibleEvents().filter((e) => start(e) >= first && start(e) < addDays(last, 1)));
+  const days = [...map.keys()].sort();
+  if (!days.length) {
+    $("#view").innerHTML = `<div class="empty"><b>Nothing scheduled</b>${state.kind || state.room ? "No events match these filters this month." : "No events this month."}</div>`;
+    return;
+  }
+  const todayKey = ymd(new Date());
+  $("#view").innerHTML = `<div class="agenda">${days.map((k) =>
+    `<section class="day"><h2 class="${k === todayKey ? "today" : ""}">${esc(dayLabel(atLocal(k, "12:00")))}${k === todayKey ? " · Today" : ""}</h2>${map.get(k).map(itemHtml).join("")}</section>`).join("")}</div>`;
+}
+
+function render(){
+  $("#monthLabel").textContent = state.cursor.toLocaleDateString(undefined, { month:"long", year:"numeric" });
+  state.view === "month" ? renderMonth() : renderAgenda();
+}
+
+/* ---------- loading ---------- */
+async function loadWindow(){
+  if (!live) return render();
+  const { from, to } = gridRange();
+  try {
+    const res = await loadCalendarRange(from, to);
+    events = res.events; attendance = res.attendance; goingCounts = res.going;
+  } catch (e) { toast(e.message); }
+  render();
+}
+
+/* ---------- modal plumbing ---------- */
+function openModal(html){
+  closeModal();
+  $("#modalRoot").innerHTML = `<div class="scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  $("#scrim").addEventListener("mousedown", (e) => { if (e.target.id === "scrim") closeModal(); });
+  document.addEventListener("keydown", onEsc);
+  return $(".modal");
+}
+function onEsc(e){ if (e.key === "Escape") closeModal(); }
+function closeModal(){ $("#modalRoot").innerHTML = ""; document.removeEventListener("keydown", onEsc); }
+async function busy(button, errEl, work){
+  if (state.busy) return;
+  state.busy = true; button.disabled = true; errEl.textContent = "";
+  try { await work(); }
+  catch (e) { errEl.textContent = e.message; }
+  finally { state.busy = false; button.disabled = false; }
+}
+
+/* ---------- day list ---------- */
+function openDay(key){
+  const list = (byDay(visibleEvents()).get(key) || []);
+  const m = openModal(`
+    <h2>${esc(dayLabel(atLocal(key, "12:00")))}</h2>
+    <p class="lede">${list.length ? `${list.length} event${list.length === 1 ? "" : "s"}` : "Nothing scheduled."}</p>
+    <div class="agenda">${list.map(itemHtml).join("")}</div>
+    <div class="foot">${canManage ? `<button class="btn primary" id="addHere">＋ Add event</button>` : ""}<button class="btn" id="close">Close</button></div>`);
+  $("#close").onclick = closeModal;
+  if (canManage) $("#addHere").onclick = () => openForm(null, key);
+  m.querySelectorAll(".item").forEach((b) => b.addEventListener("click", () => openDetail(b.dataset.id)));
+}
+
+/* ---------- event detail ---------- */
+function openDetail(id){
+  const e = events.find((x) => x.id === id);
+  if (!e) return;
+  const mine = myRsvp(e), going = goingCount(e), cancelled = e.status === "cancelled";
+  const full = e.capacity && going >= e.capacity && mine !== "yes";
+  const m = openModal(`
+    <h2>${esc(e.title)}</h2>
+    <div><span class="tag">${esc(KIND_LABEL[e.kind] || e.kind)}</span>${cancelled ? ' <span class="tag x">Cancelled</span>' : ""}${e.visibility !== "public" ? ` <span class="tag">${e.visibility === "staff" ? "Staff only" : "Members only"}</span>` : ""}</div>
+    <dl class="kv">
+      <dt>When</dt><dd>${esc(dayLabel(start(e)))}<br>${esc(when(e))}</dd>
+      ${roomName(e) || e.location ? `<dt>Where</dt><dd>${esc([roomName(e), e.location].filter(Boolean).join(" · "))}</dd>` : ""}
+      ${e.groups?.name ? `<dt>Hosted by</dt><dd>${esc(e.groups.name)}</dd>` : ""}
+      ${e.event_series?.rrule ? `<dt>Repeats</dt><dd>${esc(describe(e.event_series.rrule))}</dd>` : ""}
+      ${e.rsvp_enabled && canManage ? `<dt>RSVPs</dt><dd>${going} going${e.capacity ? ` of ${e.capacity}` : ""}</dd>` : ""}
+    </dl>
+    ${e.rsvp_enabled && !cancelled ? `
+      <div class="field"><label>Will you be there?</label>
+        <div class="rsvp">${[["yes","Going",""],["maybe","Maybe",""],["no","Can't go","no"]].map(([v, l, c]) =>
+          `<button class="${c}" data-rsvp="${v}" aria-pressed="${mine === v}">${l}</button>`).join("")}</div>
+        ${full ? '<div class="hint">This event is full — you can still say maybe or no.</div>' : e.capacity ? `<div class="hint">${Math.max(0, e.capacity - going)} spot${e.capacity - going === 1 ? "" : "s"} left</div>` : ""}</div>` : ""}
+    ${e.description ? `<div class="desc">${esc(e.description)}</div>` : ""}
+    <div class="err" id="err"></div>
+    <div class="foot">
+      ${canManage ? `<button class="btn l" id="edit">Edit</button>` : ""}
+      ${canManage ? `<button class="btn danger" id="cancelEv">${cancelled ? "Restore" : "Cancel event"}</button>` : ""}
+      <button class="btn" id="close">Close</button></div>`);
+  $("#close").onclick = closeModal;
+
+  m.querySelectorAll("[data-rsvp]").forEach((b) => b.addEventListener("click", () => busy(b, $("#err"), async () => {
+    const v = b.dataset.rsvp;
+    if (v === "yes" && full) throw new Error("This event is full.");
+    if (live) {
+      const row = await setRsvp(e.id, personId, v);
+      attendance = attendance.filter((a) => !(a.event_id === e.id && a.person_id === personId)); attendance.push(row);
+      if (goingCounts) Object.assign(goingCounts, await loadGoingCounts([e.id]));
+    } else {
+      attendance = attendance.filter((a) => !(a.event_id === e.id && a.person_id === "me"));
+      attendance.push({ event_id:e.id, person_id:"me", rsvp:v });
+    }
+    render(); openDetail(e.id);
+    toast(v === "yes" ? "You're going." : v === "maybe" ? "Marked as maybe." : "Got it — you're not going.");
+  })));
+
+  if (canManage) {
+    $("#edit").onclick = () => openForm(e);
+    $("#cancelEv").onclick = () => cancelFlow(e);
+  }
+}
+
+/* Series: ask whether the change is for one event or the rest of them. */
+function scopeChooser(e, verb){
+  return e.series_id ? `
+    <div class="box"><div class="opt"><label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="radio" name="scope" value="one" checked> Just this event</label></div>
+    <div class="opt"><label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="radio" name="scope" value="following"> This and all following events</label></div></div>` : "";
+}
+const chosenScope = () => document.querySelector("input[name=scope]:checked")?.value || "one";
+
+async function idsFor(e, scope){
+  if (scope !== "following" || !e.series_id) return [e.id];
+  if (live) return loadSeriesEventIds(e.series_id, e.starts_at);
+  return events.filter((x) => x.series_id === e.series_id && x.starts_at >= e.starts_at).map((x) => x.id);
+}
+
+function cancelFlow(e){
+  const restoring = e.status === "cancelled";
+  const m = openModal(`
+    <h2>${restoring ? "Restore event" : "Cancel event"}</h2>
+    <p class="lede">${restoring ? "It will show as scheduled again and hold its room." : "It stays on the calendar, struck through, so people who planned for it can see it was cancelled. Its room is released."}</p>
+    ${scopeChooser(e)}
+    <div class="err" id="err"></div>
+    <div class="foot"><button class="btn l danger" id="del">Delete permanently</button><button class="btn" id="back">Back</button><button class="btn primary" id="go">${restoring ? "Restore" : "Cancel event"}</button></div>`);
+  $("#back").onclick = () => openDetail(e.id);
+  $("#go").onclick = () => busy($("#go"), $("#err"), async () => {
+    const ids = await idsFor(e, chosenScope());
+    const status = restoring ? "scheduled" : "cancelled";
+    if (live) {
+      const rows = await setEventsStatus(ids, status);
+      rows.forEach(replaceEvent);
+    } else events.forEach((x) => { if (ids.includes(x.id)) x.status = status; });
+    render(); closeModal();
+    toast(`${ids.length} event${ids.length === 1 ? "" : "s"} ${restoring ? "restored" : "cancelled"}.`);
+  });
+  let armed = false;
+  $("#del").onclick = () => busy($("#del"), $("#err"), async () => {
+    if (!armed) { armed = true; $("#del").textContent = "Click again to delete"; return; }
+    const ids = await idsFor(e, chosenScope());
+    if (live) await deleteEvents(ids);
+    events = events.filter((x) => !ids.includes(x.id));
+    attendance = attendance.filter((a) => !ids.includes(a.event_id));
+    render(); closeModal();
+    toast(`${ids.length} event${ids.length === 1 ? "" : "s"} deleted.`);
+  });
+  m.querySelectorAll("input[name=scope]").forEach((r) => r.addEventListener("change", () => { armed = false; $("#del").textContent = "Delete permanently"; }));
+}
+
+function replaceEvent(row){
+  const i = events.findIndex((x) => x.id === row.id);
+  if (i >= 0) events[i] = row; else events.push(row);
+}
+
+/* ---------- add / edit ---------- */
+const opts = (list, cur) => list.map(([v, l]) => `<option value="${esc(v)}"${v === cur ? " selected" : ""}>${esc(l)}</option>`).join("");
+
+function openForm(e, dateKey){
+  const editing = Boolean(e);
+  const s = editing ? start(e) : atLocal(dateKey || ymd(new Date()), "10:00");
+  const en = editing ? end(e) : new Date(s.getTime() + 36e5);
+  const v = e || { kind:"event", visibility:"public", rsvp_enabled:false, all_day:false };
+  const m = openModal(`
+    <h2>${editing ? "Edit event" : "Add event"}</h2>
+    <p class="lede">${editing && e.series_id ? "Changes apply to this event only." : "Rooms can't be booked twice at the same time."}</p>
+    <div class="field"><label for="ti">Title</label><input id="ti" value="${esc(v.title)}" autocomplete="off"></div>
+    <div class="two"><div class="field"><label for="ki">Type</label><select id="ki">${opts(KINDS, v.kind)}</select></div>
+      <div class="field"><label for="vi">Who can see it</label><select id="vi">${opts(VIS, v.visibility)}</select></div></div>
+    <label class="check"><input type="checkbox" id="ad"${v.all_day ? " checked" : ""}> All day</label>
+    <div class="three" id="when">
+      <div class="field"><label for="dt">Date</label><input id="dt" type="date" value="${ymd(s)}"></div>
+      <div class="field" data-t><label for="st">Starts</label><input id="st" type="time" value="${hm(s)}"></div>
+      <div class="field" data-t><label for="et">Ends</label><input id="et" type="time" value="${hm(en)}"></div>
+    </div>
+    <div class="two"><div class="field"><label for="rm">Room</label><select id="rm"><option value="">No room</option>${rooms.map((r) => `<option value="${esc(r.id)}"${r.id === v.room_id ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</select></div>
+      <div class="field"><label for="gp">Hosted by</label><select id="gp"><option value="">No group</option>${groups.map((g) => `<option value="${esc(g.id)}"${g.id === v.group_id ? " selected" : ""}>${esc(g.name)}</option>`).join("")}</select></div></div>
+    <div class="field"><label for="lo">Other location</label><input id="lo" value="${esc(v.location)}" placeholder="Parking lot, offsite address…"></div>
+    <div class="field"><label for="de">Description</label><textarea id="de">${esc(v.description)}</textarea></div>
+    <label class="check"><input type="checkbox" id="rs"${v.rsvp_enabled ? " checked" : ""}> Ask people to RSVP</label>
+    <div class="field" id="capRow" hidden><label for="cp">Capacity (optional)</label><input id="cp" type="number" min="1" value="${esc(v.capacity ?? "")}"></div>
+    ${editing ? "" : `
+    <div class="field"><label for="rp">Repeats</label><select id="rp"><option value="">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
+    <div class="box" id="rpBox" hidden>
+      <div class="two keep"><div class="field"><label for="ri">Every</label><input id="ri" type="number" min="1" max="30" value="1"></div>
+        <div class="field"><label id="ru" style="margin-top:22px;font-size:14px;color:var(--text)">week(s)</label></div></div>
+      <div class="field" id="wkRow"><label>On</label><div class="days" id="days">${DOW1.map((d, i) => `<button type="button" data-d="${i}" aria-pressed="false" aria-label="${DOW[i]}">${d}</button>`).join("")}</div></div>
+      <div class="field" id="moRow" hidden><label for="mo">Monthly on</label><select id="mo"></select></div>
+      <div class="two"><div class="field"><label for="en">Ends</label><select id="en"><option value="count">After</option><option value="until">On date</option></select></div>
+        <div class="field" id="cnRow"><label for="cn">Times</label><input id="cn" type="number" min="2" max="104" value="12"></div>
+        <div class="field" id="unRow" hidden><label for="un">Last date</label><input id="un" type="date"></div></div>
+      <div class="hint" id="rpSum"></div>
+    </div>`}
+    <div class="err" id="err"></div>
+    <div class="foot"><button class="btn" id="cancel">Cancel</button><button class="btn primary" id="save">${editing ? "Save" : "Add"}</button></div>`);
+  $("#cancel").onclick = () => editing ? openDetail(e.id) : closeModal();
+  $("#ti").focus();
+
+  const syncAllDay = () => m.querySelectorAll("[data-t]").forEach((x) => { x.hidden = $("#ad").checked; });
+  $("#ad").addEventListener("change", syncAllDay); syncAllDay();
+  const syncRsvp = () => { $("#capRow").hidden = !$("#rs").checked; };
+  $("#rs").addEventListener("change", syncRsvp); syncRsvp();
+  /* Moving the start moves the end with it, so the length stays what they set. */
+  let len = en - s;
+  $("#st").addEventListener("change", () => {
+    const ns = atLocal($("#dt").value, $("#st").value);
+    if (!isNaN(ns)) $("#et").value = hm(new Date(ns.getTime() + len));
+  });
+  $("#et").addEventListener("change", () => {
+    const a = atLocal($("#dt").value, $("#st").value), b = atLocal($("#dt").value, $("#et").value);
+    if (b > a) len = b - a;
+  });
+
+  /* ----- repeat ----- */
+  const rule = () => {
+    const date = $("#dt").value, freq = $("#rp").value;
+    const r = { start:date, freq, interval:Number($("#ri").value) || 1 };
+    if (freq === "weekly") r.byday = [...document.querySelectorAll("#days [aria-pressed=true]")].map((b) => Number(b.dataset.d));
+    if (freq === "monthly") r.monthly = $("#mo").value;
+    if ($("#en").value === "until") r.until = $("#un").value || null; else r.count = Number($("#cn").value) || null;
+    return r;
+  };
+  const refreshRepeat = () => {
+    if (editing) return;
+    const freq = $("#rp").value;
+    $("#rpBox").hidden = !freq;
+    if (!freq) return;
+    $("#ru").textContent = { daily:"day(s)", weekly:"week(s)", monthly:"month(s)" }[freq];
+    $("#wkRow").hidden = freq !== "weekly"; $("#moRow").hidden = freq !== "monthly";
+    $("#cnRow").hidden = $("#en").value !== "count"; $("#unRow").hidden = $("#en").value !== "until";
+    const d = atLocal($("#dt").value || ymd(new Date()), "12:00");
+    if (freq === "weekly" && !document.querySelector("#days [aria-pressed=true]")) document.querySelector(`#days [data-d="${d.getDay()}"]`)?.setAttribute("aria-pressed", "true");
+    const nth = Math.ceil(d.getDate() / 7), last = d.getDate() + 7 > new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    const ord = last && nth >= 5 ? "last" : ["", "first", "second", "third", "fourth"][Math.min(nth, 4)];
+    const prev = $("#mo").value;
+    $("#mo").innerHTML = `<option value="day">Day ${d.getDate()} of the month</option><option value="nth">The ${ord} ${FULL[d.getDay()]}</option>`;
+    if (prev) $("#mo").value = prev;
+    try {
+      const dates = expand(rule());
+      $("#rpSum").textContent = `${dates.length} event${dates.length === 1 ? "" : "s"}, ${dates.length ? `${dates[0]} to ${dates[dates.length - 1]}` : "none match"}${dates.length >= 104 ? " (the most one series can hold)" : ""}.`;
+    } catch (err) { $("#rpSum").textContent = err.message; }
+  };
+  if (!editing) {
+    ["#rp", "#ri", "#en", "#cn", "#un", "#dt", "#mo"].forEach((s2) => $(s2).addEventListener("change", refreshRepeat));
+    $("#days").addEventListener("click", (ev) => { const b = ev.target.closest("button"); if (b) { b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); refreshRepeat(); } });
+  }
+
+  /* ----- save ----- */
+  $("#save").onclick = () => busy($("#save"), $("#err"), async () => {
+    const title = $("#ti").value.trim();
+    if (!title) throw new Error("An event needs a title.");
+    const date = $("#dt").value;
+    if (!date) throw new Error("Pick a date.");
+    const allDay = $("#ad").checked;
+    const stT = allDay ? "00:00" : $("#st").value, enT = allDay ? "23:59" : $("#et").value;
+    if (!stT || !enT) throw new Error("Set a start and end time.");
+    if (atLocal(date, enT) <= atLocal(date, stT)) throw new Error("The event has to end after it starts.");
+
+    const cap = $("#cp").value ? Number($("#cp").value) : null;
+    if ($("#rs").checked && cap !== null && (!Number.isInteger(cap) || cap < 1)) throw new Error("Capacity must be a whole number, 1 or more.");
+    const base = {
+      title, kind:$("#ki").value, visibility:$("#vi").value, all_day:allDay, room_id:$("#rm").value || null,
+      group_id:$("#gp").value || null, location:$("#lo").value, description:$("#de").value,
+      rsvp_enabled:$("#rs").checked, capacity:$("#rs").checked ? cap : null,
+    };
+
+    let dates = [date], series = null;
+    if (!editing && $("#rp").value) {
+      const r = rule();
+      dates = expand(r);
+      if (dates.length < 2) throw new Error("That repeat only produces one event — check the days and end.");
+      series = { rrule:toRRule(r), starts_on:dates[0], until_on:dates[dates.length - 1] };
+    }
+    const slots = dates.map((d) => ({ starts_at:atLocal(d, stT).toISOString(), ends_at:atLocal(d, enT).toISOString() }));
+
+    /* Name the clashing dates before saving, rather than failing the whole series blind. */
+    if (base.room_id && !allDay) {
+      const clashes = live
+        ? await findRoomConflicts(base.room_id, slots, editing ? [e.id] : [])
+        : slots.filter((sl) => events.some((x) => x.id !== e?.id && x.room_id === base.room_id && x.status === "scheduled" && new Date(x.starts_at) < new Date(sl.ends_at) && new Date(x.ends_at) > new Date(sl.starts_at)))
+            .map((sl) => ({ starts_at:sl.starts_at, title:events.find((x) => x.room_id === base.room_id && x.status === "scheduled" && new Date(x.starts_at) < new Date(sl.ends_at) && new Date(x.ends_at) > new Date(sl.starts_at)).title }));
+      if (clashes.length) {
+        const list = clashes.slice(0, 4).map((c) => `${new Date(c.starts_at).toLocaleDateString(undefined, { month:"short", day:"numeric" })} (${c.title})`).join(", ");
+        throw new Error(`${rooms.find((r) => r.id === base.room_id)?.name || "That room"} is already booked: ${list}${clashes.length > 4 ? ` and ${clashes.length - 4} more` : ""}.`);
+      }
+    }
+
+    if (editing) {
+      const patch = { ...base, ...slots[0] };
+      if (live) replaceEvent(await updateEvent(e.id, patch));
+      else Object.assign(e, patch, { rooms:rooms.find((r) => r.id === patch.room_id) || null, groups:groups.find((g) => g.id === patch.group_id) || null });
+      render(); toast("Saved."); return openDetail(e.id);
+    }
+    if (live) {
+      const made = await createEvents(base, slots, series);
+      made.forEach(replaceEvent);
+    } else {
+      const sid = series ? `s${++seq}` : null;
+      slots.forEach((sl) => events.push({ ...base, ...sl, id:`e${++seq}`, status:"scheduled", series_id:sid,
+        rooms:rooms.find((r) => r.id === base.room_id) || null, groups:groups.find((g) => g.id === base.group_id) || null, event_series:series ? { rrule:series.rrule } : null }));
+    }
+    /* Jump to where the new event is, so it doesn't look like nothing happened. */
+    const first = atLocal(dates[0], "12:00");
+    if (first < gridRange().from || first >= gridRange().to) { state.cursor = new Date(first.getFullYear(), first.getMonth(), 1); await loadWindow(); } else render();
+    closeModal();
+    toast(`${dates.length} event${dates.length === 1 ? "" : "s"} added${live ? "" : " (demo — not saved)"}.`);
+  });
+}
+
+/* ---------- .ics export ---------- */
+const icsEsc = (s) => String(s ?? "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+const icsFold = (line) => { const out = []; let rest = line; while (rest.length > 74) { out.push(rest.slice(0, 74)); rest = " " + rest.slice(74); } out.push(rest); return out.join("\r\n"); };
+const icsStamp = (d) => `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+function downloadIcs(){
+  const list = visibleEvents();
+  if (!list.length) return toast("No events in this view to export.");
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Somos Reino//Calendar//EN", "CALSCALE:GREGORIAN"];
+  for (const e of list) {
+    lines.push("BEGIN:VEVENT", `UID:${e.id}@somosreino`, `DTSTAMP:${icsStamp(new Date())}`);
+    if (e.all_day) { lines.push(`DTSTART;VALUE=DATE:${ymd(start(e)).replaceAll("-", "")}`, `DTEND;VALUE=DATE:${ymd(addDays(dayOf(end(e)), 1)).replaceAll("-", "")}`); }
+    else lines.push(`DTSTART:${icsStamp(start(e))}`, `DTEND:${icsStamp(end(e))}`);
+    lines.push(`SUMMARY:${icsEsc(e.title)}`);
+    const where = [roomName(e), e.location].filter(Boolean).join(" — ");
+    if (where) lines.push(`LOCATION:${icsEsc(where)}`);
+    if (e.description) lines.push(`DESCRIPTION:${icsEsc(e.description)}`);
+    if (e.status === "cancelled") lines.push("STATUS:CANCELLED");
+    lines.push("END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  const blob = new Blob([lines.map(icsFold).join("\r\n") + "\r\n"], { type:"text/calendar;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = `somos-reino-${state.cursor.getFullYear()}-${pad(state.cursor.getMonth() + 1)}.ics`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`Exported ${list.length} event${list.length === 1 ? "" : "s"}.`);
+}
+
+/* ---------- events ---------- */
+const move = (n) => { state.cursor = new Date(state.cursor.getFullYear(), state.cursor.getMonth() + n, 1); return loadWindow(); };
+$("#prev").onclick = () => move(-1);
+$("#next").onclick = () => move(1);
+$("#today").onclick = () => { const t = new Date(); state.cursor = new Date(t.getFullYear(), t.getMonth(), 1); return loadWindow(); };
+document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
+  state.view = b.dataset.view;
+  document.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  render();
+}));
+$("#fKind").innerHTML += KINDS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("");
+$("#fKind").onchange = (e) => { state.kind = e.target.value; render(); };
+$("#fRoom").onchange = (e) => { state.room = e.target.value; render(); };
+$("#btnAdd").onclick = () => openForm(null);
+$("#btnIcs").onclick = downloadIcs;
+$("#view").addEventListener("click", (e) => {
+  const item = e.target.closest(".item"); if (item) return openDetail(item.dataset.id);
+  const cell = e.target.closest(".cell"); if (cell) openDay(cell.dataset.day);
+});
+
+/* ---------- start ---------- */
+async function init(){
+  try {
+    const session = await requireSession();
+    if (!session) return;
+
+    if (session.mode === "demo") {
+      const d = demoData();
+      rooms = d.R; groups = d.G; events = d.E; canManage = true; personId = "me";
+    } else {
+      live = true;
+      canManage = canManageCalendar(session.profile);
+      const base = await loadCalendarBase(session.user.id);
+      rooms = base.rooms; groups = base.groups; personId = base.personId;
+    }
+    $("#btnAdd").hidden = !canManage;
+    $("#fRoom").innerHTML += rooms.map((r) => `<option value="${esc(r.id)}">${esc(r.name)}</option>`).join("");
+    await loadWindow();
+    showModeBadge({ mode:live ? "ready" : "demo", portal:"Calendar" });
+  } catch (error) {
+    render();
+    showModeBadge({ mode:"error", portal:"Calendar", error:error.message });
+  }
+}
+await init();
+</script>
+</body>
+</html>

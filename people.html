@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Somos Reino · People</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--coral:#F7746D;--coral-deep:#C8483F;--coral-wash:#FDECEA;--ink:#17151C;--paper:#FAF7F5;--card:#fff;--line:#E9E2DD;--line-2:#D8CFC8;--text:#1E1B22;--text-2:#6A6371;--text-3:#9A9299;--sage:#3F7A63;--sage-wash:#E7F1EC;--amber:#A97613;--amber-wash:#FBF0DC;--blue:#2F6E8F;--blue-wash:#E6F0F5;--mono:"IBM Plex Mono",ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--text);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:960px;margin:0 auto;padding:32px 20px 90px}
+header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);font-weight:700}
+h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-spacing:-.04em;margin:10px 0 8px}
+.lead{color:var(--text-2);line-height:1.5;max-width:560px}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{padding:10px 16px;border-radius:9px;border:1px solid var(--line-2);background:#fff;color:var(--text);font-weight:600;font-size:14px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.btn:hover{border-color:var(--text-3)}
+.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.btn:disabled{opacity:.55;cursor:default}
+.banner{background:var(--amber-wash);border:1px solid #E8D5A8;color:var(--amber);padding:13px 16px;border-radius:12px;font-size:14px;line-height:1.5;margin-bottom:18px}
+
+.chips{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.chip{padding:8px 13px;border-radius:999px;border:1px solid var(--line-2);background:#fff;font-weight:600;font-size:13px;line-height:1;color:var(--text-2);display:inline-flex;gap:7px;align-items:center}
+.chip i{font:500 12px/1 var(--mono);font-style:normal;color:var(--text-3)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip[aria-pressed="true"] i{color:#CFC8D3}
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--line-2);border-radius:9px;font-weight:400;font-size:14px;line-height:1;background:#fff;color:inherit}
+.toolbar input{flex:1;min-width:180px}
+.count{font-size:13px;color:var(--text-2)}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.person{display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;color:inherit}
+.person:last-child{border-bottom:0}
+.person:hover{background:#FCFAF8}
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;line-height:1;flex:none}
+.pbody{flex:1;min-width:0}
+.nm{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sub{color:var(--text-2);font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hhd{font-size:12px;color:var(--text-3);white-space:nowrap}
+.tag{display:inline-block;padding:3px 8px;border-radius:999px;font-weight:700;font-size:11px;line-height:1.25;background:#F0EAE6;color:var(--text-2)}
+.tag.visitor{background:var(--blue-wash);color:var(--blue)}
+.tag.member{background:var(--sage-wash);color:var(--sage)}
+.tag.regular{background:var(--amber-wash);color:var(--amber)}
+.tag.warn{background:var(--coral-wash);color:var(--coral-deep)}
+.empty{padding:48px 20px;text-align:center;color:var(--text-2);line-height:1.5}
+.empty b{display:block;color:var(--text);font-size:17px;margin-bottom:4px}
+.more{display:block;margin:14px auto 0}
+
+.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:20px}
+.modal{background:#fff;border-radius:18px;width:min(560px,100%);max-height:92vh;overflow:auto;padding:26px}
+.modal h2{font:800 23px/1.1 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;margin-bottom:6px}
+.modal p.lede{color:var(--text-2);font-size:14px;line-height:1.5;margin-bottom:16px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--line-2);border-radius:9px;font-weight:400;font-size:15px;line-height:1.3;background:#fff;color:inherit}
+.field textarea{min-height:84px;resize:vertical}
+.field .hint{font-size:12px;color:var(--text-3);margin-top:5px;line-height:1.45}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap}
+.modal .err{color:var(--coral-deep);font-size:14px;line-height:1.45;margin-top:12px;min-height:1.2em}
+.warnbox{background:var(--amber-wash);border:1px solid #E8D5A8;color:var(--amber);padding:10px 12px;border-radius:9px;font-size:13px;line-height:1.45;margin-bottom:13px}
+
+.dh{display:flex;gap:14px;align-items:center;margin-bottom:14px}
+.dh .av{width:56px;height:56px;font-size:19px}
+.dh h2{margin:0}
+.quick{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.quick a,.quick button{padding:9px 14px;border-radius:9px;border:1px solid var(--line-2);background:#fff;font-weight:600;font-size:13px;line-height:1;color:var(--text-2);display:inline-flex}
+.quick a:hover,.quick button:hover{color:var(--text);border-color:var(--text-3)}
+.sec{border-top:1px solid var(--line);padding:13px 0}
+.sec h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:14px}
+.kv dt{color:var(--text-2)}
+.kv dd{word-break:break-word}
+.sec ul{list-style:none}
+.sec li{font-size:13px;color:var(--text-2);line-height:1.45;padding:4px 0}
+.sec li b{color:var(--text);font-weight:600}
+.notes{white-space:pre-wrap;font-size:14px;line-height:1.5;background:#FCFAF8;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.money{font:500 15px/1 var(--mono)}
+.tagrow{display:flex;gap:6px;flex-wrap:wrap}
+.drop{border:2px dashed var(--line-2);border-radius:12px;padding:18px;text-align:center;color:var(--text-2);font-size:14px;margin-bottom:12px}
+.prev{max-height:170px;overflow:auto;border:1px solid var(--line);border-radius:9px;font-size:12px}
+.prev table{width:100%;border-collapse:collapse}
+.prev th,.prev td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.prev th{background:#FCFAF8;font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em}
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:11px 17px;border-radius:9px;font-size:13px;font-weight:500;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:min(520px,90vw)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:760px){
+  .wrap{padding:24px 16px 100px}
+  .two{grid-template-columns:1fr}
+  .hhd{display:none}
+  .kv{grid-template-columns:105px 1fr}
+  .quick a,.quick button{flex:1 1 auto;justify-content:center}
+}
+@media(max-width:760px),(pointer:coarse){
+  .btn,.chip,.quick a,.quick button{min-height:44px}
+  .person{min-height:60px}
+  .toolbar input,.toolbar select,.field input,.field select,.field textarea{min-height:44px;font-size:16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Somos Reino · Personas</div>
+      <h1>People</h1>
+      <p class="lead">Everyone the church knows — families, visitors, members — in one place.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/index.html">Portal</a>
+      <button class="btn" id="btnImport">Import</button>
+      <button class="btn" id="btnExport">Export</button>
+      <button class="btn primary" id="btnAdd">＋ Add person</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="chips" id="chips" role="group" aria-label="Status"></div>
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="Search name, email, phone, family or tag" aria-label="Search people">
+    <select id="filterGroup" aria-label="Filter by group"><option value="">All groups</option></select>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="panel" id="list"></div>
+  <button class="btn more" id="more" hidden>Show more</button>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script type="module">
+import { requireSession, canAccessFinance } from "/src/lib/auth.js";
+import {
+  loadPeopleSnapshot, loadPersonDetail, createPerson, updatePerson, importPeople, ensureHousehold, createFollowUp,
+} from "/src/lib/api.js";
+import { showModeBadge } from "/src/lib/status.js";
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const AV = ["#F7746D","#3F7A63","#A97613","#5B5470","#2F6E8F","#8A4A6B","#4C6B3F"];
+const avColor = (n) => AV[[...String(n||"?")].reduce((a,c)=>a+c.charCodeAt(0),0) % AV.length];
+const initials = (p) => ((p.first_name?.[0] || "") + (p.last_name?.[0] || "")).toUpperCase() || "?";
+const fullName = (p) => `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Unnamed";
+
+const STATUSES = [["visitor","Visitor"],["regular","Regular"],["member","Member"],["inactive","Inactive"],["former","Former"]];
+const STATUS_LABEL = Object.fromEntries(STATUSES);
+const ROLES = [["","—"],["head","Head of household"],["spouse","Spouse"],["child","Child"],["other","Other"]];
+const LANGS = [["es","Español"],["en","English"],["both","Both"]];
+const BG = [["none","Not checked"],["pending","Pending"],["cleared","Cleared"],["expired","Expired"]];
+const CONTACT = { call:"Called", text:"Texted", email:"Emailed", visit:"Visited", in_person:"Spoke in person", prayer:"Prayed", note:"Note" };
+const PAGE = 100;
+
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+/* Dates from the database are bare days; parse as local so a birthday never slides a day. */
+const nice = (iso) => iso ? new Date(String(iso).slice(0,10) + "T00:00:00").toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" }) : "";
+const money = (cents) => (cents / 100).toLocaleString(undefined, { style:"currency", currency:"USD", maximumFractionDigits:0 });
+
+let toastTimer;
+function toast(message){
+  const el = $("#toast");
+  el.textContent = message; el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("on"), 4200);
+}
+
+/* ---------------- state ---------------- */
+let live = false, canSeeGiving = false, meId = null;
+let people = [], households = [], memberships = [];
+const state = { status:"all", q:"", group:"", shown:PAGE, busy:false };
+let seq = 1000;
+
+/* ---------------- sample data, used only in demo mode ---------------- */
+function demoData(){
+  const H = [{ id:"h1", name:"Pérez family" }, { id:"h2", name:"Aguilar family" }, { id:"h3", name:"Ramos family" }];
+  const mk = (id, first, last, status, extra = {}) => ({
+    id, first_name:first, last_name:last, status, email:`${first.toLowerCase()}@example.com`, phone:"(407) 555-01" + String(10 + seq++ % 80),
+    language:"es", tags:[], household_id:null, household_role:null, birthday:null, notes:null, background_check:"none", ...extra });
+  const P = [
+    mk("pe1","Lucía","Pérez","visitor",{ household_id:"h1", household_role:"head", first_visit_on:ymd(new Date(Date.now()-3*864e5)), how_they_found_us:"Invited by a coworker" }),
+    mk("pe1b","Mateo","Pérez","visitor",{ household_id:"h1", household_role:"child", email:null, phone:null }),
+    mk("pe2","Tomás","Aguilar","member",{ household_id:"h2", household_role:"head", joined_on:"2023-03-12", tags:["parking","men's group"], birthday:"1985-11-20", background_check:"cleared" }),
+    mk("pe3","Noelia","Aguilar","member",{ household_id:"h2", household_role:"spouse", joined_on:"2023-03-12", tags:["welcome team"] }),
+    mk("pe4","Elena","Ramos","regular",{ household_id:"h3", household_role:"head", language:"both", notes:"Prefers texts. Husband travels for work." }),
+    mk("pe5","Rosa","Villalobos","member",{ joined_on:"2019-06-02", birthday:"1958-04-09", tags:["prayer team"] }),
+    mk("pe6","Daniel","Reyes","member",{ joined_on:"2015-01-18", tags:["staff"], language:"en" }),
+    mk("pe7","Carmen","Soto","inactive",{ joined_on:"2020-09-01" }),
+  ];
+  const G = [
+    { person_id:"pe2", role:"member", groups:{ id:"g1", name:"Parking", kind:"team" } },
+    { person_id:"pe3", role:"leader", groups:{ id:"g2", name:"Welcome", kind:"team" } },
+    { person_id:"pe5", role:"member", groups:{ id:"g3", name:"Prayer team", kind:"team" } },
+    { person_id:"pe4", role:"member", groups:{ id:"g4", name:"Women's group", kind:"small_group" } },
+  ];
+  return { P, H, G };
+}
+
+/* ---------------- derived ---------------- */
+const hhName = (p) => households.find((h) => h.id === p.household_id)?.name || "";
+const groupsOf = (id) => memberships.filter((m) => m.person_id === id).map((m) => m.groups).filter(Boolean);
+
+function haystack(p){
+  return [fullName(p), p.preferred_name, p.email, p.phone, hhName(p), ...(p.tags || [])].join(" ").toLowerCase();
+}
+function matches(p, ignoreStatus){
+  if (!ignoreStatus && state.status !== "all" && p.status !== state.status) return false;
+  if (state.group && !memberships.some((m) => m.person_id === p.id && m.groups?.id === state.group)) return false;
+  const q = state.q.trim().toLowerCase();
+  if (q) {
+    const digits = q.replace(/\D/g, "");
+    if (!haystack(p).includes(q) && !(digits.length >= 3 && String(p.phone || "").replace(/\D/g, "").includes(digits))) return false;
+  }
+  return true;
+}
+
+/* ---------------- render ---------------- */
+function renderChips(){
+  const base = people.filter((p) => matches(p, true));
+  const count = (s) => s === "all" ? base.length : base.filter((p) => p.status === s).length;
+  $("#chips").innerHTML = [["all","Everyone"], ...STATUSES].map(([k, v]) =>
+    `<button class="chip" data-status="${k}" aria-pressed="${state.status === k}">${v} <i>${count(k)}</i></button>`).join("");
+}
+
+function renderGroupFilter(){
+  const seen = new Map();
+  memberships.forEach((m) => m.groups && seen.set(m.groups.id, m.groups.name));
+  const opts = [...seen].sort((a, b) => a[1].localeCompare(b[1]));
+  $("#filterGroup").innerHTML = `<option value="">All groups</option>` + opts.map(([id, name]) =>
+    `<option value="${esc(id)}"${id === state.group ? " selected" : ""}>${esc(name)}</option>`).join("");
+}
+
+function renderList(){
+  const rows = people.filter((p) => matches(p));
+  $("#count").textContent = `${rows.length} ${rows.length === 1 ? "person" : "people"}`;
+  const slice = rows.slice(0, state.shown);
+  $("#more").hidden = rows.length <= slice.length;
+  $("#more").textContent = `Show more (${rows.length - slice.length} left)`;
+
+  if (!rows.length) {
+    $("#list").innerHTML = people.length
+      ? `<div class="empty"><b>No one matches</b>Try a different search or status.</div>`
+      : `<div class="empty"><b>No one here yet</b>Add the first person, or import a list from a spreadsheet.</div>`;
+    return;
+  }
+  $("#list").innerHTML = slice.map((p) => `
+    <button class="person" data-id="${esc(p.id)}">
+      <span class="av" style="background:${avColor(fullName(p))}">${esc(initials(p))}</span>
+      <span class="pbody">
+        <span class="nm">${esc(p.preferred_name ? `${p.preferred_name} ${p.last_name}`.trim() : fullName(p))}
+          <span class="tag ${esc(p.status)}">${esc(STATUS_LABEL[p.status] || p.status)}</span></span>
+        <span class="sub">${esc([p.phone, p.email].filter(Boolean).join(" · ") || "No contact info")}</span>
+      </span>
+      <span class="hhd">${esc(hhName(p))}</span>
+    </button>`).join("");
+}
+
+function render(){ renderChips(); renderGroupFilter(); renderList(); }
+
+/* ---------------- modal plumbing ---------------- */
+function openModal(html){
+  closeModal();
+  $("#modalRoot").innerHTML = `<div class="scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  $("#scrim").addEventListener("mousedown", (e) => { if (e.target.id === "scrim") closeModal(); });
+  document.addEventListener("keydown", onEsc);
+  return $(".modal");
+}
+function onEsc(e){ if (e.key === "Escape") closeModal(); }
+function closeModal(){ $("#modalRoot").innerHTML = ""; document.removeEventListener("keydown", onEsc); }
+
+async function busy(button, errEl, work){
+  if (state.busy) return;
+  state.busy = true; button.disabled = true; errEl.textContent = "";
+  try { await work(); }
+  catch (e) { errEl.textContent = e.message; }
+  finally { state.busy = false; button.disabled = false; }
+}
+
+/* ---------------- person detail ---------------- */
+function openDetail(id){
+  const p = people.find((x) => x.id === id);
+  if (!p) return;
+  const tel = p.phone ? p.phone.replace(/[^\d+]/g, "") : "";
+  const kv = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
+  const grp = groupsOf(p.id);
+  const m = openModal(`
+    <div class="dh">
+      <span class="av" style="background:${avColor(fullName(p))}">${esc(initials(p))}</span>
+      <div><h2>${esc(fullName(p))}</h2>
+        <span class="tag ${esc(p.status)}">${esc(STATUS_LABEL[p.status] || p.status)}</span>
+        ${p.background_check === "expired" ? ' <span class="tag warn">Background check expired</span>' : ""}</div>
+    </div>
+    <div class="quick">
+      ${tel ? `<a href="tel:${esc(tel)}">Call</a><a href="sms:${esc(tel)}">Text</a>` : ""}
+      ${p.email ? `<a href="mailto:${esc(p.email)}">Email</a>` : ""}
+      <button id="dEdit">Edit</button>
+      <button id="dFollow">Add follow-up</button>
+    </div>
+    <div class="sec"><h3>Details</h3><dl class="kv">
+      ${kv("Phone", p.phone)}${kv("Email", p.email)}
+      ${kv("Preferred name", p.preferred_name)}
+      ${kv("Family", hhName(p) + (p.household_role ? ` · ${(ROLES.find((r) => r[0] === p.household_role) || [])[1] || ""}` : ""))}
+      ${kv("Language", (LANGS.find((l) => l[0] === p.language) || [])[1])}
+      ${kv("Birthday", nice(p.birthday))}${kv("Anniversary", nice(p.anniversary))}
+      ${kv("First visit", nice(p.first_visit_on))}${kv("Joined", nice(p.joined_on))}${kv("Baptized", nice(p.baptized_on))}
+      ${kv("Found us through", p.how_they_found_us)}
+      ${p.background_check !== "none" ? kv("Background check", (BG.find((b) => b[0] === p.background_check) || [])[1] + (p.background_check_expires ? ` · expires ${nice(p.background_check_expires)}` : "")) : ""}
+    </dl></div>
+    ${p.tags?.length ? `<div class="sec"><h3>Tags</h3><div class="tagrow">${p.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div></div>` : ""}
+    ${grp.length ? `<div class="sec"><h3>Groups</h3><div class="tagrow">${grp.map((g) => `<span class="tag">${esc(g.name)}</span>`).join("")}</div></div>` : ""}
+    ${p.notes ? `<div class="sec"><h3>Pastoral notes</h3><div class="notes">${esc(p.notes)}</div></div>` : ""}
+    <div id="dMore"></div>
+    <div class="foot"><button class="btn" id="dClose">Close</button></div>`);
+  $("#dClose").onclick = closeModal;
+  $("#dEdit").onclick = () => openForm(p);
+  $("#dFollow").onclick = () => openQuickFollowUp(p);
+
+  if (!live) {
+    $("#dMore").innerHTML = households.length && p.household_id
+      ? sectionFamily(people.filter((x) => x.household_id === p.household_id && x.id !== p.id)) : "";
+    return;
+  }
+  $("#dMore").innerHTML = `<div class="sec"><h3>Loading…</h3></div>`;
+  loadPersonDetail(p, { includeGiving:canSeeGiving }).then((d) => {
+    if (!$("#dMore")) return;
+    $("#dMore").innerHTML =
+      sectionFamily(d.family) +
+      (d.followUps.length ? `<div class="sec"><h3>Open follow-ups</h3><ul>${d.followUps.map((f) =>
+        `<li><b>${esc(f.title)}</b> · due ${esc(nice(f.due_on))}</li>`).join("")}</ul></div>` : "") +
+      (canSeeGiving && d.giving.length ? `<div class="sec"><h3>Giving</h3><ul>${d.giving.map((g) =>
+        `<li><b class="money">${money(g.total_cents)}</b> in ${g.year} · ${g.gifts} gift${g.gifts === 1 ? "" : "s"}</li>`).join("")}</ul></div>` : "") +
+      (d.interactions.length ? `<div class="sec"><h3>Contact history</h3><ul>${d.interactions.map((r) =>
+        `<li><b>${esc(CONTACT[r.kind] || r.kind)}</b> · ${esc(nice(r.occurred_at))}${r.author?.full_name ? " · " + esc(r.author.full_name) : ""}<br>${esc(r.summary)}</li>`).join("")}</ul></div>` : "");
+  }).catch((e) => { if ($("#dMore")) $("#dMore").innerHTML = `<div class="sec"><div class="err">${esc(e.message)}</div></div>`; });
+}
+
+function sectionFamily(members){
+  if (!members.length) return "";
+  return `<div class="sec"><h3>Family</h3><ul>${members.map((f) =>
+    `<li><b>${esc(fullName(f))}</b> · ${esc((ROLES.find((r) => r[0] === f.household_role) || [])[1] || STATUS_LABEL[f.status] || "")}</li>`).join("")}</ul></div>`;
+}
+
+function openQuickFollowUp(p){
+  const m = openModal(`
+    <h2>Add follow-up</h2><p class="lede">About ${esc(fullName(p))}</p>
+    <div class="field"><label for="ft">What needs to happen</label><input id="ft" placeholder="Call to check in"></div>
+    <div class="field"><label for="fd">Due</label><input id="fd" type="date" value="${ymd(new Date())}"></div>
+    <div class="err" id="err"></div>
+    <div class="foot"><button class="btn" id="cancel">Back</button><button class="btn primary" id="save">Add</button></div>`);
+  $("#cancel").onclick = () => openDetail(p.id);
+  $("#ft").focus();
+  $("#save").onclick = () => busy($("#save"), $("#err"), async () => {
+    const title = $("#ft").value;
+    if (!title.trim()) throw new Error("A follow-up needs a title.");
+    if (live) await createFollowUp({ person_id:p.id, title, due_on:$("#fd").value || ymd(new Date()), kind:"general", assigned_to:meId });
+    closeModal();
+    toast(live ? "Follow-up added — find it in Follow-ups." : "Demo mode — nothing was saved.");
+  });
+}
+
+/* ---------------- add / edit ---------------- */
+const opts = (list, cur) => list.map(([v, l]) => `<option value="${v}"${v === cur ? " selected" : ""}>${l}</option>`).join("");
+
+function openForm(p){
+  const editing = Boolean(p);
+  const v = p || { status:"visitor", language:"es", background_check:"none", tags:[] };
+  const m = openModal(`
+    <h2>${editing ? "Edit person" : "Add person"}</h2>
+    <p class="lede">${editing ? "Changes save to the directory right away." : "Visitors get a follow-up automatically if a rule is set up for them."}</p>
+    <div id="dupe"></div>
+    <div class="two">
+      <div class="field"><label for="fn">First name</label><input id="fn" value="${esc(v.first_name)}" autocomplete="off"></div>
+      <div class="field"><label for="ln">Last name</label><input id="ln" value="${esc(v.last_name)}" autocomplete="off"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="em">Email</label><input id="em" type="email" value="${esc(v.email)}"></div>
+      <div class="field"><label for="ph">Phone</label><input id="ph" type="tel" value="${esc(v.phone)}"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="st">Status</label><select id="st">${opts(STATUSES, v.status)}</select></div>
+      <div class="field"><label for="lg">Language</label><select id="lg">${opts(LANGS, v.language)}</select></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="hh">Family</label><input id="hh" list="hhList" value="${esc(hhName(v))}" placeholder="Pérez family">
+        <datalist id="hhList">${households.map((h) => `<option value="${esc(h.name)}"></option>`).join("")}</datalist>
+        <div class="hint">Type an existing family to join it, or a new name to start one.</div></div>
+      <div class="field"><label for="hr">Role in family</label><select id="hr">${opts(ROLES, v.household_role || "")}</select></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="bd">Birthday</label><input id="bd" type="date" value="${esc(v.birthday || "")}"></div>
+      <div class="field"><label for="jo">Joined</label><input id="jo" type="date" value="${esc(v.joined_on || "")}"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="fv">First visit</label><input id="fv" type="date" value="${esc(v.first_visit_on || "")}"></div>
+      <div class="field"><label for="bg">Background check</label><select id="bg">${opts(BG, v.background_check)}</select></div>
+    </div>
+    <div class="field"><label for="tg">Tags</label><input id="tg" value="${esc((v.tags || []).join(", "))}" placeholder="parking, men's group">
+      <div class="hint">Separate with commas.</div></div>
+    <div class="field"><label for="hf">How they found us</label><input id="hf" value="${esc(v.how_they_found_us)}"></div>
+    <div class="field"><label for="nt">Pastoral notes</label><textarea id="nt">${esc(v.notes)}</textarea>
+      <div class="hint">Only people who manage people can see these.</div></div>
+    <div class="err" id="err"></div>
+    <div class="foot"><button class="btn" id="cancel">Cancel</button><button class="btn primary" id="save">${editing ? "Save" : "Add"}</button></div>`);
+  $("#cancel").onclick = () => editing ? openDetail(p.id) : closeModal();
+  $("#fn").focus();
+
+  /* Warn about a likely duplicate as they type — a church re-adds the same visitor often. */
+  const checkDupe = () => {
+    const em = $("#em").value.trim().toLowerCase(), fn = $("#fn").value.trim().toLowerCase(), ln = $("#ln").value.trim().toLowerCase();
+    const hit = people.find((x) => x.id !== p?.id && ((em && x.email?.toLowerCase() === em) || (fn && ln && x.first_name.toLowerCase() === fn && x.last_name.toLowerCase() === ln)));
+    $("#dupe").innerHTML = hit ? `<div class="warnbox">${esc(fullName(hit))} is already in the directory${hit.email?.toLowerCase() === em ? " with that email" : ""}. <a href="#" id="seeHit" style="text-decoration:underline">View them</a> instead?</div>` : "";
+    $("#seeHit")?.addEventListener("click", (e) => { e.preventDefault(); openDetail(hit.id); });
+  };
+  ["#fn", "#ln", "#em"].forEach((s) => $(s).addEventListener("input", checkDupe));
+
+  $("#save").onclick = () => busy($("#save"), $("#err"), async () => {
+    const fields = {
+      first_name:$("#fn").value, last_name:$("#ln").value, email:$("#em").value, phone:$("#ph").value,
+      status:$("#st").value, language:$("#lg").value, household_role:$("#hr").value || null,
+      birthday:$("#bd").value || null, joined_on:$("#jo").value || null, first_visit_on:$("#fv").value || null,
+      background_check:$("#bg").value, how_they_found_us:$("#hf").value, notes:$("#nt").value,
+      tags:$("#tg").value.split(",").map((t) => t.trim()).filter(Boolean),
+    };
+    if (!fields.first_name.trim()) throw new Error("A first name is required.");
+    const family = $("#hh").value.trim();
+
+    let saved;
+    if (live) {
+      fields.household_id = family ? await ensureHousehold(family) : null;
+      saved = editing ? await updatePerson(p.id, fields) : await createPerson(fields);
+      if (fields.household_id && !households.some((h) => h.id === fields.household_id)) households.push({ id:fields.household_id, name:family });
+    } else {
+      let h = households.find((x) => x.name.toLowerCase() === family.toLowerCase());
+      if (family && !h) { h = { id:`h${++seq}`, name:family }; households.push(h); }
+      fields.household_id = h?.id || null;
+      saved = editing ? Object.assign(p, fields) : { ...fields, id:`d${++seq}` };
+    }
+    if (editing) people[people.findIndex((x) => x.id === p.id)] = { ...p, ...saved };
+    else people.push(saved);
+    people.sort((a, b) => (a.last_name + a.first_name).localeCompare(b.last_name + b.first_name));
+    render();
+    toast(editing ? "Saved." : live ? "Person added." : "Added (demo — not saved).");
+    openDetail(saved.id);
+  });
+}
+
+/* ---------------- CSV import / export ---------------- */
+function parseCSV(text){
+  const rows = []; let row = [], cell = "", quoted = false;
+  text = text.replace(/^﻿/, "");
+  /* Spreadsheets in some locales export ; or tabs. Decide once, from the header row. */
+  const header = text.split(/\r?\n/, 1)[0];
+  const delim = [",", ";", "\t"].map((d) => [d, header.split(d).length]).sort((a, b) => b[1] - a[1])[0][0];
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else cell += c;
+    } else if (c === '"') quoted = true;
+    else if (c === delim) { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell); cell = "";
+      if (row.some((x) => x.trim())) rows.push(row);
+      row = [];
+    } else cell += c;
+  }
+  row.push(cell);
+  if (row.some((x) => x.trim())) rows.push(row);
+  return rows;
+}
+
+const ALIASES = {
+  first_name:["first name","firstname","first","given name","nombre","nombres"],
+  last_name:["last name","lastname","last","surname","family name","apellido","apellidos"],
+  email:["email","e-mail","email address","correo","correo electronico"],
+  phone:["phone","mobile","cell","phone number","telefono","teléfono","celular"],
+  birthday:["birthday","birthdate","birth date","dob","date of birth","cumpleaños","nacimiento"],
+  status:["status","membership","membership status","estado"],
+  household_name:["household","family","family name","familia"],
+  tags:["tags","labels","groups","etiquetas"],
+  notes:["notes","note","notas"],
+};
+const STATUS_WORDS = { visitor:"visitor", guest:"visitor", regular:"regular", attender:"regular", member:"member", members:"member", inactive:"inactive", former:"former", visitante:"visitor", miembro:"member" };
+
+/** M/D/YYYY and YYYY-MM-DD both become YYYY-MM-DD; anything else is dropped, not guessed. */
+function toDate(raw){
+  const s = String(raw ?? "").trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!m) { const u = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if (u) m = [0, u[3], u[1], u[2]]; }
+  if (!m) return null;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const dt = new Date(y, mo - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d
+    ? `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}` : null;
+}
+
+function mapRows(table, defaultStatus){
+  const head = table[0].map((h) => h.trim().toLowerCase());
+  const col = {};
+  for (const [field, names] of Object.entries(ALIASES)) col[field] = head.findIndex((h) => names.includes(h));
+  const get = (r, f) => col[f] >= 0 ? String(r[col[f]] ?? "").trim() : "";
+  const have = new Set(people.map((p) => p.email?.toLowerCase()).filter(Boolean));
+  const seen = new Set();
+  const out = { rows:[], skipped:[], missingName: col.first_name < 0 };
+  table.slice(1).forEach((r, i) => {
+    let first = get(r, "first_name"), last = get(r, "last_name");
+    if (col.first_name >= 0 && col.last_name < 0 && first.includes(" ")) { [first, ...last] = first.split(/\s+/); last = last.join(" "); }
+    if (!first) { out.skipped.push(`Row ${i + 2}: no first name`); return; }
+    const email = get(r, "email").toLowerCase();
+    if (email && (have.has(email) || seen.has(email))) { out.skipped.push(`Row ${i + 2}: ${first} ${last} — email already in the directory`); return; }
+    if (email) seen.add(email);
+    const bdRaw = get(r, "birthday"), bd = toDate(bdRaw);
+    if (bdRaw && !bd) out.skipped.push(`Row ${i + 2}: ${first} — birthday "${bdRaw}" not understood, left blank`);
+    out.rows.push({
+      first_name:first, last_name:last, email:email || null, phone:get(r, "phone") || null, birthday:bd,
+      status:STATUS_WORDS[get(r, "status").toLowerCase()] || defaultStatus,
+      household_name:get(r, "household_name") || null,
+      tags:get(r, "tags").split(/[|,]/).map((t) => t.trim()).filter(Boolean),
+      notes:get(r, "notes") || null,
+    });
+  });
+  return out;
+}
+
+function openImport(){
+  const m = openModal(`
+    <h2>Import people</h2>
+    <p class="lede">Upload a CSV from a spreadsheet or another church system. Recognized columns: first name, last name, email, phone, birthday, status, family, tags, notes — English or Spanish. Anyone whose email is already here is skipped.</p>
+    <div class="drop"><input type="file" id="file" accept=".csv,text/csv,.txt"></div>
+    <div class="field"><label for="ds">Status for rows that don't say</label><select id="ds">${opts(STATUSES, "regular")}</select>
+      <div class="hint">Visitors trigger your first-visit follow-up rule — importing a long old list as visitors would create a task for each.</div></div>
+    <div id="preview"></div>
+    <div class="err" id="err"></div>
+    <div class="foot"><button class="btn" id="cancel">Cancel</button><button class="btn primary" id="go" disabled>Import</button></div>`);
+  $("#cancel").onclick = closeModal;
+  let table = null, mapped = null;
+
+  const refresh = () => {
+    if (!table) return;
+    mapped = mapRows(table, $("#ds").value);
+    $("#err").textContent = "";
+    if (mapped.missingName) { $("#preview").innerHTML = ""; $("#err").textContent = "No “first name” column found. Add one (or “nombre”) in the first row."; $("#go").disabled = true; return; }
+    const sample = mapped.rows.slice(0, 5);
+    $("#preview").innerHTML = `
+      <p class="lede" style="margin:0 0 8px"><b>${mapped.rows.length}</b> ready to import${mapped.skipped.length ? `, <b>${mapped.skipped.length}</b> note${mapped.skipped.length === 1 ? "" : "s"}` : ""}.</p>
+      ${sample.length ? `<div class="prev"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Family</th></tr></thead><tbody>${sample.map((r) =>
+        `<tr><td>${esc(r.first_name + " " + r.last_name)}</td><td>${esc(r.email || "")}</td><td>${esc(r.status)}</td><td>${esc(r.household_name || "")}</td></tr>`).join("")}</tbody></table></div>` : ""}
+      ${mapped.skipped.length ? `<div class="warnbox" style="margin-top:10px;max-height:110px;overflow:auto">${mapped.skipped.slice(0, 20).map(esc).join("<br>")}${mapped.skipped.length > 20 ? `<br>…and ${mapped.skipped.length - 20} more` : ""}</div>` : ""}`;
+    $("#go").disabled = !mapped.rows.length;
+    $("#go").textContent = `Import ${mapped.rows.length}`;
+  };
+  $("#ds").addEventListener("change", refresh);
+  $("#file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    table = parseCSV(await file.text());
+    if (table.length < 2) { $("#err").textContent = "That file has no rows below the header."; return; }
+    refresh();
+  });
+  $("#go").onclick = () => busy($("#go"), $("#err"), async () => {
+    if (live) await importPeople(mapped.rows);
+    else mapped.rows.forEach((r) => {
+      let h = r.household_name && households.find((x) => x.name.toLowerCase() === r.household_name.toLowerCase());
+      if (r.household_name && !h) { h = { id:`h${++seq}`, name:r.household_name }; households.push(h); }
+      const { household_name, ...rest } = r;
+      people.push({ ...rest, id:`d${++seq}`, household_id:h?.id || null, language:"es", background_check:"none" });
+    });
+    if (live) { const snap = await loadPeopleSnapshot(); people = snap.people; households = snap.households; memberships = snap.memberships; }
+    people.sort((a, b) => (a.last_name + a.first_name).localeCompare(b.last_name + b.first_name));
+    render(); closeModal();
+    toast(`${mapped.rows.length} ${mapped.rows.length === 1 ? "person" : "people"} imported${live ? "" : " (demo — not saved)"}.`);
+  });
+}
+
+/** Quote a cell, and defuse spreadsheet formulas ( =, +, -, @ ) so an exported name can't run as one. */
+const cell = (v) => {
+  let s = String(v ?? "");
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+function exportCSV(){
+  const rows = people.filter((p) => matches(p));
+  if (!rows.length) return toast("Nothing to export with these filters.");
+  const head = ["First name","Last name","Email","Phone","Status","Family","Birthday","Joined","Tags"];
+  const lines = [head, ...rows.map((p) => [p.first_name, p.last_name, p.email, p.phone, p.status, hhName(p), p.birthday, p.joined_on, (p.tags || []).join("|")])];
+  const blob = new Blob(["﻿" + lines.map((r) => r.map(cell).join(",")).join("\n")], { type:"text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = `people-${ymd(new Date())}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`Exported ${rows.length}.`);
+}
+
+/* ---------------- events ---------------- */
+$("#list").addEventListener("click", (e) => { const b = e.target.closest(".person"); if (b) openDetail(b.dataset.id); });
+$("#chips").addEventListener("click", (e) => { const b = e.target.closest(".chip"); if (b) { state.status = b.dataset.status; state.shown = PAGE; render(); } });
+$("#q").addEventListener("input", (e) => { state.q = e.target.value; state.shown = PAGE; renderChips(); renderList(); });
+$("#filterGroup").addEventListener("change", (e) => { state.group = e.target.value; state.shown = PAGE; renderChips(); renderList(); });
+$("#more").addEventListener("click", () => { state.shown += PAGE; renderList(); });
+$("#btnAdd").addEventListener("click", () => openForm(null));
+$("#btnImport").addEventListener("click", openImport);
+$("#btnExport").addEventListener("click", exportCSV);
+
+/* ---------------- start ---------------- */
+async function start(){
+  try {
+    const session = await requireSession({ peopleOnly:true });
+    if (!session) return;
+
+    if (session.mode === "demo") {
+      const d = demoData();
+      people = d.P; households = d.H; memberships = d.G;
+      render();
+      return showModeBadge({ mode:"demo", portal:"People" });
+    }
+
+    live = true; meId = session.user.id;
+    canSeeGiving = canAccessFinance(session.profile);
+    const snap = await loadPeopleSnapshot();
+    people = snap.people; households = snap.households; memberships = snap.memberships;
+    render();
+    showModeBadge({ mode:"ready", portal:"People" });
+  } catch (error) {
+    render();
+    showModeBadge({ mode:"error", portal:"People", error:error.message });
+  }
+}
+await start();
+</script>
+</body>
+</html>
