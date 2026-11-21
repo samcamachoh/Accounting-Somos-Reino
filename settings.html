@@ -7,90 +7,39 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/styles/system.css">
 <style>
-:root{--coral:#F7746D;--coral-deep:#C8483F;--coral-wash:#FDECEA;--ink:#17151C;--paper:#FAF7F5;--card:#fff;--line:#E9E2DD;--line-2:#D8CFC8;--text:#1E1B22;--text-2:#6A6371;--text-3:#9A9299;--sage:#3F7A63;--sage-wash:#E7F1EC;--amber:#A97613;--amber-wash:#FBF0DC;--mono:"IBM Plex Mono",ui-monospace,monospace}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--paper);color:var(--text);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1120px;margin:0 auto;padding:32px 24px 80px}
-header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:28px}
-.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);font-weight:700}
-h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-spacing:-.04em;margin:10px 0 8px}
-.lead{color:var(--text-2);line-height:1.5;max-width:620px}
-.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-button{font-family:inherit;cursor:pointer}
-.btn{padding:10px 16px;border-radius:9px;border:1px solid var(--line-2);background:#fff;color:var(--text);font:600 14px/1 inherit}
-.btn:hover{border-color:var(--text-3)}
-.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
-.btn.danger{color:var(--coral-deep);border-color:#F3C9C5}
-.btn:disabled{opacity:.55;cursor:default}
-.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--line-2);border-radius:9px;font:400 14px/1 inherit;background:#fff;color:inherit}
-.toolbar input{flex:1;min-width:200px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-weight:700;padding:14px 16px;border-bottom:1px solid var(--line)}
-td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
-tr:last-child td{border-bottom:0}
-tr.inactive td{opacity:.55}
-.who{display:flex;align-items:center;gap:11px}
-.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 12px/1 inherit;flex:none}
-.nm{font-weight:600}
-.em{color:var(--text-2);font-size:13px}
-.tag{display:inline-block;padding:4px 9px;border-radius:999px;font:700 11px/1.25 inherit;letter-spacing:.02em}
-.tag.admin{background:var(--coral-wash);color:var(--coral-deep)}
-.tag.finance{background:var(--sage-wash);color:var(--sage)}
-.tag.member{background:#F0EAE6;color:var(--text-2)}
-.tag.off{background:var(--amber-wash);color:var(--amber)}
-.seen{font-family:var(--mono);font-size:12px;color:var(--text-2)}
-.rowacts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
-.rowacts button{padding:6px 10px;border-radius:7px;border:1px solid var(--line-2);background:#fff;font:600 12px/1 inherit;color:var(--text-2)}
-.rowacts button:hover{color:var(--text);border-color:var(--text-3)}
-.rowacts button.danger:hover{color:var(--coral-deep);border-color:#F3C9C5}
-.empty{padding:48px 20px;text-align:center;color:var(--text-2)}
-.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:20px}
-.modal{background:#fff;border-radius:18px;width:min(520px,100%);max-height:90vh;overflow:auto;padding:28px}
-.modal h2{font:800 24px/1.1 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;margin-bottom:6px}
-.modal p.sub{color:var(--text-2);font-size:14px;line-height:1.5;margin-bottom:20px}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px}
-.field input,.field select{width:100%;padding:11px 13px;border:1px solid var(--line-2);border-radius:9px;font:400 15px/1.2 inherit;background:#fff;color:inherit}
-.field .hint{font-size:12px;color:var(--text-3);margin-top:5px;line-height:1.45}
-.perms{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:6px}
-.perms label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;text-transform:capitalize}
-/* The .field rule above stretches inputs to 100%; checkboxes must not be. */
-.perms input[type=checkbox]{width:16px;height:16px;flex:none;margin:0;accent-color:var(--coral)}
-.modal .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;flex-wrap:wrap}
-.modal .err{color:var(--coral-deep);font-size:14px;line-height:1.45;margin-top:14px;min-height:1.2em}
-#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:11px 17px;border-radius:9px;font-size:13px;font-weight:500;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:min(520px,90vw)}
-#toast.on{opacity:1;transform:translate(-50%,0)}
-.banner{background:var(--amber-wash);border:1px solid #E8D5A8;color:var(--amber);padding:13px 16px;border-radius:12px;font-size:14px;line-height:1.5;margin-bottom:20px}
-@media(max-width:760px){
-  th.hide,td.hide{display:none}
-  .wrap{padding:24px 16px 70px}
-  /* The table needs ~482px and .panel clips at overflow:hidden, so on a
-     phone every row action sat past the right edge — invisible and
-     impossible to tap. Stack each person into a card instead. */
-  .panel table,.panel tbody,.panel tr,.panel td{display:block;width:100%}
-  .panel thead{display:none}
-  .panel tr{padding:14px 16px;border-bottom:1px solid var(--line)}
-  .panel tr:last-child{border-bottom:0}
-  .panel td{border:0;padding:5px 0}
-  .panel td:first-child{padding-top:0}
-  /* Team and last sign-in are dropped from the table for width; a
-     stacked card has room for them, so put them back deliberately
-     rather than leaning on a specificity tie with td.hide. */
-  .panel td.hide{display:block}
-  .rowacts{justify-content:flex-start;flex-wrap:wrap;gap:8px;margin-top:4px}
-  .rowacts button{flex:1 1 auto;min-width:calc(50% - 4px)}
-}
-/* Touch sizing. A mouse keeps the denser layout; fingers get 44px. */
-@media(max-width:760px),(pointer:coarse){
-  .btn{min-height:44px}
-  .rowacts button{min-height:44px;padding:10px 12px}
-  .toolbar input,.toolbar select,.field input,.field select{min-height:44px}
-  /* iOS Safari zooms the page when a focused input is under 16px. */
-  .toolbar input,.toolbar select,.field input,.field select{font-size:16px}
-  .perms label{min-height:44px}
+/* Settings (accounts) — only what is specific to this page. */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); font-weight: 700; padding: 14px 16px; border-bottom: 1px solid var(--line); background: #FCFAF8; }
+td { padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+tr.inactive td { opacity: .6; }
+.who { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.nm { font-weight: 600; }
+.em { color: var(--text-2); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.tag.member { background: #F0EAE6; color: var(--text-2); }   /* here "member" is a role, not a status */
+.seen { font: 400 12px/1.4 var(--font-mono); color: var(--text-2); }
+.rowacts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.rowacts button { min-height: 36px; padding: 0 12px; border-radius: var(--r-sm); border: 1px solid var(--line-2); background: #fff; font-weight: 600; font-size: 12px; color: var(--text-2); }
+.rowacts button:hover { color: var(--text); border-color: var(--text-3); }
+.rowacts button.danger:hover { color: var(--coral-deep); border-color: #EBC1BD; }
+.perms { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 6px; }
+.perms label { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: 500; color: var(--text); cursor: pointer; text-transform: capitalize; min-height: 36px; margin: 0; }
+.perms input[type=checkbox] { width: 18px; height: 18px; flex: none; margin: 0; accent-color: var(--coral-deep); }
+
+/* On phones each person becomes a card: a wide table clips its row actions off-screen. */
+@media (max-width: 899px) {
+  th.hide, td.hide { display: none; }
+  .panel table, .panel tbody, .panel tr, .panel td { display: block; width: 100%; }
+  .panel thead { display: none; }
+  .panel tr { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .panel tr:last-child { border-bottom: 0; }
+  .panel td { border: 0; padding: 5px 0; }
+  .panel td:first-child { padding-top: 0; }
+  .panel td.hide { display: block; }
+  .rowacts { justify-content: flex-start; gap: 8px; margin-top: 4px; }
+  .rowacts button { flex: 1 1 auto; min-width: calc(50% - 4px); min-height: var(--tap); }
 }
 </style>
 </head>
@@ -103,8 +52,6 @@ tr.inactive td{opacity:.55}
       <p class="lead">Add people, change what they can reach, and reset passwords. Only administrators can open this page.</p>
     </div>
     <div class="actions">
-      <a class="btn" href="/finance.html">Finance</a>
-      <button class="btn" id="btnSignOut">Sign out</button>
       <button class="btn primary" id="btnAdd">＋ Add person</button>
     </div>
   </header>
@@ -147,14 +94,18 @@ tr.inactive td{opacity:.55}
 <div id="toast"></div>
 
 <script type="module">
-import { requireSession, signOut } from "/src/lib/auth.js";
+import { mountShell } from "/src/lib/shell.js";
+import { requireSession } from "/src/lib/auth.js";
 import { isConfigured } from "/src/lib/db.js";
 import { listUsers, createUser, updateUser, setUserPassword, setUserActive, deleteUser } from "/src/lib/admin.js";
 import { showModeBadge } from "/src/lib/status.js";
 
+/* Paint the frame immediately; fill in who is signed in once we know. */
+const shell = mountShell({ active: "settings" });
+
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
-const AV = ["#F7746D","#3F7A63","#A97613","#5B5470","#2F6E8F","#8A4A6B","#4C6B3F"];
+const AV = ["#B63D35","#2F6B55","#8A5F0C","#5B5470","#2F6E8F","#8A4A6B","#4C6B3F"];
 const avColor = (n) => AV[[...String(n||"?")].reduce((a,c)=>a+c.charCodeAt(0),0) % AV.length];
 const initials = (n) => String(n||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
 const PERMS = ["finance","approve","refund","people","payouts","calendar","followups"];
@@ -448,7 +399,6 @@ $("#rows").addEventListener("click", (e) => {
 });
 
 $("#btnAdd").addEventListener("click", addPerson);
-$("#btnSignOut").addEventListener("click", () => signOut());
 $("#q").addEventListener("input", (e) => { state.q = e.target.value; render(); });
 $("#filterRole").addEventListener("change", (e) => { state.role = e.target.value; render(); });
 $("#filterStatus").addEventListener("change", (e) => { state.status = e.target.value; render(); });
@@ -462,8 +412,11 @@ async function refresh(){
   render();
 }
 
+const skeletonRows = (n) => Array.from({ length:n }, () => '<div class="skel-row"><div class="skeleton"></div><div><div class="skeleton" style="width:40%;height:14px"></div><div class="skeleton" style="width:60%;height:12px"></div></div></div>').join("");
+
 async function start(){
   if(!isConfigured){
+    shell.update({ mode:"demo" });
     users = DEMO;
     callerId = "p1";
     live = false;
@@ -473,8 +426,10 @@ async function start(){
     return showModeBadge({ mode:"demo", portal:"Accounts" });
   }
 
+  $("#empty").hidden = false; $("#empty").innerHTML = skeletonRows(5);
   const session = await requireSession({ adminOnly:true });
   if(!session) return;           /* redirected or gated */
+  shell.update(session);
 
   try {
     live = true;

@@ -7,99 +7,44 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/styles/system.css">
 <style>
-:root{--coral:#F7746D;--coral-deep:#C8483F;--coral-wash:#FDECEA;--ink:#17151C;--paper:#FAF7F5;--card:#fff;--line:#E9E2DD;--line-2:#D8CFC8;--text:#1E1B22;--text-2:#6A6371;--text-3:#9A9299;--sage:#3F7A63;--sage-wash:#E7F1EC;--amber:#A97613;--amber-wash:#FBF0DC;--blue:#2F6E8F;--blue-wash:#E6F0F5;--mono:"IBM Plex Mono",ui-monospace,monospace}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--paper);color:var(--text);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:inherit;text-decoration:none}
-button{font-family:inherit;cursor:pointer}
-.wrap{max-width:860px;margin:0 auto;padding:32px 20px 90px}
-header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:22px}
-.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2);font-weight:700}
-h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-spacing:-.04em;margin:10px 0 8px}
-.lead{color:var(--text-2);line-height:1.5;max-width:560px}
-.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{padding:10px 16px;border-radius:9px;border:1px solid var(--line-2);background:#fff;color:var(--text);font-weight:600;font-size:14px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
-.btn:hover{border-color:var(--text-3)}
-.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
-.btn:disabled{opacity:.55;cursor:default}
-.banner{background:var(--amber-wash);border:1px solid #E8D5A8;color:var(--amber);padding:13px 16px;border-radius:12px;font-size:14px;line-height:1.5;margin-bottom:18px}
+/* Follow-ups — only what is specific to this page. */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; box-shadow: var(--sh-1); }
+.stat b { display: block; font: 800 clamp(22px, 5vw, 28px)/1 var(--font-head); letter-spacing: -.03em; }
+.stat span { font-size: var(--fs-xs); color: var(--text-2); font-weight: 600; }
+.stat.hot b { color: var(--coral-deep); }
+.tabs { margin-bottom: 12px; }
+@media (max-width: 899px) { .tabs { width: 100%; } }
 
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-.stat b{display:block;font:800 28px/1 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em}
-.stat span{font-size:12px;color:var(--text-2);font-weight:600}
-.stat.hot b{color:var(--coral-deep)}
+.group { margin-bottom: 22px; }
+.group h2 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); font-weight: 700; margin: 0 2px 8px; }
+.group h2.late { color: var(--coral-deep); }
+.card { padding: 14px 16px; margin-bottom: 8px; }
+.card.late { border-left: 4px solid var(--coral); }
+.card.fin { opacity: .72; }
+.row1 { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.who { font-weight: 700; font-size: var(--fs-md); }
+.what { color: var(--text); margin-top: 3px; line-height: 1.4; }
+.meta { display: flex; gap: 6px 10px; flex-wrap: wrap; margin-top: 8px; align-items: center; font-size: var(--fs-xs); color: var(--text-2); }
+.due { font: 500 12px/1.4 var(--font-mono); white-space: nowrap; color: var(--text-2); }
+.due.late { color: var(--coral-deep); font-weight: 600; }
+.outcome { margin-top: 8px; font-size: var(--fs-sm); color: var(--text-2); line-height: 1.45; border-left: 2px solid var(--line-2); padding-left: 10px; }
+.acts { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.acts a, .acts button { min-height: 40px; padding: 0 14px; border-radius: var(--r-sm); border: 1px solid var(--line-2); background: #fff; font-weight: 600; font-size: var(--fs-sm); color: var(--text-2); display: inline-flex; align-items: center; justify-content: center; }
+.acts a:hover, .acts button:hover { color: var(--text); border-color: var(--text-3); }
+.acts .log { background: var(--coral); border-color: var(--coral); color: var(--ink); }
+.acts .log:hover { background: #F5645C; color: var(--ink); }
+@media (max-width: 599px) { .acts a, .acts button { flex: 1 1 auto; min-height: var(--tap); } }
 
-.tabs{display:flex;gap:6px;margin-bottom:12px;background:#F0EAE6;padding:4px;border-radius:11px;width:max-content;max-width:100%}
-.tabs button{border:0;background:none;padding:8px 14px;border-radius:8px;font-weight:600;font-size:14px;line-height:1;color:var(--text-2)}
-.tabs button[aria-pressed="true"]{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(23,21,28,.1)}
-.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-.toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--line-2);border-radius:9px;font-weight:400;font-size:14px;line-height:1;background:#fff;color:inherit}
-.toolbar input{flex:1;min-width:180px}
-
-.group{margin-bottom:22px}
-.group h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);font-weight:700;margin:0 2px 8px;display:flex;gap:8px;align-items:center}
-.group h2.late{color:var(--coral-deep)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:8px}
-.card.late{border-left:3px solid var(--coral)}
-.card.fin{opacity:.7}
-.row1{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.who{font-weight:700;font-size:16px}
-.who small{font-weight:500;color:var(--text-2);font-size:13px;margin-left:6px}
-.what{color:var(--text);margin-top:3px;line-height:1.4}
-.meta{display:flex;gap:6px 10px;flex-wrap:wrap;margin-top:8px;align-items:center;font-size:12px;color:var(--text-2)}
-.tag{display:inline-block;padding:3px 8px;border-radius:999px;font-weight:700;font-size:11px;line-height:1.25;background:#F0EAE6;color:var(--text-2)}
-.tag.visitor{background:var(--blue-wash);color:var(--blue)}
-.tag.high{background:var(--coral-wash);color:var(--coral-deep)}
-.tag.snooze{background:var(--amber-wash);color:var(--amber)}
-.tag.done{background:var(--sage-wash);color:var(--sage)}
-.due{font-family:var(--mono);font-size:12px;white-space:nowrap}
-.due.late{color:var(--coral-deep);font-weight:500}
-.outcome{margin-top:8px;font-size:13px;color:var(--text-2);line-height:1.45;border-left:2px solid var(--line-2);padding-left:10px}
-.acts{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
-.acts a,.acts button{padding:8px 12px;border-radius:8px;border:1px solid var(--line-2);background:#fff;font-weight:600;font-size:13px;line-height:1;color:var(--text-2);display:inline-flex;align-items:center}
-.acts a:hover,.acts button:hover{color:var(--text);border-color:var(--text-3)}
-.acts .go{background:var(--sage);border-color:var(--sage);color:#fff}
-.acts .go:hover{color:#fff;opacity:.92}
-.acts .log{background:var(--coral);border-color:var(--coral);color:#fff}
-.acts .log:hover{color:#fff;opacity:.92}
-.empty{padding:44px 20px;text-align:center;color:var(--text-2);background:var(--card);border:1px dashed var(--line-2);border-radius:14px;line-height:1.5}
-.empty b{display:block;color:var(--text);font-size:17px;margin-bottom:4px}
-
-.scrim{position:fixed;inset:0;background:rgba(23,21,28,.42);display:grid;place-items:center;z-index:60;padding:20px}
-.modal{background:#fff;border-radius:18px;width:min(520px,100%);max-height:90vh;overflow:auto;padding:26px}
-.modal h2{font:800 23px/1.1 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;margin-bottom:6px}
-.modal p.sub{color:var(--text-2);font-size:14px;line-height:1.5;margin-bottom:16px}
-.field{margin-bottom:13px}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px}
-.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--line-2);border-radius:9px;font-weight:400;font-size:15px;line-height:1.3;background:#fff;color:inherit}
-.field textarea{min-height:84px;resize:vertical}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.seg{display:flex;gap:6px;flex-wrap:wrap}
-.seg button{padding:9px 13px;border-radius:999px;border:1px solid var(--line-2);background:#fff;font-weight:600;font-size:13px;line-height:1;color:var(--text-2)}
-.seg button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
-.hist{margin:4px 0 14px;border-top:1px solid var(--line);padding-top:10px}
-.hist h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
-.hist li{list-style:none;font-size:13px;color:var(--text-2);line-height:1.45;padding:4px 0}
-.hist li b{color:var(--text);font-weight:600}
-.modal .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap}
-.modal .err{color:var(--coral-deep);font-size:14px;line-height:1.45;margin-top:12px;min-height:1.2em}
-#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,14px);opacity:0;background:var(--ink);color:#fff;padding:11px 17px;border-radius:9px;font-size:13px;font-weight:500;z-index:80;transition:opacity .2s,transform .2s;pointer-events:none;max-width:min(520px,90vw)}
-#toast.on{opacity:1;transform:translate(-50%,0)}
-
-@media(max-width:760px){
-  .wrap{padding:24px 16px 100px}
-  .stat b{font-size:24px}
-  .tabs{width:100%}
-  .tabs button{flex:1}
-  .acts a,.acts button{flex:1 1 auto;justify-content:center}
-  .two{grid-template-columns:1fr}
-}
-@media(max-width:760px),(pointer:coarse){
-  .btn,.acts a,.acts button,.seg button,.tabs button{min-height:44px}
-  .toolbar input,.toolbar select,.field input,.field select,.field textarea{min-height:44px;font-size:16px}
-}
+.hist { margin: 4px 0 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.hist h3 { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+.hist li { list-style: none; font-size: var(--fs-sm); color: var(--text-2); line-height: 1.45; padding: 4px 0; }
+.hist li b { color: var(--text); font-weight: 600; }
+.seg { flex-wrap: wrap; background: none; padding: 0; gap: 6px; width: auto !important; }
+.seg button { flex: none; border: 1px solid var(--line-2); background: #fff; border-radius: var(--r-full); min-height: 40px; }
+.seg button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; box-shadow: none; }
 </style>
 </head>
 <body>
@@ -111,7 +56,6 @@ h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-sp
       <p class="lead">Everyone who needs a call, a visit, or a note — in the order they need it.</p>
     </div>
     <div class="actions">
-      <a class="btn" href="/index.html">Portal</a>
       <button class="btn primary" id="btnAdd">＋ Add follow-up</button>
     </div>
   </header>
@@ -140,9 +84,13 @@ h1{font:800 clamp(30px,5vw,42px)/1.02 "Bricolage Grotesque",sans-serif;letter-sp
 <div id="toast"></div>
 
 <script type="module">
+import { mountShell } from "/src/lib/shell.js";
 import { requireSession } from "/src/lib/auth.js";
 import { loadFollowUpSnapshot, loadInteractions, createFollowUp, updateFollowUp, logInteraction } from "/src/lib/api.js";
 import { showModeBadge } from "/src/lib/status.js";
+
+/* Paint the frame immediately; fill in who is signed in once we know. */
+const shell = mountShell({ active: "followups" });
 
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -449,10 +397,14 @@ $("#filterKind").addEventListener("change", (e) => { state.kind = e.target.value
 $("#btnAdd").addEventListener("click", openAdd);
 
 /* ---------------- start ---------------- */
+const skeletonCards = (n) => Array.from({ length:n }, () => '<div class="card"><div class="skeleton" style="width:45%;height:16px;margin-bottom:10px"></div><div class="skeleton" style="width:80%;height:13px"></div></div>').join("");
+
 async function start(){
+  $("#list").innerHTML = skeletonCards(4);
   try {
     const session = await requireSession({ followupsOnly:true });
     if (!session) return;
+    shell.update(session);
 
     if (session.mode === "demo") {
       const d = demoData();

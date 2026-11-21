@@ -68,5 +68,13 @@ export function showModeBadge({ mode, portal, error } = {}) {
   if (mode === "error" && error) badge.title = error;
 
   document.body.appendChild(badge);
+
+  /* "Live" is reassurance, not information worth keeping on screen: it fades away.
+     Demo and error stay, because someone looking at them needs to know. */
+  if (mode === "ready") {
+    badge.style.transition = "opacity .6s";
+    setTimeout(() => { badge.style.opacity = "0"; }, 3500);
+    setTimeout(() => badge.remove(), 4300);
+  }
   return badge;
 }
